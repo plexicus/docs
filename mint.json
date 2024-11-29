@@ -48,41 +48,38 @@
       "icon": "newspaper",
       "url": "https://www.plexicus.com/blog"
     }
-  ],
+  ],  
   "navigation": [
     {
       "group": "Get Started",
       "pages": [
         "introduction",
-        "quickstart",
-        "development"
+        "quickstart"
       ]
     },
     {
-      "group": "Essentials",
+      "group": "How-to Guides",
       "pages": [
-        "essentials/markdown",
-        "essentials/code",
-        "essentials/images",
-        "essentials/settings",
-        "essentials/navigation",
-        "essentials/reusable-snippets"
+        "guides/muting-findings"
       ]
     },
     {
-      "group": "API Documentation",
+      "group": "SCM Integrations",
       "pages": [
-        "api-reference/introduction"
+        "integrations/github",
+        "integrations/gitlab",
+        "integrations/bitbucket"        
       ]
-    },
+    }.
     {
-      "group": "Endpoint Examples",
+      "group": "Cloud Integrations",
       "pages": [
-        "api-reference/endpoint/get",
-        "api-reference/endpoint/create",
-        "api-reference/endpoint/delete"
+        "integrations/aws",
+        "integrations/azure",
+        "integrations/gcp"        
       ]
     }
+    
   ],
   "footerSocials": {
     "x": "https://x.com/plexicus_cyber",
