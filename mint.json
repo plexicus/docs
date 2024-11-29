@@ -6,7 +6,7 @@
     "light": "/logo/light.png",
     "href": "https://www.plexicus.com"    
   },
-  "favicon": "/favicon.svg",
+  "favicon": "/favicon.webp",
   "colors": {
     "primary": "#9933ff",
     "light": "#a64dff",
