@@ -84,5 +84,12 @@
     "x": "https://x.com/plexicus_cyber",
     "github": "https://github.com/plexicus",
     "linkedin": "https://linkedin.com/company/plexicus"
-  }
+  },
+  "openapi": "api-reference/openapi.json",
+  "api": {
+    "baseUrl": "https://api.covulor.plexicus.com",
+    "playground": {
+      "mode": "simple"
+    }
+  }  
 }
