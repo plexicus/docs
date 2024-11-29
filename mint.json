@@ -70,7 +70,7 @@
         "integrations/gitlab",
         "integrations/bitbucket"        
       ]
-    }.
+    },
     {
       "group": "Cloud Integrations",
       "pages": [
