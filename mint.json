@@ -34,19 +34,19 @@
   ],
   "anchors": [
     {
-      "name": "Documentation",
-      "icon": "book-open-cover",
-      "url": "https://mintlify.com/docs"
+      "name": "GitHub App",
+      "icon": "code-simple",
+      "url": "https://github.com/apps/plexicus"
     },
     {
-      "name": "Community",
-      "icon": "slack",
-      "url": "https://mintlify.com/community"
+      "name": "GitHub Action",
+      "icon": "circle-play",
+      "url": "https://github.com/marketplace/actions/plexicus-runner-action"
     },
     {
       "name": "Blog",
       "icon": "newspaper",
-      "url": "https://mintlify.com/blog"
+      "url": "https://www.plexicus.com/blog"
     }
   ],
   "navigation": [
