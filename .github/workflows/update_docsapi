@@ -1,0 +1,35 @@
+name: Update Docs with Filtered OpenAPI
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'docs/api-reference/openapi.json'
+  workflow_dispatch:
+
+jobs:
+  update_docs:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.9"
+
+    - name: Install dependencies
+      run: |
+        pip install -r requirements.txt
+
+    - name: Filter OpenAPI Spec
+      run: |
+        python docs/scripts/filter_openapi.py
+
+    - name: Generate Documentation
+      run: |
+        # Command to generate documentation using Mintlify
+        mintlify generate
