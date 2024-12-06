@@ -117,7 +117,7 @@ def save_to_file(content, file_path):
         file.write(content)
 
 if __name__ == "__main__":
-    GITHUB_TOKEN = "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"  # Replace with Owner/s' GitHub token
+    GITHUB_TOKEN = "place-github-token"  # Replace with Owner/s' GitHub token
     owner = "plexicus"
     repositories = [
         {"name": "platform", "branch": "main", "title": "Backend", "file": "docs/version-v25.1.1/backend.mdx"},
