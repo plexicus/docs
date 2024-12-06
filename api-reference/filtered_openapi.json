@@ -1,0 +1,1503 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "FastAPI",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/findings": {
+      "get": {
+        "summary": "Get Findings",
+        "operationId": "get_findings_findings_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "pagination_page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 0,
+              "title": "Pagination Page"
+            }
+          },
+          {
+            "name": "pagination_pageSize",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 25,
+              "title": "Pagination Pagesize"
+            }
+          },
+          {
+            "name": "pagination_with_count",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": true,
+              "title": "Pagination With Count"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "asc",
+              "title": "Sort"
+            }
+          },
+          {
+            "name": "sort_field",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "_id",
+              "title": "Sort Field"
+            }
+          },
+          {
+            "name": "pagination_active",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": true,
+              "title": "Pagination Active"
+            }
+          },
+          {
+            "name": "fields",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Fields"
+            }
+          },
+          {
+            "name": "finding_type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "default": "app",
+              "title": "Finding Type"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/findings_by_repo_chart": {
+      "get": {
+        "summary": "Findings By Repo Chart",
+        "operationId": "findings_by_repo_chart_findings_by_repo_chart_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "max_repos",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 25,
+              "title": "Max Repos"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/findings_chart": {
+      "get": {
+        "summary": "Findings Chart",
+        "operationId": "findings_chart_findings_chart_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "start_date",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Start Date"
+            }
+          },
+          {
+            "name": "end_date",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "End Date"
+            }
+          },
+          {
+            "name": "max_dates",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 10,
+              "title": "Max Dates"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/owasp_chart": {
+      "get": {
+        "summary": "Owasp Chart",
+        "operationId": "owasp_chart_owasp_chart_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/owasp_cicd_chart": {
+      "get": {
+        "summary": "Owasp Cicd Chart",
+        "operationId": "owasp_cicd_chart_owasp_cicd_chart_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/slsa_threats_chart": {
+      "get": {
+        "summary": "Slsa Threats Chart",
+        "operationId": "slsa_threats_chart_slsa_threats_chart_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "threat_type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Threat Type"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/supply_chain_chart": {
+      "get": {
+        "summary": "Supply Chain Chart",
+        "operationId": "supply_chain_chart_supply_chain_chart_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/total_findings_chart": {
+      "get": {
+        "summary": "Total Findings Chart",
+        "operationId": "total_findings_chart_total_findings_chart_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "start_date",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Start Date"
+            }
+          },
+          {
+            "name": "end_date",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "End Date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/repositories": {
+      "get": {
+        "summary": "Get Repositories",
+        "operationId": "get_repositories_repositories_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "pagination_page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 0,
+              "title": "Pagination Page"
+            }
+          },
+          {
+            "name": "pagination_pageSize",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 25,
+              "title": "Pagination Pagesize"
+            }
+          },
+          {
+            "name": "pagination_with_count",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": true,
+              "title": "Pagination With Count"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "asc",
+              "title": "Sort"
+            }
+          },
+          {
+            "name": "sort_field",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "_id",
+              "title": "Sort Field"
+            }
+          },
+          {
+            "name": "pagination_active",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": true,
+              "title": "Pagination Active"
+            }
+          },
+          {
+            "name": "fields",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Fields"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "BillingUpdate": {
+        "properties": {
+          "legal_name": {
+            "type": "string",
+            "title": "Legal Name"
+          },
+          "credit_card": {
+            "type": "string",
+            "title": "Credit Card"
+          },
+          "address": {
+            "type": "string",
+            "title": "Address"
+          }
+        },
+        "type": "object",
+        "required": [
+          "legal_name",
+          "credit_card",
+          "address"
+        ],
+        "title": "BillingUpdate"
+      },
+      "ClientCreateNotifications": {
+        "properties": {
+          "workflow": {
+            "type": "string",
+            "title": "Workflow"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "notification_type": {
+            "type": "string",
+            "title": "Notification Type"
+          },
+          "finding_id": {
+            "type": "string",
+            "title": "Finding Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "message"
+        ],
+        "title": "ClientCreateNotifications"
+      },
+      "ClientOpenAI": {
+        "properties": {
+          "api_key": {
+            "type": "string",
+            "title": "Api Key"
+          },
+          "api_base": {
+            "type": "string",
+            "title": "Api Base"
+          },
+          "api_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Api Version"
+          },
+          "deployment_name": {
+            "type": "string",
+            "title": "Deployment Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "api_key",
+          "api_base",
+          "deployment_name"
+        ],
+        "title": "ClientOpenAI"
+      },
+      "CreateIssueTriggerData": {
+        "properties": {
+          "remediation_id": {
+            "type": "string",
+            "title": "Remediation Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "remediation_id"
+        ],
+        "title": "CreateIssueTriggerData"
+      },
+      "CreateRemediationsWithList": {
+        "properties": {
+          "findings": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Findings"
+          }
+        },
+        "type": "object",
+        "required": [
+          "findings"
+        ],
+        "title": "CreateRemediationsWithList"
+      },
+      "CreateRepositoryTriggerData": {
+        "properties": {
+          "active": {
+            "type": "boolean",
+            "title": "Active"
+          },
+          "nickname": {
+            "type": "string",
+            "title": "Nickname"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "uri": {
+            "type": "string",
+            "title": "Uri"
+          },
+          "type": {
+            "type": "string",
+            "title": "Type"
+          },
+          "source_control": {
+            "type": "string",
+            "title": "Source Control"
+          },
+          "data": {
+            "type": "object",
+            "title": "Data"
+          }
+        },
+        "type": "object",
+        "required": [
+          "active",
+          "nickname",
+          "uri",
+          "type",
+          "source_control",
+          "data"
+        ],
+        "title": "CreateRepositoryTriggerData"
+      },
+      "CreateRepositoryWithListTriggerData": {
+        "properties": {
+          "data": {
+            "items": {},
+            "type": "array",
+            "title": "Data"
+          },
+          "source_control": {
+            "type": "string",
+            "title": "Source Control",
+            "default": "github"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "CreateRepositoryWithListTriggerData"
+      },
+      "FindingColumns": {
+        "properties": {
+          "columns": {
+            "items": {
+              "$ref": "#/components/schemas/FindingSelectedColumn"
+            },
+            "type": "array",
+            "title": "Columns"
+          }
+        },
+        "type": "object",
+        "required": [
+          "columns"
+        ],
+        "title": "FindingColumns"
+      },
+      "FindingFiltersData": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "filters": {
+            "items": {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Filters"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "filters"
+        ],
+        "title": "FindingFiltersData"
+      },
+      "FindingInputTriggerData": {
+        "properties": {
+          "auto_validation": {
+            "type": "boolean",
+            "title": "Auto Validation"
+          },
+          "data_source": {
+            "type": "string",
+            "title": "Data Source"
+          },
+          "file_path": {
+            "type": "string",
+            "title": "File Path"
+          },
+          "issue_owner": {
+            "type": "string",
+            "title": "Issue Owner"
+          },
+          "language": {
+            "type": "string",
+            "title": "Language"
+          },
+          "line": {
+            "type": "integer",
+            "title": "Line"
+          },
+          "original_line": {
+            "type": "integer",
+            "title": "Original Line"
+          },
+          "repo_id": {
+            "type": "string",
+            "title": "Repo Id"
+          },
+          "repository_branch": {
+            "type": "string",
+            "title": "Repository Branch"
+          },
+          "scan_id": {
+            "type": "string",
+            "title": "Scan Id"
+          },
+          "scanner_report_code": {
+            "type": "string",
+            "title": "Scanner Report Code"
+          },
+          "severity": {
+            "type": "string",
+            "title": "Severity"
+          },
+          "single_line_code": {
+            "type": "string",
+            "title": "Single Line Code"
+          },
+          "source_control": {
+            "type": "string",
+            "title": "Source Control"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "tool": {
+            "type": "string",
+            "title": "Tool"
+          },
+          "tool_id": {
+            "type": "string",
+            "title": "Tool Id"
+          },
+          "url": {
+            "type": "string",
+            "title": "Url"
+          }
+        },
+        "type": "object",
+        "required": [
+          "auto_validation",
+          "data_source",
+          "file_path",
+          "issue_owner",
+          "language",
+          "line",
+          "original_line",
+          "repo_id",
+          "repository_branch",
+          "scan_id",
+          "severity",
+          "single_line_code",
+          "source_control",
+          "title",
+          "tool",
+          "tool_id",
+          "url"
+        ],
+        "title": "FindingInputTriggerData"
+      },
+      "FindingSelectedColumn": {
+        "properties": {
+          "sort": {
+            "type": "string",
+            "title": "Sort"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "key": {
+            "type": "string",
+            "title": "Key"
+          },
+          "index": {
+            "type": "integer",
+            "title": "Index"
+          }
+        },
+        "type": "object",
+        "required": [
+          "sort",
+          "label",
+          "key",
+          "index"
+        ],
+        "title": "FindingSelectedColumn"
+      },
+      "FindingTransferData": {
+        "properties": {
+          "developer_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Developer Ids"
+          }
+        },
+        "type": "object",
+        "required": [
+          "developer_ids"
+        ],
+        "title": "FindingTransferData"
+      },
+      "FindingTransferDataBulk": {
+        "properties": {
+          "developer_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Developer Ids"
+          },
+          "finding_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Finding Ids"
+          }
+        },
+        "type": "object",
+        "required": [
+          "developer_ids",
+          "finding_ids"
+        ],
+        "title": "FindingTransferDataBulk"
+      },
+      "FindingValidationTriggerData": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "single_line_code": {
+            "type": "string",
+            "title": "Single Line Code"
+          }
+        },
+        "type": "object",
+        "required": [
+          "title",
+          "description",
+          "single_line_code"
+        ],
+        "title": "FindingValidationTriggerData"
+      },
+      "GithubUserData": {
+        "properties": {
+          "installation_id": {
+            "type": "string",
+            "title": "Installation Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "installation_id"
+        ],
+        "title": "GithubUserData"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "ImporterTriggerData": {
+        "properties": {
+          "ext": {
+            "type": "string",
+            "title": "Ext"
+          },
+          "file": {
+            "type": "string",
+            "title": "File"
+          },
+          "tool": {
+            "type": "string",
+            "title": "Tool"
+          }
+        },
+        "type": "object",
+        "required": [
+          "ext",
+          "file",
+          "tool"
+        ],
+        "title": "ImporterTriggerData"
+      },
+      "InvitationTeam": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "title": "Email"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "admin",
+              "cyberoper",
+              "developer"
+            ],
+            "title": "Role"
+          }
+        },
+        "type": "object",
+        "required": [
+          "email",
+          "role"
+        ],
+        "title": "InvitationTeam"
+      },
+      "PasswordResetConfirm": {
+        "properties": {
+          "token": {
+            "type": "string",
+            "title": "Token"
+          },
+          "new_password": {
+            "type": "string",
+            "title": "New Password"
+          }
+        },
+        "type": "object",
+        "required": [
+          "token",
+          "new_password"
+        ],
+        "title": "PasswordResetConfirm"
+      },
+      "PasswordResetRequest": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "title": "Email"
+          }
+        },
+        "type": "object",
+        "required": [
+          "email"
+        ],
+        "title": "PasswordResetRequest"
+      },
+      "PullRequestTriggerData": {
+        "properties": {
+          "remediation_id": {
+            "type": "string",
+            "title": "Remediation Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "remediation_id"
+        ],
+        "title": "PullRequestTriggerData"
+      },
+      "PullRequestWithListTriggerData": {
+        "properties": {
+          "remediations": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Remediations"
+          },
+          "allowed_types": {
+            "type": "string",
+            "title": "Allowed Types",
+            "default": "all"
+          }
+        },
+        "type": "object",
+        "required": [
+          "remediations"
+        ],
+        "title": "PullRequestWithListTriggerData"
+      },
+      "ReceiveRepoScanTriggerData": {
+        "properties": {
+          "findings": {
+            "type": "object",
+            "title": "Findings"
+          },
+          "request_id": {
+            "type": "string",
+            "title": "Request Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "findings",
+          "request_id"
+        ],
+        "title": "ReceiveRepoScanTriggerData"
+      },
+      "RemediationFillTemplate": {
+        "properties": {
+          "template_fields": {
+            "type": "object",
+            "title": "Template Fields"
+          }
+        },
+        "type": "object",
+        "required": [
+          "template_fields"
+        ],
+        "title": "RemediationFillTemplate"
+      },
+      "RequestRepoScanTriggerData": {
+        "properties": {
+          "repository_id": {
+            "type": "string",
+            "title": "Repository Id"
+          },
+          "source_control": {
+            "type": "string",
+            "title": "Source Control"
+          },
+          "url": {
+            "type": "string",
+            "title": "Url"
+          },
+          "repository_branch": {
+            "type": "string",
+            "title": "Repository Branch"
+          },
+          "files": {
+            "items": {},
+            "type": "array",
+            "title": "Files",
+            "default": []
+          },
+          "scan_type": {
+            "type": "string",
+            "title": "Scan Type",
+            "default": "app"
+          }
+        },
+        "type": "object",
+        "title": "RequestRepoScanTriggerData"
+      },
+      "SaveTokenTriggerData": {
+        "properties": {
+          "token": {
+            "type": "string",
+            "title": "Token"
+          },
+          "source_control": {
+            "type": "string",
+            "title": "Source Control",
+            "default": "github"
+          }
+        },
+        "type": "object",
+        "required": [
+          "token"
+        ],
+        "title": "SaveTokenTriggerData"
+      },
+      "SemgrepCliData": {
+        "properties": {
+          "token": {
+            "type": "string",
+            "title": "Token"
+          },
+          "config": {
+            "type": "string",
+            "title": "Config"
+          }
+        },
+        "type": "object",
+        "required": [
+          "token",
+          "config"
+        ],
+        "title": "SemgrepCliData"
+      },
+      "UpdateDatabaseTriggerData": {
+        "properties": {
+          "collection_name": {
+            "type": "string",
+            "title": "Collection Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "collection_name"
+        ],
+        "title": "UpdateDatabaseTriggerData"
+      },
+      "UploadScanTriggerData": {
+        "properties": {
+          "client_user_id": {
+            "type": "string",
+            "title": "Client User Id"
+          },
+          "tool": {
+            "type": "string",
+            "title": "Tool"
+          },
+          "ext": {
+            "type": "string",
+            "title": "Ext"
+          },
+          "file": {
+            "type": "string",
+            "title": "File"
+          }
+        },
+        "type": "object",
+        "required": [
+          "tool",
+          "ext",
+          "file"
+        ],
+        "title": "UploadScanTriggerData"
+      },
+      "User": {
+        "properties": {
+          "username": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Username"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "email"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "role": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Role"
+          },
+          "reset_token": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reset Token"
+          },
+          "reset_token_expires": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reset Token Expires"
+          }
+        },
+        "type": "object",
+        "title": "User"
+      },
+      "UserChangePassword": {
+        "properties": {
+          "old_password": {
+            "type": "string",
+            "title": "Old Password"
+          },
+          "password": {
+            "type": "string",
+            "title": "Password"
+          },
+          "confirm_password": {
+            "type": "string",
+            "title": "Confirm Password"
+          }
+        },
+        "type": "object",
+        "required": [
+          "old_password",
+          "password",
+          "confirm_password"
+        ],
+        "title": "UserChangePassword"
+      },
+      "UserFormLogin": {
+        "properties": {
+          "username": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Username"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "email"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "role": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Role"
+          },
+          "reset_token": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reset Token"
+          },
+          "reset_token_expires": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reset Token Expires"
+          },
+          "password": {
+            "type": "string",
+            "title": "Password"
+          }
+        },
+        "type": "object",
+        "required": [
+          "password"
+        ],
+        "title": "UserFormLogin"
+      },
+      "UserGoogleForm": {
+        "properties": {
+          "username": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Username"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "email"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "role": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Role"
+          },
+          "reset_token": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reset Token"
+          },
+          "reset_token_expires": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reset Token Expires"
+          },
+          "google_oauth_token": {
+            "type": "string",
+            "title": "Google Oauth Token"
+          },
+          "google_unique_id": {
+            "type": "string",
+            "title": "Google Unique Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "google_oauth_token",
+          "google_unique_id"
+        ],
+        "title": "UserGoogleForm"
+      },
+      "UserRegisterForm": {
+        "properties": {
+          "password": {
+            "type": "string",
+            "title": "Password"
+          },
+          "confirm_password": {
+            "type": "string",
+            "title": "Confirm Password"
+          },
+          "username": {
+            "type": "string",
+            "title": "Username"
+          },
+          "email": {
+            "type": "string",
+            "title": "Email"
+          }
+        },
+        "type": "object",
+        "required": [
+          "password",
+          "confirm_password",
+          "username",
+          "email"
+        ],
+        "title": "UserRegisterForm"
+      },
+      "UserVerifyRegisterForm": {
+        "properties": {
+          "password": {
+            "type": "string",
+            "title": "Password"
+          },
+          "confirm_password": {
+            "type": "string",
+            "title": "Confirm Password"
+          },
+          "username": {
+            "type": "string",
+            "title": "Username"
+          }
+        },
+        "type": "object",
+        "required": [
+          "password",
+          "confirm_password",
+          "username"
+        ],
+        "title": "UserVerifyRegisterForm"
+      },
+      "UserVerifySession": {
+        "properties": {
+          "otp_code": {
+            "type": "string",
+            "title": "Otp Code"
+          },
+          "secret": {
+            "type": "string",
+            "title": "Secret"
+          }
+        },
+        "type": "object",
+        "required": [
+          "otp_code",
+          "secret"
+        ],
+        "title": "UserVerifySession"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    },
+    "securitySchemes": {
+      "HTTPBearer": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    }
+  }
+}
