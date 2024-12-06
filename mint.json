@@ -30,15 +30,24 @@
     {
       "name": "API",
       "url": "api-reference"
+    },
+    {
+      "name": "Releases",
+      "url": "version-v24.12.6"
     }
   ],
   "anchors": [
     {
       "name": "API Reference",
-      "openapi": "/api-reference/openapi.json",
+      "openapi": "/api-reference/filtered_openapi.json",
       "url": "api-reference",
       "icon": "square-terminal"
     },    
+    {
+      "name": "Releases",
+      "url": "version-v24.12.6",
+      "icon": "book"
+    },
     {
       "name": "GitHub App",
       "icon": "code-simple",
@@ -61,6 +70,14 @@
       "pages": [
         "introduction",
         "quickstart"
+      ]
+    },
+    {
+      "group": "Version v24.12.6",
+      "pages": [
+        "version-v24.12.6/index",
+        "version-v24.12.6/frontend",
+        "version-v24.12.6/backend"
       ]
     },
     {
