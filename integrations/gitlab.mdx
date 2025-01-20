@@ -1,66 +1,43 @@
 ---
-title: 'Gitlab'
-description: 'The navigation field in mint.json defines the pages that go in the navigation menu'
-icon: 'map'
+title: "GitLab"
+description: "How to connecting GitLab into Plexicus"
+icon: "gitlab"
 ---
 
-The navigation menu is the list of links on every website.
+# Connecting GitLab to Your Application
 
-You will likely update `mint.json` every time you add a new page. Pages do not show up automatically.
+Follow these steps to connect your GitLab account:
 
-## Navigation syntax
+## 1. Access the Connector Page
 
-Our navigation syntax is recursive which means you can make nested navigation groups. You don't need to include `.mdx` in page names.
+- Log in to your account
+- Navigate to the Connector page
+- Find the SCM Panel
+- Click on the GitLab section
 
-<CodeGroup>
+<img src="/images/plexicus/connector.png" alt="Connector Page" />
 
-```json Regular Navigation
-"navigation": [
-    {
-        "group": "Getting Started",
-        "pages": ["quickstart"]
-    }
-]
-```
+## 2. Initiate the Connection
 
-```json Nested Navigation
-"navigation": [
-    {
-        "group": "Getting Started",
-        "pages": [
-            "quickstart",
-            {
-                "group": "Nested Reference Pages",
-                "pages": ["nested-reference-page"]
-            }
-        ]
-    }
-]
-```
+- It will show tab `Token`
+- Click the `Connect` button
 
-</CodeGroup>
+<img src="/images/plexicus/gitlab/panel.png" alt="Gitlab Panel" />
 
-## Folders
+## 3. Authorize GitLab Access
 
-Simply put your MDX files in folders and update the paths in `mint.json`.
+- Wait for the authorization process to complete
+- Grant necessary permissions for Plexicus to access your GitLab account
 
-For example, to have a page at `https://yoursite.com/your-folder/your-page` you would make a folder called `your-folder` containing an MDX file called `your-page.mdx`.
+<img src="/images/plexicus/gitlab/authorize.png" alt="GitLab Authorize" />
 
-<Warning>
+## 4. Finalize the Connection
 
-You cannot use `api` for the name of a folder unless you nest it inside another folder. Mintlify uses Next.js which reserves the top-level `api` folder for internal server calls. A folder name such as `api-reference` would be accepted.
+- You'll be redirected back to Plexicus
+- Verify that the connector is successfully configured
 
-</Warning>
+## Next Steps
 
-```json Navigation With Folder
-"navigation": [
-    {
-        "group": "Group Name",
-        "pages": ["your-folder/your-page"]
-    }
-]
-```
+You can now create an application using GitHub as your Source Control Management (SCM) system.
 
-## Hidden Pages
-
-MDX files not included in `mint.json` will not show up in the sidebar but are accessible through the search bar and by linking directly to them.
+<img src="/images/plexicus/applications.png" alt="Applications Page" />
