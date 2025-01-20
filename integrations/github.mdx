@@ -1,72 +1,55 @@
 ---
-title: 'Github'
-description: 'Example section for showcasing API endpoints'
-icon: 'code'
+title: "GitHub"
+description: "How to connecting GitHub into Plexicus"
+icon: "github"
 ---
 
-<Note>
-  If you're not looking to build API reference documentation, you can delete
-  this section by removing the api-reference folder.
-</Note>
+# Connecting GitHub to Your Application
 
-## Start Analyzing Your Repositories
+Follow these steps to connect your GitHub account:
 
-Follow these steps to set up your first repository analysis with Plexalyzer.
+## 1. Access the Connector Page
 
-## Analyze Your First GitHub Repository
+- Log in to your account
+- Navigate to the Connector page
+- Find the SCM Panel
+- Click on the GitHub section
 
-1. **Log in and Set Azure Credentials**  
-   Navigate to the setup page and enter the following:
+<img src="/images/plexicus/connector.png" alt="Connector Page" />
 
-   - **API Key**  
-   - **API Version** *(Optional)*  
-   - **Deployment Name**  
-   - **Base URL**  
+## 2. Initiate the Connection
 
-2. **Configure GitHub on the Connectors Page**  
-   - Connect your **GitHub Token**.  
-   - Connect your **Installation ID**.  
+- It will show tabs with the `Token` and `Installation ID`
+- Select the `Token` tab
+- Click the `Connect` button
 
-3. **Set Up Plexalyzer on the Connectors Page**  
-   - Generate your Plexalyzer **Token**.  
+<img src="/images/plexicus/github/panel.png" alt="GitHub Panel" />
 
-4. **Manage Repositories**  
-   - Go to the **Repositories Page**.  
-   - Click **Manage Repositories**.  
-   - Select **GitHub** and choose the repository you want to analyze.  
-   - Click the **Create Selected Repositories** button.  
+## 3. Authorize GitHub Access
 
-5. **Wait for Analysis**  
-   Plexalyzer will process the repository and analyze its contents for vulnerabilities.  
+- Wait for the authorization process to complete
+- Grant necessary permissions for Plexicus to access your GitHub account
 
-6. **View Findings**  
-   Once the analysis is complete, view the vulnerabilities and insights generated for your repository.
+<img src="/images/plexicus/github/authorize.png" alt="GitHub Authorize" />
 
----
+## 4. Install Plexicus Application
 
-This guide ensures you're ready to start leveraging Plexalyzer for repository analysis. For additional support, visit the [Help Center](#).
+- The Plexicus application will be installed on your GitHub account
+- Select the repositories you want to use with Plexicus
 
+<img src="/images/plexicus/github/installation.png" alt="GitHub Installation" />
+<img
+	src="/images/plexicus/github/install-authorize.png"
+	alt="GitHub Authorize Installation"
+/>
 
-## Welcome
+## 5. Finalize the Connection
 
-There are two ways to build API documentation: [OpenAPI](https://mintlify.com/docs/api-playground/openapi/setup) and [MDX components](https://mintlify.com/docs/api-playground/mdx/configuration). For the starter kit, we are using the following OpenAPI specification.
+- You'll be redirected back to Plexicus
+- Verify that the connector is successfully configured
 
-<Card
-  title="Plant Store Endpoints"
-  icon="leaf"
-  href="https://github.com/mintlify/starter/blob/main/api-reference/openapi.json"
->
-  View the OpenAPI specification file
-</Card>
+## Next Steps
 
-## Authentication
+You can now create an application using GitHub as your Source Control Management (SCM) system.
 
-All API endpoints are authenticated using Bearer tokens and picked up from the specification file.
-
-```json
-"security": [
-  {
-    "bearerAuth": []
-  }
-]
-```
+<img src="/images/plexicus/applications.png" alt="Applications Page" />
