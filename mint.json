@@ -44,11 +44,6 @@
 			"icon": "square-terminal"
 		},
 		{
-			"name": "Releases",
-			"url": "version-v24.12.6",
-			"icon": "book"
-		},
-		{
 			"name": "GitHub App",
 			"icon": "code-simple",
 			"url": "https://github.com/apps/plexicus"
