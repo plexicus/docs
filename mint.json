@@ -58,19 +58,39 @@
 	"navigation": [
 		{
 			"group": "Get Started",
-			"pages": ["introduction", "quickstart"]
+			"pages": [
+				"getting-started/introduction",
+				"getting-started/key-features",
+				"getting-started/quickstart"
+			]
 		},
 		{
-			"group": "SCM Integrations",
+			"group": "Connectors",
 			"pages": [
-				"integrations/github",
-				"integrations/gitlab",
-				"integrations/bitbucket"
+				{
+					"group": "SCM Integrations",
+					"pages": [
+						"integrations/github",
+						"integrations/gitlab",
+						"integrations/bitbucket"
+					]
+				}
 			]
 		},
 		{
 			"group": "Plexicus Flow",
 			"pages": ["applications/index", "findings/index"]
+		},
+		{
+			"group": "Settings",
+			"pages": [
+				"settings/change-password",
+				"settings/two-factor-authentication"
+			]
+		},
+		{
+			"group": "Organization",
+			"pages": ["organization/client"]
 		}
 	],
 	"footerSocials": {
