@@ -72,7 +72,8 @@
 					"pages": [
 						"integrations/github",
 						"integrations/gitlab",
-						"integrations/bitbucket"
+						"integrations/bitbucket",
+						"integrations/gitea"
 					]
 				}
 			]
