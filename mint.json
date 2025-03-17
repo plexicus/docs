@@ -75,6 +75,15 @@
 						"integrations/bitbucket",
 						"integrations/gitea"
 					]
+				},
+				{
+					"group": "Cloud Deployment",
+					"pages": [
+						"integrations/aws",
+						"integrations/azure",
+						"integrations/gcp",
+						"integrations/oci"
+					]
 				}
 			]
 		},
