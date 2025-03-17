@@ -1,37 +1,40 @@
 ---
-title: 'Azure'
-description: 'Display inline code and code blocks'
-icon: 'code'
+title: "Azure"
+description: "Connect Plexicus to your Azure environment"
 ---
 
-## Basic
+## Setup Instructions
 
-### Inline Code
+<Note>Please read below instruction before submitting the form!</Note>
 
-To denote a `word` or `phrase` as code, enclose it in backticks (`).
+1. Login to Azure Portal
+2. Type `App registrations` in top search, click it
+3. Click `New registration`
+   - Name: `security-audit`
+   - Leave other options default
+   - Click `Register`
+4. On the app page that opens, copy:
+   - Application (client) ID
+   - Directory (tenant) ID
+5. Click `Certificates & secrets` on left menu
+   - Click `New client secret`
+   - Description: `security-audit`
+   - Pick any expiry
+   - Click `Add`
+   - **COPY THE SECRET VALUE NOW (you won't see it again)**
+6. Type `Subscriptions` in top search, open it
+   - Copy your Subscription ID
+7. Click `Access control (IAM)`
+   - Click `Add role assignment`
+   - Pick `Reader` role
+   - Select your `security-audit` app
+   - Click `Review and assign`
 
-```
-To denote a `word` or `phrase` as code, enclose it in backticks (`).
-```
+---
 
-### Code Block
+**Done!** You now have all 4 values needed:
 
-Use [fenced code blocks](https://www.markdownguide.org/extended-syntax/#fenced-code-blocks) by enclosing code in three backticks and follow the leading ticks with the programming language of your snippet to get syntax highlighting. Optionally, you can also write the name of your code after the programming language.
-
-```java HelloWorld.java
-class HelloWorld {
-    public static void main(String[] args) {
-        System.out.println("Hello, World!");
-    }
-}
-```
-
-````md
-```java HelloWorld.java
-class HelloWorld {
-    public static void main(String[] args) {
-        System.out.println("Hello, World!");
-    }
-}
-```
-````
+- Client ID (from step 4)
+- Client Secret (from step 5)
+- Tenant ID (from step 4)
+- Subscription ID (from step 6)
