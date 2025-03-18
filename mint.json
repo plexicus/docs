@@ -71,7 +71,13 @@
 					"group": "SCM Integrations",
 					"pages": [
 						"integrations/github",
-						"integrations/gitlab",
+						{
+							"group": "GitLab",
+							"pages": [
+								"integrations/gitlab",
+								"integrations/gitlab/self-hosted"
+							]
+						},
 						"integrations/bitbucket",
 						"integrations/gitea"
 					]

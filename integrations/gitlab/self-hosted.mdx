@@ -1,0 +1,64 @@
+---
+title: "Self-Hosted"
+description: "Learn how to create an OAuth application and obtain a Client ID and Client Secret in GitLab Self-Hosted."
+---
+
+import Callout from "@mintlify/callout";
+import CodeBlock from "@mintlify/code-block";
+
+# Generate Client ID and Secret in GitLab Self-Hosted
+
+Follow these steps to create an **OAuth application** in GitLab Self-Hosted and obtain the **Client ID** and **Client Secret**.
+
+## 1. Register an OAuth Application
+
+1. Log in to your **GitLab Self-Hosted instance**.
+2. Navigate to **Admin Area** → **Applications** (`/admin/applications`),
+
+   <img src="/images/plexicus/gitlab/admin-self-hosted.png" alt="Admin Page" />
+
+3. or go to **User Settings** → **Applications** (`/-/profile/applications`) for user-specific tokens.
+
+   <img src="/images/plexicus/gitlab/general-user.png" alt="User Page" />
+
+4. Click **"New application"**.
+
+   <img
+   	src="/images/plexicus/gitlab/create-application.png"
+   	alt="New Application"
+   />
+
+5. Fill in the required details:
+
+   <img
+   	src="/images/plexicus/gitlab/form-application.png"
+   	alt="Form Application"
+   />
+
+- **Trusted**: Check this box for allowed **Plexicus** to use application credentials as a trusted first-party application.
+- **Name**: Enter a meaningful name for the application.
+- **Redirect URI**: Enter the callback URL where GitLab should redirect after authentication.
+- **Scopes**: Choose the required access levels, e.g., `api`, `read_repository`, `write_repository`.
+
+6. Click **"Save application"**.
+
+## 2. Get Client ID and Client Secret
+
+<img
+	src="/images/plexicus/gitlab/application-created.png"
+	alt="Application Created"
+/>
+
+After saving the application, GitLab will generate:
+
+- **Application ID (Client ID)**: Used as the `client_id`.
+- **Secret (Client Secret)**: Used as the `client_secret`.
+
+These credentials will be used in the next step to obtain an **access token**.
+
+<Warning>
+	Keep your **Client Secret** private and never expose it in public repositories
+	or frontend applications.
+</Warning>
+
+Next, you can proceed to exchanging an authorization code for an access token. 🚀
