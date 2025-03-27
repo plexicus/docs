@@ -35,20 +35,28 @@ Follow these steps to create an **OAuth application** in GitLab Self-Hosted and 
 - **Trusted**: Check this box for allowed **Plexicus** to use application credentials as a trusted first-party application.
 - **Name**: Enter a meaningful name for the application.
 - **Redirect URI**: Enter this callback URL: `https://covulor.plexicus.com/api/callback/gitlab`
-- **Scopes**: The following scopes are required:
-  - `api`: For basic API access
-  - `read_repository`: For repository read access
-  - `write_repository`: For repository write access
+- **Scopes**: The following scopes are required for different areas:
+
+  - `openid`: Required for OpenID Connect authentication
+  - `profile`: Access to basic profile information
+  - `email`: Access to user email information
+  - `read_api`: For basic API access to GitLab endpoints
+  - `read_user`: For accessing user information
+  - `read_repository`: For accessing repository data and branches, reading and accessing issues
+  - `write_repository`: For creating merge requests and managing webhooks, creating and managing issues
+  - `api`: For general API access to all repository endpoints, managing CI/CD variables and secrets. Creating, updating, and deleting webhooks
 
 6. Click **"Save application"**.
 
 ## 2. Get Client ID and Client Secret
 
 <Warning>
-	Make sure you have selected the required scopes (`api`, `read_repository`,
-	`write_repository`). The screenshot might show all scopes selected, but this
-	is just for demonstration purposes. Selecting unnecessary scopes may pose
-	security risks.
+	Ensure you select the required scopes (`openid`, `profile`, `email`,
+	`read_api`, `read_user`, `read_repository`, `write_repository`, `api`). While
+	the screenshot may display additional scopes, we follow the principle of least
+	privilege and only request permissions that are essential for Plexicus's
+	functionality. These scopes provide the minimum necessary access for
+	authentication and repository operations while maintaining security.
 </Warning>
 
 <img
