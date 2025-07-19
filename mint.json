@@ -22,12 +22,6 @@
 	},
 	"anchors": [
 		{
-			"name": "API Reference",
-			"openapi": "/api-reference/openapi.json",
-			"url": "api-reference",
-			"icon": "square-terminal"
-		},
-		{
 			"name": "GitHub App",
 			"icon": "code-simple",
 			"url": "https://github.com/apps/plexicus"
