@@ -20,12 +20,6 @@
 		"name": "Sign In",
 		"url": "https://covulor.plexicus.com"
 	},
-	"tabs": [
-		{
-			"name": "API",
-			"url": "api-reference"
-		}
-	],
 	"anchors": [
 		{
 			"name": "API Reference",
