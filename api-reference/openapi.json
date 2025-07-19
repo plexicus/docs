@@ -4,7 +4,7 @@
 	"paths": {
 		"/client": {
 			"get": {
-				"summary": "Get Client",
+				"summary": "Get Clients",
 				"operationId": "get_client_client_get",
 				"responses": {
 					"200": {
