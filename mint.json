@@ -16,29 +16,11 @@
 			"to": "#6666ff"
 		}
 	},
-	"topbarLinks": [
-		{
-			"name": "Support",
-			"url": "mailto:info@plexicus.com"
-		}
-	],
 	"topbarCtaButton": {
-		"name": "Sign In",
-		"url": "https://covulor.plexicus.com"
+		"name": "Get Started",
+		"url": "https://app.plexicus.ai/register"
 	},
-	"tabs": [
-		{
-			"name": "API",
-			"url": "api-reference"
-		}
-	],
 	"anchors": [
-		{
-			"name": "API Reference",
-			"openapi": "/api-reference/openapi.json",
-			"url": "api-reference",
-			"icon": "square-terminal"
-		},
 		{
 			"name": "GitHub App",
 			"icon": "code-simple",
@@ -52,7 +34,7 @@
 		{
 			"name": "Blog",
 			"icon": "newspaper",
-			"url": "https://www.plexicus.com/blog"
+			"url": "https://blog.plexicus.ai"
 		}
 	],
 	"navigation": [
