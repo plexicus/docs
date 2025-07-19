@@ -16,12 +16,6 @@
 			"to": "#6666ff"
 		}
 	},
-	"topbarLinks": [
-		{
-			"name": "Support",
-			"url": "mailto:info@plexicus.com"
-		}
-	],
 	"topbarCtaButton": {
 		"name": "Sign In",
 		"url": "https://covulor.plexicus.com"
@@ -106,10 +100,7 @@
 		},
 		{
 			"group": "Organization",
-			"pages": [
-				"organization/client",
-				"organization/profiles"
-			]
+			"pages": ["organization/client"]
 		}
 	],
 	"footerSocials": {
