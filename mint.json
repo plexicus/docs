@@ -17,8 +17,8 @@
 		}
 	},
 	"topbarCtaButton": {
-		"name": "Sign In",
-		"url": "https://covulor.plexicus.com"
+		"name": "Get Started",
+		"url": "https://app.plexicus.ai/register"
 	},
 	"anchors": [
 		{
