@@ -106,7 +106,10 @@
 		},
 		{
 			"group": "Organization",
-			"pages": ["organization/client"]
+			"pages": [
+				"organization/client",
+				"organization/profiles"
+			]
 		}
 	],
 	"footerSocials": {
