@@ -1,32 +1,41 @@
-# Mintlify Starter Kit
+# Website
 
-Click on `Use this template` to copy the Mintlify starter kit. The starter kit contains examples including
+This website is built using [Docusaurus](https://docusaurus.io/), a modern static website generator.
 
-- Guide pages
-- Navigation
-- Customizations
-- API Reference pages
-- Use of popular components
+## Installation
 
-### Development
-
-Install the [Mintlify CLI](https://www.npmjs.com/package/mintlify) to preview the documentation changes locally. To install, use the following command
-
-```
-npm i -g mintlify
+```bash
+yarn
 ```
 
-Run the following command at the root of your documentation (where mint.json is)
+## Local Development
 
+```bash
+yarn start
 ```
-mintlify dev
+
+This command starts a local development server and opens up a browser window. Most changes are reflected live without having to restart the server.
+
+## Build
+
+```bash
+yarn build
 ```
 
-### Publishing Changes
+This command generates static content into the `build` directory and can be served using any static contents hosting service.
 
-Install our Github App to auto propagate changes from your repo to your deployment. Changes will be deployed to production automatically after pushing to the default branch. Find the link to install on your dashboard. 
+## Deployment
 
-#### Troubleshooting
+Using SSH:
 
-- Mintlify dev isn't running - Run `mintlify install` it'll re-install dependencies.
-- Page loads as a 404 - Make sure you are running in a folder with `mint.json`
+```bash
+USE_SSH=true yarn deploy
+```
+
+Not using SSH:
+
+```bash
+GIT_USER=<Your GitHub username> yarn deploy
+```
+
+If you are using GitHub pages for hosting, this command is a convenient way to build the website and push to the `gh-pages` branch.

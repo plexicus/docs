@@ -1,0 +1,41 @@
+@import "tailwindcss/theme.css" layer(theme);
+
+@layer base {
+  #tw-scope {
+    @import "tailwindcss/preflight.css" layer(base);
+  }
+}
+
+@import "tailwindcss/utilities.css" layer(utilities);
+
+@custom-variant dark (&:is([data-theme="dark"] *));
+
+/**
+ * Any CSS included here will be global. The classic template
+ * bundles Infima by default. Infima is a CSS framework designed to
+ * work well for content-centric websites.
+ */
+/* You can override the default Infima variables here. */
+:root {
+  --ifm-color-primary: #8220ff;
+  --ifm-color-primary-dark: #741cd9;
+  --ifm-color-primary-darker: #6619b3;
+  --ifm-color-primary-darkest: #4d127a;
+  --ifm-color-primary-light: #9446ff;
+  --ifm-color-primary-lighter: #a76cff;
+  --ifm-color-primary-lightest: #c3a6ff;
+  --ifm-code-font-size: 95%;
+  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
+}
+
+/* For readability concerns, you should choose a lighter palette in dark mode. */
+[data-theme='dark'] {
+  --ifm-color-primary: #b388ff;
+  --ifm-color-primary-dark: #a259ff;
+  --ifm-color-primary-darker: #9446ff;
+  --ifm-color-primary-darkest: #8220ff;
+  --ifm-color-primary-light: #c3a6ff;
+  --ifm-color-primary-lighter: #e0ccff;
+  --ifm-color-primary-lightest: #f3eaff;
+  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
+}
