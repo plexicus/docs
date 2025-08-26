@@ -452,21 +452,21 @@ paths:
                 summary: Order delivered
                 value:
                   quantity: 4
-                  shipDate: 2022-10-12
+                  shipDate: 2022-10-12T00:00:00Z
                   status: delivered
                   requestId: 444-4444-444-4444
               OrderPlaced:
                 summary: Order placed
                 value:
                   quantity: 10
-                  shipDate: 2022-10-01
+                  shipDate: 2022-10-01T00:00:00Z
                   status: placed
                   requestId: 111-222-333-444
               OrderApproved:
                 summary: Order approved
                 value:
                   quantity: 1000
-                  shipDate: 2022-09-01
+                  shipDate: 2022-09-01T00:00:00Z
                   status: approved
                   requestId: 000-111-222-333
         description: order placed for purchasing the pet
@@ -521,6 +521,8 @@ paths:
             type: string
             minimum: 1
       responses:
+        '204':
+          description: Order deleted successfully
         '400':
           description: Invalid ID supplied
         '404':
@@ -530,6 +532,7 @@ paths:
       tags:
         - store
       summary: Subscribe to the Store events
+      operationId: storeEventSubscribe
       description: Add subscription for a store events
       requestBody:
         content:
@@ -601,13 +604,14 @@ paths:
                         orderId:
                           type: string
                           example: '123'
-                    example: |
-                      <?xml version="1.0" encoding="UTF-8"?>
-                      <root>
-                        <orderId>123</orderId>
-                        <status>inProgress</status>
-                        <timestamp>2018-10-19T16:46:45Z</timestamp>
-                      </root>
+                    example: 
+                      in_progress: |
+                        <?xml version="1.0" encoding="UTF-8"?>
+                        <root>
+                          <orderId>123</orderId>
+                          <status>inProgress</status>
+                          <timestamp>2018-10-19T16:46:45Z</timestamp>
+                        </root>
               responses:
                 '200':
                   description: Callback successfully processed and no retries will be performed
@@ -682,13 +686,14 @@ paths:
                         orderId:
                           type: string
                           example: '123'
-                    example: |
-                      <?xml version="1.0" encoding="UTF-8"?>
-                      <root>
-                        <orderId>123</orderId>
-                        <status>inProgress</status>
-                        <timestamp>2018-10-19T16:46:45Z</timestamp>
-                      </root>
+                    example: 
+                      in_progress: |
+                        <?xml version="1.0" encoding="UTF-8"?>
+                        <root>
+                          <orderId>123</orderId>
+                          <status>inProgress</status>
+                          <timestamp>2018-10-19T16:46:45Z</timestamp>
+                        </root>
               responses:
                 '200':
                   description: Callback successfully processed and no retries will be performed

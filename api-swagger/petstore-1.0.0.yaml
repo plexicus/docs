@@ -112,6 +112,8 @@ paths:
       description: Add new pet to the store inventory.
       operationId: addPet
       responses:
+        "200":
+          description: Pet added successfully
         "405":
           description: Invalid input
       security:
@@ -153,9 +155,11 @@ paths:
       tags:
         - pet
       summary: Update an existing pet
-      description: ""
+      description: Update an existing pet in the store.
       operationId: updatePet
       responses:
+        "200":
+          description: Pet updated successfully
         "400":
           description: Invalid ID supplied
         "404":
@@ -217,7 +221,7 @@ paths:
       tags:
         - pet
       summary: Updates a pet in the store with form data
-      description: ""
+      description: "Updates a pet in the store with form data."
       operationId: updatePetWithForm
       parameters:
         - name: petId
@@ -228,6 +232,8 @@ paths:
             type: integer
             format: int64
       responses:
+        "200": 
+          description: "Success"
         "405":
           description: Invalid input
       security:
@@ -242,14 +248,12 @@ paths:
               properties:
                 name:
                   description: Updated name of the pet
-                  type:
-                    - string
-                    - "null"
+                  type: string
+                  nullable: true
                 status:
                   description: Updated status of the pet
-                  type:
-                    - string
-                    - "null"
+                  type: string
+                  nullable: true
     delete:
       tags:
         - pet
@@ -271,6 +275,8 @@ paths:
             type: integer
             format: int64
       responses:
+        "200":
+          description: success
         "400":
           description: Invalid pet value
       security:
@@ -493,6 +499,8 @@ paths:
             type: string
             minimum: 1
       responses:
+        "200":
+          description: successful operation
         "400":
           description: Invalid ID supplied
         "404":
@@ -503,6 +511,7 @@ paths:
         - store
       summary: Subscribe to the Store events
       description: Add subscription for a store events
+      operationId: subscribeToStoreEvents
       requestBody:
         content:
           application/json:
@@ -572,14 +581,14 @@ paths:
                       properties:
                         orderId:
                           type: string
-                          example: "123"
-                    example: |
-                      <?xml version="1.0" encoding="UTF-8"?>
-                      <root>
-                        <orderId>123</orderId>
-                        <status>inProgress</status>
-                        <timestamp>2018-10-19T16:46:45Z</timestamp>
-                      </root>
+                    example:
+                      in_progress: |
+                        <?xml version="1.0" encoding="UTF-8"?>
+                        <root>
+                          <orderId>123</orderId>
+                          <status>inProgress</status>
+                          <timestamp>2018-10-19T16:46:45Z</timestamp>
+                        </root>
               responses:
                 "200":
                   description: Callback successfully processed and no retries will be performed
@@ -654,13 +663,14 @@ paths:
                         orderId:
                           type: string
                           example: "123"
-                    example: |
-                      <?xml version="1.0" encoding="UTF-8"?>
-                      <root>
-                        <orderId>123</orderId>
-                        <status>inProgress</status>
-                        <timestamp>2018-10-19T16:46:45Z</timestamp>
-                      </root>
+                    example: 
+                      in_progress: |
+                        <?xml version="1.0" encoding="UTF-8"?>
+                        <root>
+                          <orderId>123</orderId>
+                          <status>inProgress</status>
+                          <timestamp>2018-10-19T16:46:45Z</timestamp>
+                        </root>
               responses:
                 "200":
                   description: Callback successfully processed and no retries will be performed
@@ -726,6 +736,8 @@ paths:
       description: This can only be done by the logged in user.
       operationId: createUser
       responses:
+        "201":
+          description: User created successfully
         default:
           description: successful operation
       requestBody:
@@ -777,6 +789,8 @@ paths:
           schema:
             type: string
       responses:
+        "200":
+          description: User updated successfully
         "400":
           description: Invalid user supplied
         "404":
@@ -1130,7 +1144,7 @@ components:
           format: password
           minLength: 8
           pattern: "/(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])/"
-          example: drowssaP123
+          example: Passw0rd123
         phone:
           description: User phone number in international format
           type: string
