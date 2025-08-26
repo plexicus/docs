@@ -31,8 +31,8 @@ export default function DocSidebarItemLink({
       key={label}>
       <Link
         className={clsx(
-          'menu__link gap-2 flex justify-between',
-          !isInternalLink && styles.menuExternalLink,
+          'menu__link gap-2 flex',
+          !isInternalLink && `${styles.menuExternalLink} justify-between`,
           {
             'menu__link--active': isActive,
           },
