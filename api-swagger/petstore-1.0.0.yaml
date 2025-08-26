@@ -816,6 +816,8 @@ paths:
           schema:
             type: string
       responses:
+        "200":
+          description: User deleted successfully
         "400":
           description: Invalid username supplied
         "404":
@@ -828,6 +830,8 @@ paths:
       description: ""
       operationId: createUsersWithArrayInput
       responses:
+        "201":
+          description: User created successfully
         default:
           description: successful operation
       requestBody:
@@ -840,6 +844,8 @@ paths:
       description: ""
       operationId: createUsersWithListInput
       responses:
+        "200":
+          description: successful operation
         default:
           description: successful operation
       requestBody:
