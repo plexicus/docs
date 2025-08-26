@@ -1,9 +1,9 @@
 import {themes as prismThemes} from 'prism-react-renderer';
 import type {Config} from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
-
+import {locales} from './config.json'
 // This runs in Node.js - Don't use client-side code here (browser APIs, JSX...)
-const locales = ["fr", "it", "de", "es", "pt", "ja", "id", "zh", "ar", "vi", "tr", "pl", "nl", "sv", "da", "no", "fi", "cs", "he", "en", "ko"]
+
 const config: Config = {
   title: 'Plexicus Documentation',
   tagline: 'Dinosaurs are cool',
@@ -16,7 +16,7 @@ const config: Config = {
   },
 
   // Set the production url of your site here
-  url: 'https://your-docusaurus-site.example.com',
+  url: 'https://docs.plexicus.ai/',
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
   baseUrl: '/',
@@ -45,9 +45,6 @@ const config: Config = {
           sidebarPath: './sidebars.ts',
           docItemComponent: '@theme/ApiItem',
           // Please change this to your repo.
-          // Remove this to remove the "edit this page" links.
-          editUrl:
-            'https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/',
         },
         blog: false,
         theme: {
@@ -92,6 +89,7 @@ const config: Config = {
         }
       }
     ],
+    ['./src/plugins/stage-build.js', {}],
   ],
   themes: ["docusaurus-theme-openapi-docs",
       [
@@ -132,12 +130,24 @@ const config: Config = {
         { label: 'API References', position: 'left', to: '/docs/category/petstore-versioned-api' },
         {type: 'search', position: 'left', className: 'mx-auto'},
         {
-          href: 'https://github.com/facebook/docusaurus',
+          href: 'https://github.com/plexicus',
           label: 'GitHub',
+          position: 'right',
+          className: 'header-github-link'
+        },
+        {
+          href: 'https://app.plexicus.ai/login',
+          label: 'Login',
+          position: 'right',
+        },
+                {
+          href: 'https://app.plexicus.ai/register',
+          label: 'Register',
           position: 'right',
         },
       ],
     },
+    docs: { sidebar: { autoCollapseCategories: true, hideable: true } },
     footer: {
       style: 'dark',
       links: [
@@ -148,27 +158,68 @@ const config: Config = {
               label: 'Quickstart',
               to: '/docs/getting-started/introduction',
             },
+            {
+              label: 'API Reference',
+              to: '/docs/category/petstore-versioned-api'
+            },
+            {
+              label: 'Connectors',
+              to: '/docs/integrations/github'
+            }
           ],
         },
         {
           title: 'Community',
           items: [
             {
-              label: 'Stack Overflow',
-              href: 'https://stackoverflow.com/questions/tagged/docusaurus',
+              label: 'Github',
+              href: 'https://github.com/plexicus',
             },
             {
-              label: 'Discord',
-              href: 'https://discordapp.com/invite/docusaurus',
+              label: 'Linkedin',
+              href: 'https://linkedin.com/plexicus_ai',
             },
             {
               label: 'X',
-              href: 'https://x.com/docusaurus',
+              href: 'https://x.com/plexicus_ai',
             },
+            {
+              label: 'Instagram',
+              href: 'https://instagram.com/plexicus_ai',
+            },
+            {
+              label: 'Feature Request',
+              href: 'https://plexicus.canny.io/feature-requests'
+            },
+            {
+              label: 'Blog',
+              href: 'https://blog.plexicus.ai'
+            }
+          ],
+        },
+        {
+          title: 'Company',
+          items: [
+            {
+              label: 'Products',
+              href: 'https://www.plexicus.ai/products/cnapp-platform/',
+            },
+            {
+              label: 'Contact Us',
+              href: 'https://www.plexicus.ai/contact/',
+            },
+            {
+              label: 'Pricing',
+              href: 'https://www.plexicus.ai/pricing/',
+            },
+            {
+              label: 'Solutions',
+              href: 'https://www.plexicus.ai/solutions/',
+            }
           ],
         },
       ],
-      copyright: `Copyright © ${new Date().getFullYear()} My Project, Inc. Built with Docusaurus.`,
+      copyright: `Copyright © ${new Date().getFullYear()} Plexicus S.L. `,
     },
     prism: {
       theme: prismThemes.github,
