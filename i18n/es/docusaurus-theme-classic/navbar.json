@@ -4,15 +4,27 @@
     "description": "The title in the navbar"
   },
   "logo.alt": {
-    "message": "Plexicus Docs",
+    "message": "Documentos de Plexicus",
     "description": "The alt text of navbar logo"
   },
-  "item.label.Tutorial": {
-    "message": "Tutorial",
-    "description": "Navbar item with label Tutorial"
+  "item.label.Docs": {
+    "message": "Documentos",
+    "description": "Navbar item with label Docs"
+  },
+  "item.label.API References": {
+    "message": "Referencias de API",
+    "description": "Navbar item with label API References"
   },
   "item.label.GitHub": {
     "message": "GitHub",
     "description": "Navbar item with label GitHub"
+  },
+  "item.label.Login": {
+    "message": "Iniciar sesión",
+    "description": "Navbar item with label Login"
+  },
+  "item.label.Register": {
+    "message": "Registrarse",
+    "description": "Navbar item with label Register"
   }
 }

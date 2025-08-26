@@ -7,12 +7,24 @@
     "message": "Plexicus Docs",
     "description": "The alt text of navbar logo"
   },
-  "item.label.Tutorial": {
-    "message": "Tutorial",
-    "description": "Navbar item with label Tutorial"
+  "item.label.Docs": {
+    "message": "Docs",
+    "description": "Navbar item with label Docs"
+  },
+  "item.label.API References": {
+    "message": "API References",
+    "description": "Navbar item with label API References"
   },
   "item.label.GitHub": {
     "message": "GitHub",
     "description": "Navbar item with label GitHub"
+  },
+  "item.label.Login": {
+    "message": "Login",
+    "description": "Navbar item with label Login"
+  },
+  "item.label.Register": {
+    "message": "Register",
+    "description": "Navbar item with label Register"
   }
 }
