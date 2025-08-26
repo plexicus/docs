@@ -10,7 +10,7 @@ This guide will walk you through the entire process of using our platform, from 
 ## 1. User Registration
 
 <img
-	src="/assets/gif/Quickstart-Registration.gif"
+	src="/docs/plexicus/getting-started/gif/Quickstart-Registration.gif"
 	alt="Demonstration of a feature"
 	class="w-full"
 />
@@ -33,15 +33,15 @@ There are two ways to register for an account:
 3. Grant the necessary permissions.
 4. Your account will be created using your Google information.
 
-<Note>
+:::note
 	If you register using Google, you won't need to verify your email as it's
 	already verified by Google.
-</Note>
+:::
 
 ## 2. Email Verification
 
 <img
-	src="/assets/gif/Quickstart-EmailVerification.gif"
+	src="/docs/plexicus/getting-started/gif/Quickstart-EmailVerification.gif"
 	alt="Demonstration of a feature"
 	class="w-full"
 />
@@ -55,10 +55,10 @@ After registering with the form method, you need to verify your email address.
 3. You will be redirected to a confirmation page.
 4. Click "Continue" to proceed to the login page.
 
-<Warning>
+:::warning
 	The verification link is valid for 72 hours. If it expires, you can request a
 	new one from the login page.
-</Warning>
+:::
 
 ## 3. Initial Account Setup
 
@@ -68,12 +68,12 @@ After registering with the form method, you need to verify your email address.
 	loop
 	playsInline
 	className="w-full aspect-video"
-	src="/assets/video/Quickstart-SetupAccount.mp4"
+	src="/docs/plexicus/getting-started/video/Quickstart-SetupAccount.mp4"
 ></video>
 
 After logging in for the first time, you'll need to complete the initial setup process.
 
-<Steps>
+{/* <Steps>
 	<Step title="Company Information">
 		Enter your company details: <p>- Company Name</p> <p>- Industry</p>{" "}
 		<p>- Other optional inputs</p>
@@ -91,7 +91,7 @@ After logging in for the first time, you'll need to complete the initial setup p
 			posture.
 		</Note>
 	</Step>
-</Steps>
+</Steps> */}
 
 ## 4. Connectors
 
@@ -101,7 +101,7 @@ After logging in for the first time, you'll need to complete the initial setup p
 	loop
 	playsInline
 	className="w-full aspect-video"
-	src="/assets/video/Quickstart-Connector.mp4"
+	src="/docs/plexicus/getting-started/video/Quickstart-Connector.mp4"
 ></video>
 
 Connectors allow you to integrate your Source Code Management (SCM) systems with our platform.
@@ -118,7 +118,9 @@ Connectors allow you to integrate your Source Code Management (SCM) systems with
 4. Follow the authentication process for your chosen SCM.
 5. Grant the necessary permissions to allow our platform to access your repositories.
 
-<Note>You can add multiple various SCM systems used in your organization.</Note>
+:::note
+You can add multiple various SCM systems used in your organization.
+:::
 
 ## 5. Applications
 
@@ -128,7 +130,7 @@ Connectors allow you to integrate your Source Code Management (SCM) systems with
 	loop
 	playsInline
 	className="w-full aspect-video"
-	src="/assets/video/Quickstart-Applications.mp4"
+	src="/docs/plexicus/getting-started/video/Quickstart-Applications.mp4"
 ></video>
 
 The Applications page allows you to manage your repositories and create applications for security scanning.
@@ -144,10 +146,10 @@ The Applications page allows you to manage your repositories and create applicat
    - Branch to scan
 6. Click "Create selected repositories" to finalize the application setup.
 
-<Tip>
+:::tip
 	You can create multiple applications from a different repositories if you need
 	to scan different repositories separately.
-</Tip>
+:::
 
 ## 6. Pipeline Setup
 
@@ -157,7 +159,7 @@ The Applications page allows you to manage your repositories and create applicat
 	loop
 	playsInline
 	className="w-full aspect-video"
-	src="/assets/video/Quickstart-ApplicationsPipeline.mp4"
+	src="/docs/plexicus/getting-started/video/Quickstart-ApplicationsPipeline.mp4"
 ></video>
 
 The pipeline determines how and when your applications are scanned for vulnerabilities.
@@ -167,10 +169,10 @@ The pipeline determines how and when your applications are scanned for vulnerabi
 1. Navigate to the Pipeline Setup page.
 2. Select the application you want to configure.
 
-<Note>
+:::note
 	Pipeline might only supported for speicifc SCM only (GitHub is the only
 	supported for now)
-</Note>
+:::
 
 ## 7. Findings
 
@@ -180,7 +182,7 @@ The pipeline determines how and when your applications are scanned for vulnerabi
 	loop
 	playsInline
 	className="w-full aspect-video"
-	src="/assets/video/Quickstart-Findings.mp4"
+	src="/docs/plexicus/getting-started/video/Quickstart-Findings.mp4"
 ></video>
 
 The Findings page displays all the vulnerabilities and issues detected by your security scans.
@@ -193,7 +195,7 @@ The Findings page displays all the vulnerabilities and issues detected by your s
 	loop
 	playsInline
 	className="w-full aspect-video"
-	src="/assets/video/Quickstart-FindingsFilter.mp4"
+	src="/docs/plexicus/getting-started/video/Quickstart-FindingsFilter.mp4"
 ></video>
 
 You can use various filters to focus on specific types of findings:
@@ -215,7 +217,7 @@ You can use various filters to focus on specific types of findings:
 	loop
 	playsInline
 	className="w-full aspect-video"
-	src="/assets/video/Quickstart-FindingsDetail.mp4"
+	src="/docs/plexicus/getting-started/video/Quickstart-FindingsDetail.mp4"
 ></video>
 
 1. Click on a finding to view its details.
@@ -230,7 +232,7 @@ You can use various filters to focus on specific types of findings:
 	loop
 	playsInline
 	className="w-full aspect-video"
-	src="/assets/video/Quickstart-FindingsRemediation.mp4"
+	src="/docs/plexicus/getting-started/video/Quickstart-FindingsRemediation.mp4"
 ></video>
 
 The remediation process helps you address and fix the security vulnerabilities found in your applications.
@@ -248,10 +250,10 @@ The remediation process helps you address and fix the security vulnerabilities f
    - Set a due date
 5. Click "Create Pull Request" / "Create Issue" to initiate the remediation process.
 
-<Note>
+:::note
 	The pull request will be created in your SCM system (e.g., GitHub, GitLab) for
 	review and merging.
-</Note>
+:::
 
 ## Conclusion
 

@@ -12,23 +12,23 @@ Follow these steps to create an **OAuth application** in GitLab Self-Hosted and 
 1. Log in to your **GitLab Self-Hosted instance**.
 2. Navigate to **Admin Area** → **Applications** (`/admin/applications`),
 
-   <img src="/images/plexicus/gitlab/admin-self-hosted.png" alt="Admin Page" />
+   <img src="/docs/plexicus/gitlab/admin-self-hosted.png" alt="Admin Page" />
 
 3. or go to **User Settings** → **Applications** (`/-/profile/applications`) for user-specific tokens.
 
-   <img src="/images/plexicus/gitlab/general-user.png" alt="User Page" />
+   <img src="/docs/plexicus/gitlab/general-user.png" alt="User Page" />
 
 4. Click **"New application"**.
 
    <img
-   	src="/images/plexicus/gitlab/create-application.png"
+   	src="/docs/plexicus/gitlab/create-application.png"
    	alt="New Application"
    />
 
 5. Fill in the required details:
 
    <img
-   	src="/images/plexicus/gitlab/form-application.png"
+   	src="/docs/plexicus/gitlab/form-application.png"
    	alt="Form Application"
    />
 
@@ -51,17 +51,17 @@ Follow these steps to create an **OAuth application** in GitLab Self-Hosted and 
 
 ## 2. Get Client ID and Client Secret
 
-<Warning>
+:::warning
 	Ensure you select the required scopes (`openid`, `profile`, `email`,
 	`read_api`, `read_user`, `read_repository`, `write_repository`, `api`). We
 	follow the principle of least privilege and only request permissions that are
 	essential for Plexicus's functionality. These scopes provide the necessary
 	access for authentication and repository operations while maintaining
 	security.
-</Warning>
+:::
 
 <img
-	src="/images/plexicus/gitlab/application-created.png"
+	src="/docs/plexicus/gitlab/application-created.png"
 	alt="Application Created"
 />
 
@@ -72,9 +72,9 @@ After saving the application, GitLab will generate:
 
 These credentials will be used in the next step to obtain an **access token**.
 
-<Warning>
+:::warning
 	Keep your **Client Secret** private and never expose it in public repositories
 	or frontend applications.
-</Warning>
+:::
 
 Next, you can proceed to exchanging an authorization code for an access token. 🚀
