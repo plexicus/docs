@@ -8,6 +8,6 @@
     "version": "1.0.0",
     "label": "v1.0.0",
     "baseUrl": "/docs/petstore_versioned/1.0.0/swagger-petstore-yaml",
-    "downloadUrl": "https://raw.githubusercontent.com/namnguyenthanhwork/docusaurus-tailwind-shadcn-template/main/api-swagger/petstore-1.0.0.yaml"
+    "downloadUrl": "api-swagger/petstore-1.0.0.yaml"
   }
 ]

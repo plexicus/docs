@@ -110,7 +110,7 @@ const sidebar: SidebarsConfig = {
         },
         {
           type: "doc",
-          id: "petstore_versioned/subscribe-to-the-store-events",
+          id: "petstore_versioned/store-event-subscribe",
           label: "Subscribe to the Store events",
           className: "api-method post",
         },
