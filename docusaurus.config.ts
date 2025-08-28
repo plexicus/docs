@@ -74,7 +74,7 @@ const config: Config = {
             label: 'v2.0.0', // Current version label
             baseUrl: '/docs/petstore_versioned/swagger-petstore-yaml', // Leading slash is important
             downloadUrl:
-              'https://raw.githubusercontent.com/namnguyenthanhwork/docusaurus-tailwind-shadcn-template/main/api-swagger/petstore.yaml',
+              'api-swagger/petstore.yaml',
             versions: {
               '1.0.0': {
                 specPath: 'api-swagger/petstore-1.0.0.yaml', // Path to your API spec
@@ -82,7 +82,7 @@ const config: Config = {
                 label: 'v1.0.0',
                 baseUrl: '/docs/petstore_versioned/1.0.0/swagger-petstore-yaml', // Leading slash is important
                 downloadUrl:
-                  'https://raw.githubusercontent.com/namnguyenthanhwork/docusaurus-tailwind-shadcn-template/main/api-swagger/petstore-1.0.0.yaml'
+                  'api-swagger/petstore-1.0.0.yaml'
               }
             }
           }
@@ -131,7 +131,7 @@ const config: Config = {
         {type: 'search', position: 'left', className: 'mx-auto'},
         {
           href: 'https://github.com/plexicus',
-          label: 'GitHub',
+          label: ' ',
           position: 'right',
           className: 'header-github-link'
         },
