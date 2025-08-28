@@ -1,7 +1,7 @@
 
-# 🚀 Project Name
+# 🚀 Plexicus Documentations
 
-This is the official documentation site for **[Your Project Name]**, built to provide comprehensive information on our APIs, features, and usage.
+This is the official documentation site for **Plexicus Docs**, built to provide comprehensive information on our APIs, features, and usage.
 
 ---
 
@@ -12,7 +12,7 @@ To set up and run the project locally, please ensure you have **Node.js** and **
 Clone the repository:
 
 ```bash
-git clone https://github.com/your-username/your-repo.git
+git clone https://github.com/plexicus/docs.git
 cd your-repo
 ```
 
