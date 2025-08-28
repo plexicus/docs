@@ -1,0 +1,86 @@
+name: Translate new comparison content language translation
+
+on:
+  push:
+    # Trigger only when a Markdown/MDX file under /i18n/ changes.
+    branches: ["main", "test"]
+    paths:
+      - 'i18n/en/**/*.json'
+
+jobs:
+  translate:
+    runs-on: ubuntu-latest
+
+    # We need write access to commit the translated files back.
+    permissions:
+      contents: write
+      pull-requests: write
+
+    env:
+      # Secrets you added in the repo ( Settings → Secrets → Actions )
+      AZURE_OPENAI_KEY: ${{ secrets.AZURE_OPENAI_KEY }}
+      AZURE_OPENAI_ENDPOINT: ${{ secrets.AZURE_OPENAI_ENDPOINT }}
+
+      # Name of the Azure deployment for GPT-4o (change if needed)
+      AZURE_OPENAI_DEPLOYMENT: ${{ vars.AZURE_OPENAI_DEPLOYMENT }}
+      # Cheaper fallback model (optional)
+      MODEL_FALLBACK: gpt-4o
+
+      # Comma-separated list of language codes we translate into
+      LANG_CODES: "en,de,fr,ja,es,it,nl,sv,no,da,fi,pt,zh,ar,he,tr,pl,cs,id"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          # Pull two commits so we can diff against the previous one
+          fetch-depth: 2
+
+      - name: Detect changed Content JSON files
+        id: changed
+        run: |
+          # List files touched in the last commit, keep only *.json
+          # and exclude anything already in comparisons
+          echo "matrix=$(git diff --name-only HEAD^..HEAD | \
+            grep -E 'i18n/en/.*\.(json)$' | \
+            grep -vE 'i18m/en/(de|fr|ja|es|it|nl|sv|no|da|fi|pt|zh|ar|he|tr|pl|cs|id)/' | \
+            jq -Rsc 'split("\n")[:-1]')" >> "$GITHUB_OUTPUT"
+
+      - name: Exit if there is nothing to translate
+        if: ${{ steps.changed.outputs.matrix == '[]' }}
+        run: echo "No new or updated comparisons posts found."
+
+      - name: Set up Python
+        if: ${{ steps.changed.outputs.matrix != '[]' }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Python dependencies
+        if: ${{ steps.changed.outputs.matrix != '[]' }}
+        run: |
+          pip install openai==1.* pydantic==2.*
+
+      - name: Run translator script for documentation changes
+        if: ${{ steps.changed.outputs.matrix != '[]' }}
+        run: |
+          python scripts/translate_json.py "i18n/en/docusaurus-plugin-content-docs/current.json"
+      - name: Run translator script for navbar/footer changes
+        if: ${{ steps.changed.outputs.matrix != '[]' }}
+        run: |
+          python scripts/translate_json.py "i18n/en/docusaurus-theme-classic/navbar.json i18n/en/docusaurus-theme-classic/footer.json"
+      - name: Commit and Push Built Files
+        if: ${{ steps.changed.outputs.matrix != '[]' }}
+        uses: stefanzweifel/git-auto-commit-action@v5 # Use a stable version of the action
+        with:
+          # Path to the directory containing the files to commit.
+          # This will commit all changes within the 'i18n/' folder.
+          commit_message: "chore(translations): add multilingual copies [skip ci]" # Use '[skip ci]' to prevent re-triggering the workflow
+          # Add the 'dist' directory to the files to be committed.
+          # This ensures only changes in 'i18n/' are considered for the commit.
+          file_pattern: i18n/
+          skip_checkout: true
+          # Optional: Configure the committer details
+          commit_user_name: "github-actions[bot]"
+          commit_user_email: "github-actions[bot]@users.noreply.github.com"
+          commit_author: "github-actions[bot] <github-actions[bot]@users.noreply.github.com>"
