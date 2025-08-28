@@ -8,7 +8,9 @@ const config: Config = {
   title: 'Plexicus Documentation',
   tagline: 'Dinosaurs are cool',
   favicon: 'img/favicon.ico',
-
+  markdown: {
+    mermaid: true,
+  },
   // Future flags, see https://docusaurus.io/docs/api/docusaurus-config#future
   future: {
     v4 : {removeLegacyPostBuildHeadAttribute: true},
@@ -92,6 +94,7 @@ const config: Config = {
     ['./src/plugins/stage-build.js', {}],
   ],
   themes: ["docusaurus-theme-openapi-docs",
+    '@docusaurus/theme-mermaid',
       [
     require.resolve('@easyops-cn/docusaurus-search-local'),
     {
