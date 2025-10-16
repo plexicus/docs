@@ -65,29 +65,37 @@ const config: Config = {
         docsPluginId: 'classic',
         config: {
           // if your API spec has multiple versions, you can use the following configuration
-          petstore_versioned: {
-            specPath: 'api-swagger/petstore.yaml', // Path to your API spec
-            outputDir: 'docs/petstore_versioned', // No trailing slash
+          platform: {
+            specPath: 'api-swagger/platform.json',
+            outputDir: 'docs/platform_api',
             sidebarOptions: {
               groupPathsBy: 'tag',
               categoryLinkSource: 'tag'
             },
-            version: '2.0.0', // Current version
-            label: 'v2.0.0', // Current version label
-            baseUrl: '/docs/petstore_versioned/swagger-petstore-yaml', // Leading slash is important
-            downloadUrl:
-              'api-swagger/petstore.yaml',
-            versions: {
-              '1.0.0': {
-                specPath: 'api-swagger/petstore-1.0.0.yaml', // Path to your API spec
-                outputDir: 'docs/petstore_versioned/1.0.0', // No trailing slash
-                label: 'v1.0.0',
-                baseUrl: '/docs/petstore_versioned/1.0.0/swagger-petstore-yaml', // Leading slash is important
-                downloadUrl:
-                  'api-swagger/petstore-1.0.0.yaml'
-              }
-            }
           }
+          // petstore_versioned: {
+          //   specPath: 'api-swagger/petstore.yaml', // Path to your API spec
+          //   outputDir: 'docs/petstore_versioned', // No trailing slash
+          //   sidebarOptions: {
+          //     groupPathsBy: 'tag',
+          //     categoryLinkSource: 'tag'
+          //   },
+          //   version: '2.0.0', // Current version
+          //   label: 'v2.0.0', // Current version label
+          //   baseUrl: '/docs/petstore_versioned/swagger-petstore-yaml', // Leading slash is important
+          //   downloadUrl:
+          //     'api-swagger/petstore.yaml',
+          //   versions: {
+          //     '1.0.0': {
+          //       specPath: 'api-swagger/petstore-1.0.0.yaml', // Path to your API spec
+          //       outputDir: 'docs/petstore_versioned/1.0.0', // No trailing slash
+          //       label: 'v1.0.0',
+          //       baseUrl: '/docs/petstore_versioned/1.0.0/swagger-petstore-yaml', // Leading slash is important
+          //       downloadUrl:
+          //         'api-swagger/petstore-1.0.0.yaml'
+          //     }
+          //   }
+          // }
         }
       }
     ],
@@ -130,7 +138,7 @@ const config: Config = {
           position: 'left',
           label: 'Docs',
         },
-        { label: 'API References', position: 'left', to: '/docs/category/petstore-versioned-api' },
+        { label: 'API References', position: 'left', to: '/docs/category/platform_api' },
         {type: 'search', position: 'left', className: 'mx-auto'},
         {
           href: 'https://github.com/plexicus',
