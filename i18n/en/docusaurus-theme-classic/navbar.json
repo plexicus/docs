@@ -15,9 +15,9 @@
     "message": "API References",
     "description": "Navbar item with label API References"
   },
-  "item.label.GitHub": {
-    "message": "GitHub",
-    "description": "Navbar item with label GitHub"
+  "item.label. ": {
+    "message": " ",
+    "description": "Navbar item with label  "
   },
   "item.label.Login": {
     "message": "Login",
