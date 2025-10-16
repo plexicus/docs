@@ -1,0 +1,71 @@
+---
+id: generate-user-api-token-user-generate-api-token-post
+title: "Generate API token"
+description: "Generate API token"
+sidebar_label: "Generate API token"
+hide_title: true
+hide_table_of_contents: true
+api: eJydVd9v2jAQ/leiezbQVXvK09hWbZW2FRW2F4SQSa7BbWK7tlNAkf/36eyEhJZW3Z4w58/347vvLg04XlhIlzBH54QsbDJKprPrZKEeUMKKQY42M0I7oSSk8A0lGu4wYFzAMFCabELJ6xxSKFrIurZo1lyLdcDFv8fL3q6VdcDA4GON1n1W+QHSBjIlHUpHR651KbIQYHJvKY0GbLbFitNJGwrvBFr6J3mF4Y083NxBumzAHTRCCtYZIQvw7GiRdVmCXzFwwpVk+EVvPQPca2HQrrn7X09X0UMydeA962Bqc48ZldrBOjKnWkS6PaGJCGEwh9SZGoPBaiVtLPDy4oJ+Trsyr7MMrb2ry+S2BQN7N4U+hP14efnS8R9eijw8S66MUeYfvD5rTI6Oi5JOwmFlXwJKlZ3cvoN3IR0WaMCvepK5Mfww4PiHiglSYytbkOdTfz30J1rLiyCBCHkdGshIFnR7rsF9C5ehrhi6xQ100tMb2X29jK+RvrfU9H2xmL1wGHtrMauNcIdAJ+E+IzdoIF2uSLYVuq2i0W1HUXO3hRQmNLGTbmJHXItRN/Gdwzl1O/Zv6PZI3NY5TfAAgxQ2EUA5kWBu+5m/2vNKl9jPcE/6cB57FYCQdyqEauuflbgXWW1pNcHzvTW8THKV1RVKF4URJc0zN4jdwYFBbcq2EJtOJrvdbqzbyzEXE0qvCsIO+Xwa3FGOT2hsTODD+GJ8QSbiuOJyEOzsTj1Jf7AOz6Nbuh3u3USXXAS5h8ybtptLoG4CgzP9XDHYUufTJTTNhlv8bUrvyfxYoyHVrBg8cSP4hphe0rhtkedBQQ084AFS+BIzHIWhIHhZByE/3xE0v/HFNMtQuzexQ3HObuYLYLBpPxCVyumN4TsaOL6DFMKniF4HQQZbAyWXRU1jnUL0SeLjNXFylGkrS9YdBluHy8Mgw6aJiLCuvQfWlhJ59Cvv/V8qCYRh
+sidebar_class_name: "post api-method"
+info_path: docs/platform_api/plexicus-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Generate API token"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"post"}
+  path={"/user/generate-api-token"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Generate API token
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={undefined}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={{"content":{"application/json":{"schema":{"properties":{"name":{"anyOf":[{"type":"string"},{"type":"null"}],"title":"Name"},"expires_at":{"anyOf":[{"type":"string"},{"type":"null"}],"title":"Expires At"}},"type":"object","title":"GenerateApiToken"}}},"required":true}}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"Successful Response","content":{"application/json":{"schema":{}}}},"422":{"description":"Validation Error","content":{"application/json":{"schema":{"properties":{"detail":{"items":{"properties":{"loc":{"items":{"anyOf":[{"type":"string"},{"type":"integer"}]},"type":"array","title":"Location"},"msg":{"type":"string","title":"Message"},"type":{"type":"string","title":"Error Type"}},"type":"object","required":["loc","msg","type"],"title":"ValidationError"},"type":"array","title":"Detail"}},"type":"object","title":"HTTPValidationError"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

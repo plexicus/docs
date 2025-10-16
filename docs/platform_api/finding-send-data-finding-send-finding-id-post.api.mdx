@@ -1,0 +1,71 @@
+---
+id: finding-send-data-finding-send-finding-id-post
+title: "Send Finding to developer"
+description: "Send Finding to developer"
+sidebar_label: "Send Finding to developer"
+hide_title: true
+hide_table_of_contents: true
+api: eJyVVd9v2jAQ/leie9okF7pqT3lau3Ya0qailu0FIXTEB7hN7NR2oCjK/z6dHSBAy7Yn8Pl8P77vvksNHhcO0jF8U1oqvXDJRXJLHlUOEwGSXGZV6ZXRkMIjaZm0fok3iaQV5aYkCwL4B9lvICGFeXSaOtJyKtHj9MCyOyk5nZbGeRDgKKus8htIxzV8H42GN4SWLKTjSTMRUKLFgjxZFxw0FtTJoyQIUFxjiX4JAiy9VMqShNTbigS4bEkFQlqD35T80nmr9AIEeOVzNmz7GkhoOCFHIOdvjNzws+OAmdGetOcrLMtcZaH5/pNjpOpOvtIyNF6R49MOsqmSwaA8Fe60rkZsDWgtbjp13m4jJAPpoNk7mtkTZf6g9/FRvslJuyOL2s3J3qJHaBoOZ8mVRrtY79XlZSz7YA6qLCPn5lWePLTO8O+IxCyfr65OA//GXMnwLLmz1tj/iHqCcxjhLsCHDrnJDm5Rb+7nYbSOidhZlPa0IAvN5H12fphYIBNYuMW5gftJzuGC9lS/7xrASEZ8+zfCua+YuvXrcL6HN6J7bsgCfG8l27qwRE8CRm4L8kvDa6CVdtBkCv1WrRe8A/r1XrtNR/6PTGikqLsEdtgsvS+h1TOfZ9GB0/JMPOxVe/eKRZnTG6obbxFmIpWemxC/7WuY06vKKpdcDwdwvAG7l4k0WVWQ9pHwOKqYhVFt19PWHQRUNm+rd2m/v16ve2V72UPVBwFUhIEN9Xzp3DFLK7IuFvCpd9m7ZBNDW6DuJDu3nQ+6qPeiOvuoRdzTq++XOaow1KGPuqV0DF1KQUDaWcgTAUvmPx1DXc/Q0S+bNw2bXyqyvOcnAlZoFc4Y+HENUjn+LyGdY+7oTNkfHtqR/5i8V+h2sjXP9Qrzik8g4Jk2hx+OIOcloQwfm7p1+BpzXQTR7QOc7CDeD/HFdZZR6c/6TjraGN4/jkDArP2+FEbyG4trFjSuY7Em9B7UEGw15KgXFa+NFGJMnnysmI2dRlpNiO2fzlY7hKOuo8fIPJNumh06ns8MTNP8AfvKzRQ=
+sidebar_class_name: "post api-method"
+info_path: docs/platform_api/plexicus-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Send Finding to developer"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"post"}
+  path={"/finding-send/{finding_id}"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Send Finding to developer
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"name":"finding_id","in":"path","required":true,"schema":{"type":"string","title":"Finding Id"}}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={{"required":true,"content":{"application/json":{"schema":{"properties":{"developer_ids":{"items":{"type":"string"},"type":"array","title":"Developer Ids"}},"type":"object","required":["developer_ids"],"title":"FindingTransferData"}}}}}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"Successful Response","content":{"application/json":{"schema":{}}}},"422":{"description":"Validation Error","content":{"application/json":{"schema":{"properties":{"detail":{"items":{"properties":{"loc":{"items":{"anyOf":[{"type":"string"},{"type":"integer"}]},"type":"array","title":"Location"},"msg":{"type":"string","title":"Message"},"type":{"type":"string","title":"Error Type"}},"type":"object","required":["loc","msg","type"],"title":"ValidationError"},"type":"array","title":"Detail"}},"type":"object","title":"HTTPValidationError"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

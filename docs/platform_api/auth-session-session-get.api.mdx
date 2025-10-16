@@ -1,0 +1,63 @@
+---
+id: auth-session-session-get
+title: "Read user session"
+description: "Data from user authentication session"
+sidebar_label: "Read user session"
+hide_title: true
+hide_table_of_contents: true
+api: eJztVk1vGzcQ/SvEnBqAXSmFc9lTHcRIDaSo4SgnQRBGuyOJCZfckLOWhQX/e0FyJa2sujGSY3Li15vH4cwjOT0wbjyUc7jueEuGVYWsrIGFhJp85VSbhiW8Q0axdrYRnScn8AwuPHkfcRJsSy7N3dZQQoQth8VjuyEGCY58a40nD2UPf0ynsTnf8mNXVeT9utPifgCDhMoaJsMRjm2rBw8mn3206cFXW2ow9loXfWGVd6AGlY4d3rcEJXh2ymxAwtq6BhnKASGBFeuIuEnjIMHZOL60PADv43qQEANjsElYNPt/1lDOn1oFeZwxndYQFieeTwf7kKJDvGT7hcz30t1HCjFLFOeMS3pslctxeY55FJgamX5nlRx70XbiZuAPEjR6Xmq7UWaJ/L1H+YCexYdIIq4ZQpAHpF19piqr6WunHNVRyodEprw9iW+UMYQQKa6mry81N9tSFvgOvTCWxdp2phbWCd6SaNH7nXV1WlWmss5RxYW4ZVHZTtcCtbeCrdCEtUixFqgdYb0XOeZ18QMSds661FNMjb8EDAd9Xqmz1AYJjd/8H+5vv/lmlDM2U42C/J4MOVXdRF/fEedMPHlK0mhFXqDwymw0iU22EumIBZy2RudwP76UOQbflECGPePX6DW5zH5lm1YTkzg8UGJl671YW5e9RC3+ms3usqte/EbFppDianolxZvp9FVxVNfVS9X1SxE/hSLe/Ncfd2s4PvpaeHIP5DLHL0H8BIIIEjxVnVO8T79htHhL6MhBOV/E368h3tpYReWCqUXeQgmTU611sP8Y1ZDzO2Y5Jm/L3EZ4gkEJqwyILiiztiNdwJ2mR1V1Xlzf3V6cfbwoalt1DRnO9WJWLFZJsbkIOsJBQuf04IcvJ5Pdble0w2KBagLyUJ4lf/4crcU8P5Dz2YHXxbSYxqnWem7QjDa7jz9ueltP8Tnzvj/dqRcXs0P8mB550mpUqZBKZ+mHdMzhgF5I2FrPcarvV+jpk9MhxOmvHbmY44WEB3QKVzHS80WQsCWsU757+EJ7KOG6qqiNyX5A3SVxP738Z8J4fzMDmYrsUbaH7MpDZ1RqodmPuPs+I1LNFgLIwYlcdYZFCOFflN8qRQ==
+sidebar_class_name: "get api-method"
+info_path: docs/platform_api/plexicus-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Read user session"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"get"}
+  path={"/session"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Data from user authentication session
+
+<ParamsDetails
+  parameters={undefined}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"Successful Response","content":{"application/json":{"schema":{"properties":{"email":{"type":"string","format":"email","title":"Email"},"role":{"type":"string","title":"Role"},"username":{"anyOf":[{"type":"string"},{"type":"null"}],"title":"Username"},"reset_token":{"anyOf":[{"type":"string"},{"type":"null"}],"title":"Reset Token"},"reset_token_expires":{"anyOf":[{"type":"string","format":"date-time"},{"type":"null"}],"title":"Reset Token Expires"},"last_login_at":{"anyOf":[{"type":"string"},{"type":"null"}],"title":"Last Login At"}},"type":"object","required":["email","role"],"title":"UserData"}}}},"401":{"description":"The user was not found or the password was incorrect. It could also to lead token already expired.","content":{"application/json":{"schema":{"properties":{"errors":{"items":{"properties":{"title":{"type":"string","title":"Title"},"msg":{"type":"string","title":"Msg"}},"type":"object","required":["title","msg"],"title":"GenericErrorDetail","description":"Describes a single generic error."},"type":"array","title":"Errors"}},"type":"object","required":["errors"],"title":"GenericErrorResponse","description":"The complete response body for general HTTP errors (e.g., 404, 500)."}}}},"404":{"description":"The user was not found","content":{"application/json":{"schema":{"properties":{"errors":{"items":{"properties":{"title":{"type":"string","title":"Title"},"msg":{"type":"string","title":"Msg"}},"type":"object","required":["title","msg"],"title":"GenericErrorDetail","description":"Describes a single generic error."},"type":"array","title":"Errors"}},"type":"object","required":["errors"],"title":"GenericErrorResponse","description":"The complete response body for general HTTP errors (e.g., 404, 500)."}}}},"500":{"description":"Internal server error","content":{"application/json":{"schema":{"properties":{"errors":{"items":{"properties":{"title":{"type":"string","title":"Title"},"msg":{"type":"string","title":"Msg"}},"type":"object","required":["title","msg"],"title":"GenericErrorDetail","description":"Describes a single generic error."},"type":"array","title":"Errors"}},"type":"object","required":["errors"],"title":"GenericErrorResponse","description":"The complete response body for general HTTP errors (e.g., 404, 500)."}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

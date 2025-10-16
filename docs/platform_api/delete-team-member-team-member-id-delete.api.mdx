@@ -1,0 +1,71 @@
+---
+id: delete-team-member-team-member-id-delete
+title: "Delete Team Member"
+description: "Delete Team Member from Client"
+sidebar_label: "Delete Team Member"
+hide_title: true
+hide_table_of_contents: true
+api: eJyVVMFu2zAM/RWDpw3QkqzYyae1a4AV6LCizXYJjECRmUStbbkS3TYw9O8DJcd2mrXDTpbFJ+rp8ZEtkNw6SJdwh0S62rrkU7JAWUImIEenrK5JmwpSuMQCCUMw+YHlGm2ysaZMvhUaKwIBpkYrGXyVQwp5gK8IZbkqAzyuDz86X60iBgQ4VI3VtId02cL3xeLmAqVFC+ky85mAWlpZIqF1AVDJEiGFPhEI0MywlrQDARYfG20xh5RsgwKc2mEpIW2B9jUfdGR1tQUBpKngje45Vzl4vs6iq03l0PGZs9mMP8da3DVKoXObpkhuOzAIUKYiliJtQdZ1oVVQY3rv+Ew78PDeewFfzs5OE/+Whc7DsWRurbH/kRVqyxUgHXnnSFIXvNKEpTsFFEYdRWW1/7kJ+h7L5EW/oyvCLVrwmReHPWmt3I+0vDaRIHgBpdu+L7tzcovQJ3sbGsRIFhz1w91mfY+Kjkq+DO+KV3e4bEgzyBvVffsZl1G+v112gLBPTxLG2pZIOzN0AYjozRSm3APTtreuH5n/jisZazNugV6UHVENnZ35fx0BfJ+uNiYgO2o3Bb5o1bjk/OYKXjfyOJjkRjUlVhRrFt0mVXBb12YHOAhobNHxcOl0+vz8PKm74ETqKQjAMngu8Pk6irHQT2hdJPB5MpvMeKs2jkpZjS47HTKv6bdDQ/x7JHXKEb7QtC6kDq4Mr2i7iiyBKwIC0mGcZAJ2xhEH23YtHf6yhfe8/dig5SGVCXiSVss1q71sIdeO1zmkG1k4fIfyh9vOqh+Tt/gdHFmxH59k0fAfCHjA/dHUC124Q5mHQdl28XOlsKbRyZOhwSOuN+jl/Hq+mIMA2bAcvdk6c4nDYjQXjom1bUQszANW3vc8if+Zo/d/ALxZLnc=
+sidebar_class_name: "delete api-method"
+info_path: docs/platform_api/plexicus-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Delete Team Member"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"delete"}
+  path={"/team/{member_id}"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Delete Team Member from Client
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"name":"member_id","in":"path","required":true,"schema":{"type":"string","title":"Member Id"}}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"Successful Response","content":{"application/json":{"schema":{}}}},"422":{"description":"Validation Error","content":{"application/json":{"schema":{"properties":{"detail":{"items":{"properties":{"loc":{"items":{"anyOf":[{"type":"string"},{"type":"integer"}]},"type":"array","title":"Location"},"msg":{"type":"string","title":"Message"},"type":{"type":"string","title":"Error Type"}},"type":"object","required":["loc","msg","type"],"title":"ValidationError"},"type":"array","title":"Detail"}},"type":"object","title":"HTTPValidationError"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

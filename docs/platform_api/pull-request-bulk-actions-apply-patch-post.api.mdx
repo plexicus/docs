@@ -1,0 +1,71 @@
+---
+id: pull-request-bulk-actions-apply-patch-post
+title: "Apply bulk pull request patch"
+description: "Apply bulk pull request patch of finding and remediation"
+sidebar_label: "Apply bulk pull request patch"
+hide_title: true
+hide_table_of_contents: true
+api: eJylVU1P20AQ/SvWnLckRT351FCoikQFgrQ9RFY0sSfOwnrX7K4JkeX/Xs2ukzgEaKuevB9v33y9GbfgsXSQzuCr1IXUpYNMQEEut7L20mhIYVLXapMsGvWQ1I1SiaXHhpxPavT5KjHLZBmfJqiLxFJFhcTwVICpyYb1ZQEp8Ot5/3rOfHPM+dLNkU3MA+G8Ns6DgB53ZooNpC3kRnvSnpcMlnmgHd07drEFl6+oQl7Vlo16SY53A3fCXnqqwsJvaoIUnLdSl9CJ7QFaixsQ4KVXvL8dEnQCUCmzpmLO8FeI9g8nEZhMA5BzusRGeTahFHR7i2ZxT/k2Ymmp4Goc+J3tWW8apW5jZn5Jv7qSzk+tLEuy5+gROubd83jbUDhwtdEu+ns6HvPnsMR3TZ6Tc8tGJbc9GMRf57wLZj+dnh4T/0Qli/AsubDW2H9gfVHJgjxKdVDDQ4Ay+cEt6s31EtLZca13J1J7KslCl70tgCsTHeTiV658r+TfyTksaa+mt6EhGUEbf5QCxxVN97iBHPbpjdl9O4zzmL7XjG0h36bTmyPCWFtHeWOl34R0Mu6M0JKFdJZ1mYCK/MqEDo+9W6NfQQqjYY+PBj0Oe8Y7Lncs4JB3l7mV9zXDAwxSWEQAO8WKud1PiYtnrGpFx10/26Y/O2rf2IsCpF6aYHTbZoqeZd64ZHJzCS/n4fAyKUzeVKT9duKxujEP6tZYDblAQGNVH5JLR6P1en1S95cnKEcggKqg8eDP58Ed+/hE1kUHPp6MT8Z8xOmuUA+MvTurX0YymKr/M+T7Snl69qNaoQytEkJteyXMYKgEEDDUQiZgxbJJZ9C2C3T0w6qu4+PHhixLLhPwhFbigmsz415dERZBfi080AZS+BID+RA6iuGqCV3wcsBw88cXkzyn2r+LHSr75vpuCgIW/e+oMgW/sbjmbsU1pBB+d7sfTThrQaEuG54JKUROFi42nJSdxHtJi+1iMLJQbwYetm1ETM0D6a4D0Yfiec9DrOt+A1rTt/Q=
+sidebar_class_name: "post api-method"
+info_path: docs/platform_api/plexicus-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Apply bulk pull request patch"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"post"}
+  path={"/bulk_actions/apply_patch"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Apply bulk pull request patch of finding and remediation
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={undefined}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={{"content":{"application/json":{"schema":{"properties":{"remediations":{"items":{"type":"string"},"type":"array","title":"Remediations"},"allowed_types":{"type":"string","title":"Allowed Types","default":"all"}},"type":"object","required":["remediations"],"title":"PullRequestWithListTriggerData"}}},"required":true}}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"Successful Response","content":{"application/json":{"schema":{}}}},"422":{"description":"Validation Error","content":{"application/json":{"schema":{"properties":{"detail":{"items":{"properties":{"loc":{"items":{"anyOf":[{"type":"string"},{"type":"integer"}]},"type":"array","title":"Location"},"msg":{"type":"string","title":"Message"},"type":{"type":"string","title":"Error Type"}},"type":"object","required":["loc","msg","type"],"title":"ValidationError"},"type":"array","title":"Detail"}},"type":"object","title":"HTTPValidationError"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

@@ -1,0 +1,71 @@
+---
+id: save-findings-filter-findings-filter-cloud-save-post
+title: "Save Findings Filter Cloud"
+description: "Save Findings Filter Cloud"
+sidebar_label: "Save Findings Filter Cloud"
+hide_title: true
+hide_table_of_contents: true
+api: eJyVVctu2zAQ/BVhz/KjQU86NWkSNEDbGInbiyEEa2ltM6FIhaTsGIL+vVhStmQ7cduTpOXsc2apGhwuLSQzuBUqF2ppo0F0K6QjE32VusohjSEnmxlROqEVJPCIa4r26ANsDLokgwy8yyEBi2t6WrTQp4WHnnxn7PrkoaW2DmIw9FqRdVc630JSQ6aVI+X4FctSiswnGD1bLqcGm62oQH4rDad3gix/KSyIn25bEtfijFBLiMEJJ9nwk8+bGEIZ3kU4KvwL5rngJCgnBzEPYzXxzqDnz5S5ngGNwW0v2W2bpDnxCe0KQzmz4Ivuakr7EfzY2kDX6BAajtZ5O1ORN9hSKxsKvhiP+XHEYJVlZO2iktFDC4b4n8fc+LSfLy5OA/9GKXLvFt0Yo81/RD0iLyeHQh5wcgiQOjtkTG3vF5DMTjnaW4RytCQDTfoxT991KJCpLOzynH5+kLW4pI70j6F+GNGUT/8mAO4rpG5xPQl04w3T/biN6zC+95LtIN+m08lJwMCtpawywm39OBl3RWjIQDJLmzSGgtxK83q361qiW0ECo91iD4J6B36xR7zY0MV8ZMIDhf3I+9mtnCsZ7mGQwDwAuCzWzEN3Ndy8YVFK6la9m/t+pWe1J1uohfY52t4nkt5EVtnocnIHx/db/zDKdVYVpFwQRZAzZq6XdAeHGCoj2w5sMhptNpth2R4OUYwgBiq8qH09X3pnzOSajA0FfBqOh2M28XwLVL1kZ+/egzZ61+Z5r3bujt7cqJQovPR9J3XL7AzeZZZZYm7TGFYshGQGdT1HS7+MbBo2v1ZkWERpDGs0Auc8/BkTsiLMvaBqeKEtJPA1FDvwO8JwWXldH18ZvM7B4zLLqHRnsX2tTu4fpxDDvP2nFDpnH4Mb3j/cQAL+78XeXpzeVoNEtax4yxMIMVmIWPFY9pJtJRrvXnqXEKptr8K6DoipfiHVNBC3rTj+5mupaf4APdacCA==
+sidebar_class_name: "post api-method"
+info_path: docs/platform_api/plexicus-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Save Findings Filter Cloud"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"post"}
+  path={"/findings-filter-cloud/save"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Save Findings Filter Cloud
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={undefined}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={{"content":{"application/json":{"schema":{"properties":{"name":{"type":"string","title":"Name"},"filters":{"items":{"additionalProperties":{"type":"string"},"type":"object"},"type":"array","title":"Filters"}},"type":"object","required":["name","filters"],"title":"FindingFiltersData"}}},"required":true}}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"Successful Response","content":{"application/json":{"schema":{}}}},"422":{"description":"Validation Error","content":{"application/json":{"schema":{"properties":{"detail":{"items":{"properties":{"loc":{"items":{"anyOf":[{"type":"string"},{"type":"integer"}]},"type":"array","title":"Location"},"msg":{"type":"string","title":"Message"},"type":{"type":"string","title":"Error Type"}},"type":"object","required":["loc","msg","type"],"title":"ValidationError"},"type":"array","title":"Detail"}},"type":"object","title":"HTTPValidationError"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

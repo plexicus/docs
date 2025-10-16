@@ -1,0 +1,71 @@
+---
+id: upload-scan-upload-scan-repository-id-post
+title: "Upload scan"
+description: "Upload scan"
+sidebar_label: "Upload scan"
+hide_title: true
+hide_table_of_contents: true
+api: eJyVVU1v2zgQ/SvCnLYAN84Ge9KpXyk2wC4aJM5eDMMYU2OZrUSyJBXbEPTfiyEVS7Ibtz1J5AxnHt/MG7YQsPSQL+CT0oXSpYelgIK8dMoGZTTk8GQrg0XmJWoQYCw5ZMtdATk00bZi22r8v3JkjVfBuMNKFauVNT6AAE+ycSocIF+08M98fv+e0JGDfLHslgIsOqwpkPPRQWNNkMMkFAhQDMpi2IIAR98a5aiAPLiGBHi5pRohbyEcLB/2wSldgoCgQsUbD8do2V0BHaflIOTDe1Mc+ORpTGl0IB3YhNZWSsbrz754ZqcdpbSOyQmKPK9kpUiHVePJMe4LkD5Ez+zJk4uYBARjqksn5mzvBNA+XHK73Qf22iheve72ie0dp00OZv2FZJiwu0iQUsY+4nKIkFrkUaKeO1WW5D5iQOg6DurIW6N9IuXm+po/0wZ7bKQk7zdNlT30zvDrtKcsf9/cnAf+HytVxGPZrXPG/UbUk2IWFFDFkqhAtT93qIycWFEfPm9iF09Z78RxR+lAJTnolgP16BweRqX51ySAXMbal5eq+B95jyXBMdiFvmAysjlbf1Z2vldK3fuNqj7Qm9h9/RofE30/SvbiwtPgLGCqbU1ha3ja9FMkaj+H2WjgzNrJlOhGs+aRS5qKNJ44R3a2IVjoJwev18mBE3NXPAzD4XaPtU1SOhX3iOMo3WEdJToskxaHbgClNyai6Xm4r2ivZOOzd/d3cDqKx8asMLKpSYfUIKm1UcbW7ifnizsIaFzV39Xns9lut7uyvfEK1Yxx1rHBI563IxtjfCbnE4C/rq6vrnmLS1GjHiWbPhMT3O0guxO3vgaB9mFmK1Sx0SPWti/zYvzGgIB8+hwsBWy5K/IFtO0aPT25qut4+1tDjh+apYBndArXTO+ihUJ5/i8g32Dl6QLUPx56IbzJXoP60u+au/0Zq4ZXIOArHc5erqjzLWERH7y29/mQ0v0Z1TjEOBtOPDjSiXdSkg0XfZcj0dx/fpyDgHX/utWmiI8q7ljpuEt4Tbx+FEnca6FCXTY8T3JIMVkQ2HBJjtLppSJefkbjbspI2yaPuflKuuuOBAVeMzFd9x37K+8G
+sidebar_class_name: "post api-method"
+info_path: docs/platform_api/plexicus-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Upload scan"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"post"}
+  path={"/upload_scan/{repository_id}"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Upload scan
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"name":"repository_id","in":"path","required":true,"schema":{"type":"string","title":"Repository Id"}}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={{"required":true,"content":{"application/json":{"schema":{"properties":{"client_user_id":{"type":"string","title":"Client User Id"},"tool":{"type":"string","title":"Tool"},"ext":{"type":"string","title":"Ext"},"file":{"type":"string","title":"File"}},"type":"object","required":["tool","ext","file"],"title":"UploadScanTriggerData"}}}}}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"Successful Response","content":{"application/json":{"schema":{}}}},"422":{"description":"Validation Error","content":{"application/json":{"schema":{"properties":{"detail":{"items":{"properties":{"loc":{"items":{"anyOf":[{"type":"string"},{"type":"integer"}]},"type":"array","title":"Location"},"msg":{"type":"string","title":"Message"},"type":{"type":"string","title":"Error Type"}},"type":"object","required":["loc","msg","type"],"title":"ValidationError"},"type":"array","title":"Detail"}},"type":"object","title":"HTTPValidationError"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      
