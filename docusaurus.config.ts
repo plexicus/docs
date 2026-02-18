@@ -109,7 +109,7 @@ const config: Config = {
         indexPages: true,
         docsRouteBasePath: '/docs',
         hashed: true,
-        language: ['en', 'es'],
+        language: ['en'],
         highlightSearchTermsOnTargetPage: false,
         searchResultContextMaxLength: 50,
         searchResultLimits: 8,
