@@ -1,0 +1,71 @@
+---
+id: send-ticket-webhook-send-ticket-post
+title: "Plexicus Webhook"
+description: "Webhook for managing your own ticketing system"
+sidebar_label: "Plexicus Webhook"
+hide_title: true
+hide_table_of_contents: true
+api: eJyVVU1v2zAM/SsGz2rSFTv5tHYrsAAbGjTZdgiCQJEYR40tuZJc1zD83wdKbuymH2hPlqlnfjw+0i14njlIVzDTHjPLvTLaJWfJ3JoHJdHS+R9u98YcYM1AohNWlYSCFPqLZGdsUnDNM6WzpDGVTUytE6/EAT2ZXOM8FsDAlBhDzCSk4FDLTURt6uhqM7aVxnlgYPG+QuevjGwgbUEY7VF7OvKyzJUIDqd3jlJqwYk9FpxOpaVwXqGjN4sFShWwGyXD17q52UG6asE3JVI+3iqdQceOFl3lOXRrBl75nAy3g5dkJqHr2BPUbO9QULpP0J6cBWq5DPVAR3CqRlmUkHpbYTC40mgXs7w4P6fHc5oXlRDo3K7Kk9seDOzDPHQh7NeLi5eO//JcyVjMtbXGfsLrCbsSPVc5nZTHwr0E5EY8u/0A+YoUiRa69cAyt5Y3I5J/mZggdAwKl5Hn5/4G6G90jmcIR2dvQwMZyZJuX+vw0MJVqCuG7nEjsQz0RnbfLuNHpO89Of1cLucvHMbeOhSVVb4JdBLuCrlFC+lqTdot0O8NzVs/TyX3e0hh2o/cdDRyMDhbUKdj78Yuj6TtvS8JHmCQwjYCKB8Sy+0wtNePvChzfG0Ih66D0jsT3Pf1znN8VKJyyeV8BqeLZ3yZSCOqArWPQogS5iJIWPNi7AsYVDbvk3fpdFrX9aTsLydcTYEBFkHIIZ9vozvK8QGtiwl8mZxPzslEnBZcvxLsuDZPkh9tsM8v0J58j49+WuZcBeGHmtq+ryuoj3HHnV0z2FP/0xW07ZY7/GPzriPzfYWWtLNm8MCt4lvif0VDt0cug45aOGADKXyPmZ+F0SB4XgU5n24KmuL4xaUQWPp3sWOJzm8WS2Cw7Xd9YSR9Y3lNY8drSCH8RcJfKgiKbC3kXGcVDXcK0SfJkFfEx1GwvUDZ02G0e7huRhm2bUQszQF11wHrS/H0Ttuo6/4DERSAoQ==
+sidebar_class_name: "post api-method"
+info_path: docs/platform_api/plexicus-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Plexicus Webhook"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"post"}
+  path={"/webhook/send_ticket"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Webhook for managing your own ticketing system
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={undefined}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={{"content":{"application/json":{"schema":{"properties":{"remediation_id":{"anyOf":[{"type":"string"},{"type":"null"}],"title":"Remediation Id"}},"type":"object","title":"WebhookSendTicket"}}},"required":true}}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"Successful Response","content":{"application/json":{"schema":{}}}},"422":{"description":"Validation Error","content":{"application/json":{"schema":{"properties":{"detail":{"items":{"properties":{"loc":{"items":{"anyOf":[{"type":"string"},{"type":"integer"}]},"type":"array","title":"Location"},"msg":{"type":"string","title":"Message"},"type":{"type":"string","title":"Error Type"}},"type":"object","required":["loc","msg","type"],"title":"ValidationError"},"type":"array","title":"Detail"}},"type":"object","title":"HTTPValidationError"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

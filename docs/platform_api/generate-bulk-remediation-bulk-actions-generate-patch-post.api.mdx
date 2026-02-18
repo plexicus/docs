@@ -1,0 +1,71 @@
+---
+id: generate-bulk-remediation-bulk-actions-generate-patch-post
+title: "Generate bulk AI remediation"
+description: "Generate bulk AI remediation finding"
+sidebar_label: "Generate bulk AI remediation"
+hide_title: true
+hide_table_of_contents: true
+api: eJylVU1v2zAM/SsGz16SFTv5tHTrtgAdGrTZdgiCgLGZRK0suZLcNDD83wdKju0ka9dhJ8sU+fj1SFXgcGMhmcMXoTKhNhYWMWRkUyMKJ7SCBL6SIoOOolUpH6LxJDKUUyaQr6N1MIMYdMFaQqtJBglsGqMlGy17FkGAKZ/tslUr0KXbZaGtgxgMPZZk3aXO9pBUkGrlSDk+YlFIkXqg4b3l8Cqw6ZZy5FNhOAgnyPLf+pBRUoFwlPuD2xcECVhnOOo6PgjQGNxDDE44yf9tOerYO90vC+MDUPubNSTzFmmltSRUUMetSJVSQr3owMYMEE0NcGnXWEoHyRqlpRZcWFuGqP/DwSSAnDnpstSre0oPFRaGMu78utf5A+AnQ+jotmub/SXc9lpYBzXjdfbOlOQFttDKhhwuRiP+HNPorkxTsnZdyui2UYb4zb2tvdsPFxfnwD9Riiyw8coYbf4B9YQxGTkU8ogvxwpSp0e3Z81qedVKhHK0IQP14mWyXesQIJMtt5tznnaq38la3FDH3JdVfTGiGd/+jQKcV3Dd6PWo0JU3VPflND6H8v3J2UHl22w2PQMMvbWUlka4vS8n610SGjKQzBdM9ZzcVvNmaXZEgW4LCQz762R4vE6gA73jjoce9qHb4m2dK1jdq/HQBQWOi0lz2y2kq2fMC0nHC2Z+qP6ivy14NE4HvBkXodbau2/qMpX0LNLSRuPpBE4XcP8yynRa5qRcIEygOqae6grzPhbEUBrZJGeT4XC32w2K5nKAYggxUO4J7+P52LvjLj+RsSGA94PRYMQirn2OqufstcfhNJHeJn/ro9K0x9GzGxYShR8Rn1XVMGAOfQZADCccWMSwZcYkc6iqFVr6YWRds/ixJMNsW8TwhEbgijsx5zHdEmaeeRU80J7XYYj7nR8mVpelH4DT3cJzHyzGaUqFe1W3T+rpzd0MYlg1L16uM7YxuONBxR0k4F/YkGNSBVkFEtWm5HWQQMBkwmLJdenej0Dl+HDobStU+16EVRU0ZvqBVF1D3KTi+J/3V13/BlM/1wM=
+sidebar_class_name: "post api-method"
+info_path: docs/platform_api/plexicus-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Generate bulk AI remediation"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"post"}
+  path={"/bulk_actions/generate_patch"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Generate bulk AI remediation finding
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={undefined}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={{"content":{"application/json":{"schema":{"properties":{"findings":{"items":{"type":"string"},"type":"array","title":"Findings"},"apply_pr":{"anyOf":[{"type":"boolean"},{"type":"null"}],"title":"Apply Pr","default":false},"apply_issues":{"anyOf":[{"type":"boolean"},{"type":"null"}],"title":"Apply Issues","default":false}},"type":"object","required":["findings"],"title":"CreateRemediationsWithList"}}},"required":true}}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"Successful Response","content":{"application/json":{"schema":{}}}},"422":{"description":"Validation Error","content":{"application/json":{"schema":{"properties":{"detail":{"items":{"properties":{"loc":{"items":{"anyOf":[{"type":"string"},{"type":"integer"}]},"type":"array","title":"Location"},"msg":{"type":"string","title":"Message"},"type":{"type":"string","title":"Error Type"}},"type":"object","required":["loc","msg","type"],"title":"ValidationError"},"type":"array","title":"Detail"}},"type":"object","title":"HTTPValidationError"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

@@ -1,0 +1,71 @@
+---
+id: filter-findings-filter-findings-get
+title: "Filter Findings"
+description: "Get all configuration for filter Findings"
+sidebar_label: "Filter Findings"
+hide_title: true
+hide_table_of_contents: true
+api: eJytVN9P2zAQ/leie/baDu0pT2MMGNrQ0Oj2UlWV61xSg2MH2wGqyP/7dHbapBQmIe0p8f2+7+6+DjyvHOQLuJC6kLpy2YfsQiqPNjttGmCvyG/Prl+VnynTFrBkUKATVjZeGg05XKLPuFKZMLqUVWs5ybPS2KxMfrtIwMA0mPRXBeSQ9Kuy169eviv0wMChaK30W8gXHXybz2++ILdoIV8sw5JBwy2v0aN10UDzGofQ97gFBpLKfGjR0sPiQystFpCXXDlk4MQGaw55B37bkK/zVuoKGHjpFQn6/r/jFkJg+xxCSdR+JYv/kOIsxsquCgjUlEXXGO3Qkc/JbEafQ9RvWyHQubJV2a/eGBgIoz1qT+a8aZQUEezpnSOfbqgjhBAYfDo5OQ78hytZpBmeW2vsO6JCY2nAXqa6C/RcKvqTHmt3bKCMONByvf1ZxikewkSY9xKpPVZoISwD28m4tXw7wvKHSQVCYFC76l+wX6NzvELYB3vbNIKRzUkbhtxmfYfCH8x8EftKqXu75RBmgDeh+3YbXxN8ryXbmdA1HAVMs63RbwwdWTqihvsN5DBNdzEth5PcndctTTHNZXxke0A23hNdxGHTe50MKJfUpYmWfVk3Cp+laF12enMFL+lirMwKI9oatU/zSpvGRdy0/sh25sCgtaqvw+XT6dPT06TplRMup8AA67hvsZ7PIx2B/IjWpQI+TmaTGYka43zN9SjZxRFhHdTeDZfwLtbrEfT47KeN4jJuZuym6wez6AkLGOxHs2SwMc6TsuvW3OFvq0IgceIZupNCOr5WI6YhwnvBfo9ctZQ+ntEbDmMqG+yX9LCSHCLbMtggLyL1dr3jqRDY+JHXEUFQlP0yXp7PgQFvqef9ZvWbxHY/IwLgetxB1yWLublHHQLsqvf0JkoI4S8FHF8J
+sidebar_class_name: "get api-method"
+info_path: docs/platform_api/plexicus-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Filter Findings"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"get"}
+  path={"/filter/findings"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Get all configuration for filter Findings
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"name":"filter_key","in":"query","required":false,"schema":{"type":"string","title":"Filter Key"}},{"name":"client_id","in":"query","required":false,"schema":{"type":"string","title":"Client Id"}}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"Successful Response","content":{"application/json":{"schema":{}}}},"422":{"description":"Validation Error","content":{"application/json":{"schema":{"properties":{"detail":{"items":{"properties":{"loc":{"items":{"anyOf":[{"type":"string"},{"type":"integer"}]},"type":"array","title":"Location"},"msg":{"type":"string","title":"Message"},"type":{"type":"string","title":"Error Type"}},"type":"object","required":["loc","msg","type"],"title":"ValidationError"},"type":"array","title":"Detail"}},"type":"object","title":"HTTPValidationError"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

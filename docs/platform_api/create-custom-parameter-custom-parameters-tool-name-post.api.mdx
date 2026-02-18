@@ -1,0 +1,71 @@
+---
+id: create-custom-parameter-custom-parameters-tool-name-post
+title: "Create Custom Parameter"
+description: "Create Custom Parameter"
+sidebar_label: "Create Custom Parameter"
+hide_title: true
+hide_table_of_contents: true
+api: eJylVktv2zgQ/ivCYA8toMbe7O5Fp7ZpF1ug3QaJ24vhCrQ0ttlQpEpSsQ1F/70YknpFiZu2J8vkzDffvFmDKlEzy5V8l0MCmUZmMc0qY1WRlkyzAi3qyYFJU6uUSCUrME1LZSzEYDCrNLdHSJY1/LdYXL5GplFDslw1qxh6ZSdAqpBABwMxcAkJlMzuIAaN3yquMYfE6gpjMNkOCwZJDfZYkqKxmsstxGC5FXSwUEpE/xNSQ+YIAI19rfIjad3Hy5S0KC1dsbIUPHNBmH01StJZb67UFCLL0dC/yqBON5qjzMXR836AUsEO71Fu7Q6Sf+Y9w08GdfRvUA5UY8jRZJqXZN6xkcePGxehMWoTdyeyEgLIxxb4zQCiiYPYlFbJrEVNQf7yzB/ecWlxi/purZRAJu+KSlheCkyzneIZPv9jGGCCawaJfIr/fw38v2wVO98LdkhFkHzA9cDupO8f2CEKxgiQy/SWiQp/HY/L6LNDCPx+E44dejgfVDMG4xYLM41il0dgWrPjSSMXAbfpldT6K2Z21EjLh6o3KEyyOkR3zd8l78LNCGgasqbRlEoa79P5fE4/o4KG6yrL0JhNJaKrIAxPbz9v5e/z8ynwZyZ47tSit1or/ROo95o6R8u4oK8uF2MBobLR7RN6tKuN1f1E9oF9rzxBV2lme2q4fUBj2BZPdXcr6oIR+Wb9QT2QX950kBtkvQ+vj+7jbrzx4XvIWCtC22AC6HM7TqovrsiXXNTVHLFEu1O0o8K2cXsigZlfTS/67TKru53SDLbSNSXfp3O4m7o47qwtIewZ+r/2AkSR6ueqXydvD6woBT62DvqMjF3rEzUZy+N5Opqj3Xicj4bbfDSb5oPRsmzVqfC43CjnYzuBBR54Vpno1eW7CcHhZZSrrCpQWl+gvrVY5lorsGzFIYZKixBBk8xm+/3+rAyXZ4zPIAYsXIM5Pi8Hd1RVt6iNJ/Dn2fxs7jaMMrZgcmDs8bq4tz5DcC0e7KwUjLvmcvzqUDJLmJQMxJD0D5FVDDuqsWQJdb1mBj9p0TR0/K1CTc+bVQy3THO2pqAua8i5oe8ckg0TBiekurkEz65C+z2P+koYk227TFKPhQQDxHCDx9F7yU2WHbLcPbHqcH/hTb1Y+Kne6k/GIY0qr/Eqy7C0J2VXg/a7/Hi9gBjW4V1VqJx0NNvTbGF7z1U5112zubMaBJPbiiZYAh6TGotVfvEHl0PLxe3HYMCOo1HXXmKhblA2zSA4N0h0m6b5DmpvwEw=
+sidebar_class_name: "post api-method"
+info_path: docs/platform_api/plexicus-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Create Custom Parameter"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"post"}
+  path={"/custom-parameters/{tool_name}"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Create Custom Parameter
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"name":"tool_name","in":"path","required":true,"schema":{"type":"string","title":"Tool Name"}}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={{"required":true,"content":{"application/json":{"schema":{"properties":{"user_friendly_name":{"type":"string","maxLength":50,"title":"User Friendly Name"},"description":{"anyOf":[{"type":"string"},{"type":"null"}],"title":"Description"},"type":{"type":"string","pattern":"^(string|integer|boolean|multiple_choice)$","title":"Type"},"parameter_name":{"type":"string","maxLength":30,"title":"Parameter Name"},"max_length":{"anyOf":[{"type":"integer"},{"type":"null"}],"title":"Max Length"},"min_value":{"anyOf":[{"type":"integer"},{"type":"null"}],"title":"Min Value"},"max_value":{"anyOf":[{"type":"integer"},{"type":"null"}],"title":"Max Value"},"choices":{"anyOf":[{"items":{"type":"string"},"type":"array"},{"type":"null"}],"title":"Choices"}},"type":"object","required":["user_friendly_name","type","parameter_name"],"title":"CustomParameterCreate"}}}}}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"Successful Response","content":{"application/json":{"schema":{}}}},"422":{"description":"Validation Error","content":{"application/json":{"schema":{"properties":{"detail":{"items":{"properties":{"loc":{"items":{"anyOf":[{"type":"string"},{"type":"integer"}]},"type":"array","title":"Location"},"msg":{"type":"string","title":"Message"},"type":{"type":"string","title":"Error Type"}},"type":"object","required":["loc","msg","type"],"title":"ValidationError"},"type":"array","title":"Detail"}},"type":"object","title":"HTTPValidationError"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

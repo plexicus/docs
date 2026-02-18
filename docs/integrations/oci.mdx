@@ -1,0 +1,45 @@
+---
+title: "Oracle Cloud Infrastructure"
+description: "Connect Plexicus to your Oracle Cloud environment"
+---
+
+## Setup Instructions \{#integrations_oci-1}
+
+:::note
+Please read below instruction before submitting the form!
+:::
+
+1. Log into Oracle Cloud Console
+2. Get Tenancy ID:
+   - Click profile menu (top right)
+   - Click your tenancy name
+   - Copy OCID (Tenancy ID)
+3. Get Compartment ID:
+   - Menu (≡) → "Identity & Security" → "Compartments"
+   - Find your compartment
+   - Copy its OCID
+4. Get User ID:
+   - Menu → "Identity & Security" → "Users"
+   - Click your username
+   - Copy your OCID (User ID)
+5. Generate API Key:
+   - Stay on user details page
+   - Click "API Keys"
+   - Click "Add API Key"
+   - Choose "Generate API Key Pair"
+   - Click "Download Private Key"
+   - Click "Add"
+   - Copy the fingerprint shown
+   - Copy the key value shown
+
+---
+
+**Now you have all needed values:**
+
+- Tenancy ID (from step 2)
+- Compartment ID (from step 3)
+- User ID (from step 4)
+- Key fingerprint (from step 5)
+- Key value (from step 5 - downloaded file)
+
+**IMPORTANT: Save the private key file you downloaded - you can't get it again!**

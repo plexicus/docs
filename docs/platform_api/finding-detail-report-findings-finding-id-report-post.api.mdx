@@ -1,0 +1,71 @@
+---
+id: finding-detail-report-findings-finding-id-report-post
+title: "Generate Finding Report"
+description: "Generate Finding Report"
+sidebar_label: "Generate Finding Report"
+hide_title: true
+hide_table_of_contents: true
+api: eJyVVE1v2zAM/SsGTxugxVmxk0/rsK8CGxq02S6GESg2k6i1JVWS2waG/vtAWU7sZQmwk2XyiaQeH9mB41sLWQ5fhayE3NrkXfIZHRc1FAwqtKUR2gklIYNvKNFwh0nEJneolXHAQGlyCCVvKshg07tXVYizMgG1ila7Gk4rUa0Gp1aW4lgsWyPcHrK8g+/L5eITcoMGsrzwBQPNDW/QobEBIHmDo3SiAgaCCtXc7YCBwadWGKwgc6ZFBrbcYcMh68DtNd20zgi5BQZOuJoMw8NuKvCU0KDVSlq0dOlqPqfPlJP7tizR2k1bJ3cRDAxKJR1KR3CudS3KQE76YOlOdyzEe+8ZfLi6Og38m9eiCteSL8Yo8x9RQRtqiBN93X0b6CQcNvYUUKty4uVyf7sJDE958uxgEdLhFg34wrPBxo3h+xGZP1RfIHgGjd1e4v0nWsu3CIdg56GBjGRJXn/MrdYPWLpJz/Pwrj51xBXHMEd6e3bPPyNOw7+SDRBS6knAvrcNup2ioYgKD9LMIB2mIe2O8vWpGQZqGIR76mnfpfE4HOjZOachKpv+1z2AMgu5UQEZi1zU+CrK1ibXixv4e7THzqRSZdugdH33et3xMugujtwABwatqWMdNkvTl5eXmY7OGRcpMMAmqC/U83HkI8qf0di+gPez+WxOJuKp4XKU7PzambyhO87HhSuRN4evLtU1F0Gd4Q1d7E0+LBR6XTZZLrE9BYMddTPLoevW3OIvU3tP5qcWDS2vgsEzN4Kvifm8g0pYOleQbXht8ULlb+6igN8m56oddCpJpc+8bukPGDzifroNw3DukFdhg3YRcF2WqN3o6skuoc130O3i9n4JDHhL3Bx0F3XGhsNoWUzr6roesVSPKL0/lOnonyr0/g/J7Dzs
+sidebar_class_name: "post api-method"
+info_path: docs/platform_api/plexicus-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Generate Finding Report"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"post"}
+  path={"/findings/{finding_id}/report"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Generate Finding Report
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"name":"finding_id","in":"path","required":true,"schema":{"type":"string","title":"Finding Id"}}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"Successful Response","content":{"application/json":{"schema":{}}}},"422":{"description":"Validation Error","content":{"application/json":{"schema":{"properties":{"detail":{"items":{"properties":{"loc":{"items":{"anyOf":[{"type":"string"},{"type":"integer"}]},"type":"array","title":"Location"},"msg":{"type":"string","title":"Message"},"type":{"type":"string","title":"Error Type"}},"type":"object","required":["loc","msg","type"],"title":"ValidationError"},"type":"array","title":"Detail"}},"type":"object","title":"HTTPValidationError"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

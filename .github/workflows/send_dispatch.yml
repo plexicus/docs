@@ -1,0 +1,40 @@
+name: Send Dispatch to Plexicus PR Reviewer
+
+on:
+  pull_request:
+    types: ['opened', 'reopened']
+    branches:
+      - main
+      - develop
+      - dev
+      - staging
+
+jobs:
+  send-dispatch:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Send Repository Dispatch
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          OWNER: "plexicus" # Replace with the owner of the Plexicus PR Reviewer
+          REPO: "pr-reviewer"  # Replace with the name of the Plexicus PR Reviewer
+          EVENT_TYPE: plexicus-review-trigger
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPO_OWNER: ${{ github.repository_owner }}
+          REPO_NAME: ${{ github.event.repository.name }}
+          ACTOR: ${{ github.actor }}
+        run: |
+          curl -X POST \
+            -H "Accept: application/vnd.github.v3+json" \
+            -H "Authorization: token ${GITHUB_TOKEN}" \
+            https://api.github.com/repos/${OWNER}/${REPO}/dispatches \
+            -d '{
+                  "event_type": "'"${EVENT_TYPE}"'",
+                  "client_payload": {
+                    "pr_number": "'"${PR_NUMBER}"'",
+                    "repo_owner": "'"${REPO_OWNER}"'",
+                    "repo_name": "'"${REPO_NAME}"'",
+                    "actor": "'"${ACTOR}"'"
+                  }
+                }'

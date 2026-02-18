@@ -1,0 +1,71 @@
+---
+id: add-domain-domains-post
+title: "Add Domain"
+description: "Add Domain"
+sidebar_label: "Add Domain"
+hide_title: true
+hide_table_of_contents: true
+api: eJyVVU1vGjEQ/SurOTtAo558ar6kIrUKSmguCEXGO4CTXduxvSFotf+9GtvAQpq0PbH2PI+f37wZWghi5YHPYKwDrpwIymhfnBVXRmuUwThaXJtaKF08oFNLJSMG5gxK9NIpG5ccLsoyA4GBsZhyjUvgIMrysYyh/OMfrfEBGHiUjVNhC3zWwvfpdHKJwqEDPpt3cwYOXxr04dKUW+BtXCqHJfDgGmQgjQ6oA4WEtVWmNnzyRKgFL9dYC/qyjggFhZ5WiQN9ha1F4OCDU3oFDIIKFW3kd3Qd20HM4gklMT5wmO0SzU8PjrVtAnQdnXfordE+3Xw+GkUCR8LdN1Ki98umKu4yGP79bemWr+fn7xM/iEqV8Vhx45xx/5H1VDEMQlX0pQLW/j2gMvIoKvT2dhmLeixxx/Y7igyHDrr5QWXhnNj26vDDZLd1DGq/+qxkP9F7sULYJ/sYGsUophT9W4XpXenqjOvV+iBvUvfjZ1wn+f502Q5C3n+XMNW2xrA21Ea5Z6wIa+AwzK3U66J7Kl8qSL+X9kqsQ7AEjzDgsEgAuoQccHfotps3UdsK+91yKCEovTQxbSY/qfBNycYXF5MxnM6FfrAojWxq1CFVNflRyOhHLep+LmDQuCqT9nw43Gw2A5uDA6GGwADr6MrI51svRhxf0flE4MtgNBjRFulXC9277GhmHdFuD61yjMpSBnwLQ1vFKZGZtrkyu7ngySxrqhmfQdsuhMdfruo62n5p0NHQmzN4FU6JBek4o05YoyjjAGzhGbfA4SrxOIt+JXjVRI+dti+1VjpxISXa8Cl23rPV5PZ+CgwWecjWpqQzTmyoF8QGOMSBHv8Z4hSmvRYqoVcNdRyHlJNsJBpSYG+4bDC2++gNBKG3PYZtmxBT84y664DlpwRa04jout9zEEl+
+sidebar_class_name: "post api-method"
+info_path: docs/platform_api/plexicus-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Add Domain"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"post"}
+  path={"/domains"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Add Domain
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={undefined}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={{"required":true,"content":{"application/json":{"schema":{"properties":{"domain":{"type":"string","title":"Domain"}},"type":"object","required":["domain"],"title":"DomainInput"}}}}}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"Successful Response","content":{"application/json":{"schema":{}}}},"422":{"description":"Validation Error","content":{"application/json":{"schema":{"properties":{"detail":{"items":{"properties":{"loc":{"items":{"anyOf":[{"type":"string"},{"type":"integer"}]},"type":"array","title":"Location"},"msg":{"type":"string","title":"Message"},"type":{"type":"string","title":"Error Type"}},"type":"object","required":["loc","msg","type"],"title":"ValidationError"},"type":"array","title":"Detail"}},"type":"object","title":"HTTPValidationError"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

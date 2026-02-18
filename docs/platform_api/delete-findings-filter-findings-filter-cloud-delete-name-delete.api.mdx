@@ -1,0 +1,71 @@
+---
+id: delete-findings-filter-findings-filter-cloud-delete-name-delete
+title: "Delete Findings Filter Cloud by Name"
+description: "Delete Findings Filter Cloud by Name"
+sidebar_label: "Delete Findings Filter Cloud by Name"
+hide_title: true
+hide_table_of_contents: true
+api: eJyVVFFP2zAQ/ivRPW2SaTq0pzyNjaIhsQ1Bt5cqqlzn2hqcONgOUEX+79PZbpuugNhTYvu78+fvvrseHF9ZKGZwIZtKNiubnWQXUjk02TeluwpKBhVaYWTrpG6ggHNU6DDb4YfobLHJfvIagYFu0XAKuayggCoEzZcpaL4MQUdrQUnmCTxveI3ztAIGFkVnpNtAMevh+3R6/RW5QQPFrPQlg5YbXqNDYwOAgqGIHwaSmLfcrYGBwYdOGqygcKZDBlasseZQ9OA2LcVYZ2SzAgZOOkUb4UmeLjFoW91YtAQ/HY/pcyjPbScEWrvsVHaTwMBA6MZh4wjO21ZJEaTJ7yzF9HsK3nvP4PPp6XHiP1zJKoRlE2O0+Y+s0Boqh5ORd4WOS0V/0mFtjwFKi4NT3mx+LYOqhwp5ttuRjcMVGvClZ9s9bgzfDGS80pEgeAa1Xb2l+A+0lq8QdslehwYxsimd+v3denGHwh1UexbeFa9OuHKfZi9vVPf1Z5xH+V66bAshdx4ljLWt0a31viWARVsWkG+b4SQ2w0lohjzC8p6M7AddcEvFjeUa9sJOp7VzLSRz03oRAURBNksdkInttcJnKTqbnV1fwr/tPjzMKi26GhsXyxgNyEUwYOq3LRwYdEYlHrbI86enp1GbDkdc5sAA62DDwOfL4Iy0f0RjI4FPo/FoTFuttq7mzeCyd46igwf1+655b3xS1OGzy1vFZTBweF2fijeDF4sX7k5VLgLnksFaW0cRfb/gFn8b5T1tP3RoaLSVDB65kXxBpZn1UElL/xUUS64svvGaDzfJ6h+z10hvHd2Qnx+56mgFDO5xs52VoYHXyKswWft0dCYEtm4QdDRvaDruvH0+uZpMJ8CAdyTPzpTJhGz7Mxgph5z6PiKm+h4b73cUHa2Jo/d/AZf8TpM=
+sidebar_class_name: "delete api-method"
+info_path: docs/platform_api/plexicus-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Delete Findings Filter Cloud by Name"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"delete"}
+  path={"/findings-filter-cloud/delete/{name}"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Delete Findings Filter Cloud by Name
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"name":"name","in":"path","required":true,"schema":{"type":"string","title":"Name"}}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"Successful Response","content":{"application/json":{"schema":{}}}},"422":{"description":"Validation Error","content":{"application/json":{"schema":{"properties":{"detail":{"items":{"properties":{"loc":{"items":{"anyOf":[{"type":"string"},{"type":"integer"}]},"type":"array","title":"Location"},"msg":{"type":"string","title":"Message"},"type":{"type":"string","title":"Error Type"}},"type":"object","required":["loc","msg","type"],"title":"ValidationError"},"type":"array","title":"Detail"}},"type":"object","title":"HTTPValidationError"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

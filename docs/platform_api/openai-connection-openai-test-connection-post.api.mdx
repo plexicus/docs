@@ -1,0 +1,71 @@
+---
+id: openai-connection-openai-test-connection-post
+title: "Test & save OpenAI connection"
+description: "Test & save OpenAI connection"
+sidebar_label: "Test & save OpenAI connection"
+hide_title: true
+hide_table_of_contents: true
+api: eJydVUtv2zAM/isGDzu5SVbs5NP6Albs0aDJegmCQLHZRK0sqZLc1DD83wdKSuwk62M7WaY+kRS/j1QDjq0sZDOYoHNcrmxyktxolGfXyYWSEnPHlbQwT6FAmxuu6R8ymKJ1yafEsmfc4vMdHlJQGg2j9XUBGf1JxhcdYhEtDq3rm7WyDlIw+FShdeeqqCFrIFfSoXS0ZFoLnnvPwwdLqTRg8zWWjFbaUFzH0QYsXzyi98BkfXMP2awBV2uEDKwzXK6gTXcWWQkB7TwFx50gw5nmyXesoU29pyWzSK72HezDzwkT8c9oLA8J/m/0u+iipeproeoSpVtIVr6ZyOUOmvwiaNumW6xaPmC+LTA3WBDzu8sdR+nlcyE4SheohpZ8dj6cqdAbrFbShuKfjkb02VfNpMpztPa+EsltBEP6YXpbH/bL6emx4zsmeOGPJVfGKPMPXg9EU6BjXNCKOyztMUCofG/3A+Ry6XCFBtp5RwUzhtU91n6okCCRXdrVWwT/RGvZygstQF6H+mIkU9p9TwZ0rxA64nrkd+UN1X39GpehfH8LtoV8m07HRw4DtxbzynBX+3IS7hyZQQPZbE69UaJbK5oncUxo5taQwTAMk+HBMIHO34TIDvT1ve7qtnZOE9zDIINlAFBKpJfbbhxdvbBSC9wbL13Zuzmxb9vNgs581NCdboDLe+WzixUbC3zheWWTs/E1HE7i/mZSqLwinywWgJqA5b4JYpQtHFKojIh3t9lwuNlsBjpuDhgfQgpY+lbw+Xzt7VGO3ZU+D0aDEZmIlZLJXrD3Xom9m/Tm/LsHI28OX9xQC8Z92/j7NFEVs/joEPhAF/MU1iSgbAZNQ3T9NqJtyfxUoSHxzVN4ZoazJZV/Rl27RlZ4ITYQOL8IuZ743iK4qHw/HI4aGgPhxFmeo3ZvYvsaH99MppDCMr6BpSrojGEb6lu2gQz8Mxve56wJtgYEk6uKpkMGwSeJmFVUkp3co7zT7aI3vJisexk2TUBM1SPKtoU0XsXRP42ztv0DeNnYyg==
+sidebar_class_name: "post api-method"
+info_path: docs/platform_api/plexicus-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Test & save OpenAI connection"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"post"}
+  path={"/openai/test_connection"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Test & save OpenAI connection
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={undefined}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={{"content":{"application/json":{"schema":{"properties":{"api_key":{"anyOf":[{"type":"string"},{"type":"null"}],"title":"Api Key"},"api_base":{"type":"string","title":"Api Base"},"api_version":{"anyOf":[{"type":"string"},{"type":"null"}],"title":"Api Version"},"deployment_name":{"type":"string","title":"Deployment Name"}},"type":"object","required":["api_base","deployment_name"],"title":"ClientOpenAI"}}},"required":true}}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"Successful Response","content":{"application/json":{"schema":{}}}},"422":{"description":"Validation Error","content":{"application/json":{"schema":{"properties":{"detail":{"items":{"properties":{"loc":{"items":{"anyOf":[{"type":"string"},{"type":"integer"}]},"type":"array","title":"Location"},"msg":{"type":"string","title":"Message"},"type":{"type":"string","title":"Error Type"}},"type":"object","required":["loc","msg","type"],"title":"ValidationError"},"type":"array","title":"Detail"}},"type":"object","title":"HTTPValidationError"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

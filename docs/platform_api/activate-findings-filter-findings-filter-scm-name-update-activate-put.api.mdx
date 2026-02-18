@@ -1,0 +1,71 @@
+---
+id: activate-findings-filter-findings-filter-scm-name-update-activate-put
+title: "Update Findings Filter SCM Activate by Name"
+description: "Update Findings Filter SCM Activate by Name"
+sidebar_label: "Update Findings Filter SCM Activate by Name"
+hide_title: true
+hide_table_of_contents: true
+api: eJyVVU1v2zgQ/SvCnHYBOk6DPem0SdNgC7S7RuL0YhjGmBrbbCWRJak4hqD/vhiSsmW7SZqTxOF8v5nHFjyuHeQzuFN1oeq1y0bZnSo92ezh41eYCyjISauMV7qGHB5NgZ6yvfZBN7uWXj3x5XKX/YsVgQBtyCJbfi4gB0wKi1WyXqyC9dnZyWqxqLGixaIJ8RZ7U9N4EOBINlb5HeSzFv6ZTic3hJYs5LN5Nxdg0GJFnqwLCuwJ8vgRoLgMg34DAiz9bJSlAnJvGxLg5IYqhLwFvzNs47xV9RoEeOVLFoTCOg7CtuT8jS52bHDqSuraU+35Co0plQx9GH933MZ2EMlY7pJX5PgUc30rvoDYqWCiPFXhB4tCcRAsJ0c+j311ohfo5XeSfiBAa3E3CHaXgnRnNsPWzfrO9jnNhx4CssnRLXqErmN3lpzRtYsJXl1e8ud40h4aKcm5VVNm90kZfr+tMcpfV1fnjr9hqYpgln2yVtt3eD0BqyCPqjzC4Fih1PIYoXr33yrM5Ckme4mqPa3JQjd/GZcvOibI0FVu/dq8fCXncE0HkF9WDc3Ipnz7FuBcVwyd9AaQH9obu/tyGbexfb8K1qvwbp85jNhW5DeaaSVSQtjoHMY9l4ziNI6crMYtD2g3jlwy6rlkwCMPDHCEbMgm+15tvDeQ6IHPy6jAafCM3B+o4NMzVqakwyof+rxf2VkbwFX1SocYqdZJSc9KNi67nnyGU94dXmaFlk1FtY9DEMcXpR8E7dVBQGPLVIHLx+Ptdnth0uUFqjEIoCoMccjn78EdI/dE1sUEPlxcXlyyyGjnK6wHwd73JhzV1R5W751uEjKenv3YlKjCMoRa2zQLM/jFLICAPNHV6TjMBWy082zYtkt09GjLrmPxz4YsvzVzAU9oFS4Zr1kLhXL8X0C+wtLRK7X9cZ+258/spdz7Jal5RZ6wbPgEAn7Qrn+8wthsCIvw1LXp6mOMMgqbezA9IzImmWhxLSUZ/6rufLBgk8cpCFimh67SBZtY3DIp4DZmqUPRYYOCrIUS63XD1JNDdMnbgg0js9+rtEei/xkw43Ef2jZqTPUPqrtu3xbPZ+5L1/0PDTkGkQ==
+sidebar_class_name: "put api-method"
+info_path: docs/platform_api/plexicus-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Update Findings Filter SCM Activate by Name"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"put"}
+  path={"/findings-filter-scm/{name}/update-activate"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Update Findings Filter SCM Activate by Name
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"name":"name","in":"path","required":true,"schema":{"type":"string","title":"Name"}}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={{"required":true,"content":{"application/json":{"schema":{"properties":{"name":{"type":"string","title":"Name"},"filters":{"items":{"additionalProperties":{"type":"string"},"type":"object"},"type":"array","title":"Filters"}},"type":"object","required":["name","filters"],"title":"FindingFiltersData"}}}}}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"Successful Response","content":{"application/json":{"schema":{}}}},"422":{"description":"Validation Error","content":{"application/json":{"schema":{"properties":{"detail":{"items":{"properties":{"loc":{"items":{"anyOf":[{"type":"string"},{"type":"integer"}]},"type":"array","title":"Location"},"msg":{"type":"string","title":"Message"},"type":{"type":"string","title":"Error Type"}},"type":"object","required":["loc","msg","type"],"title":"ValidationError"},"type":"array","title":"Detail"}},"type":"object","title":"HTTPValidationError"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

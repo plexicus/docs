@@ -1,0 +1,71 @@
+---
+id: delete-container-spec-container-specs-container-spec-id-delete
+title: "Delete Container Spec"
+description: "Delete Container Spec"
+sidebar_label: "Delete Container Spec"
+hide_title: true
+hide_table_of_contents: true
+api: eJyVVFFv2jAQ/ivRPW2SR1i1pzytK0hD6jTUsr2gCBnnALdJ7NoOLYr836ezAwQolfYUx/f5/Pm7764Fx9cWsjlMaodrw51UtU2+JFOjtrJAQ+sHXEvrzA7YR6i7UjUF5AwKtMJITRjIYIQlOkzuVO24rNEkjxoFMFAaY55JARkUAbUQe9TCahRnv3ZxHpfFYhFPAgOLojHS7SCbt/BzNpv+QG7QQDbPfc5Ac8MrdGhsANS8QsjgIiEwkERbc7cBBgZfGmmwgMyZBhlYscGKQ9aC22lKYJ2R9RoYOOlK2jh9aDIpwNP1Bq1WtUVLZ2+GQ/qcCvXYCIHWrpoyeejAwAJBrB3BudalFEGz9MnSmfbIx3vvGXy7ublM/JeXsgjHkrExyvxHVtCG6uRk5F2g47KklXRY2UtAqcRJlNe736ug96lcnh12JDkKDfjcs/0eN4bvepreq0gQPIPKrj+S/xday9cIh2TXoUGMZEZRf7xbLZ9QuJPSz8O74tUdLj+mOcob1b3+jFGU773L9hDy7UXCWNsK3UYdewVY9GgG6VmbpO2Fq32vPx6puLFc/S456LRxTkPndPpfRgBRkPVKBWTHdlrimxSNTW6nEzhv/H4wKZRoKqxdLGM0IBfBgF0n7uHAoDFlx8Nmafr6+jrQXXDAZQoMsAo2DHy+92Kk/RaNjQS+DoaDIW1pZV3F695l14bSyQvaY5tcPdBp5vDNpbrkMlg08G+78szPZgw9MLscOzmDjbKO8G275Bb/mNJ72n5p0NBQyxlsuZF8SdLPWyikpXUB2YqXFj8g/+mhs/Ln5BrlvWNr8uuWlw39AYNn3L07JUO3bpAXYcC2He5WCNSul+FiuNAoPBh5NL4fz8bAgDek1MGBnePYftGbH6cE2zYiZuoZa+8PfB39E0fv/wFHB2AQ
+sidebar_class_name: "delete api-method"
+info_path: docs/platform_api/plexicus-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Delete Container Spec"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"delete"}
+  path={"/container_specs/{container_spec_id}"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Delete Container Spec
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"name":"container_spec_id","in":"path","required":true,"schema":{"type":"string","title":"Container Spec Id"}}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"Successful Response","content":{"application/json":{"schema":{}}}},"422":{"description":"Validation Error","content":{"application/json":{"schema":{"properties":{"detail":{"items":{"properties":{"loc":{"items":{"anyOf":[{"type":"string"},{"type":"integer"}]},"type":"array","title":"Location"},"msg":{"type":"string","title":"Message"},"type":{"type":"string","title":"Error Type"}},"type":"object","required":["loc","msg","type"],"title":"ValidationError"},"type":"array","title":"Detail"}},"type":"object","title":"HTTPValidationError"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

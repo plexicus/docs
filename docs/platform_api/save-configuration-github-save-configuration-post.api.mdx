@@ -1,0 +1,71 @@
+---
+id: save-configuration-github-save-configuration-post
+title: "Save Github Installation Id"
+description: "Save Github Installation Id"
+sidebar_label: "Save Github Installation Id"
+hide_title: true
+hide_table_of_contents: true
+api: eJyVVU1v4jAQ/SvRnF1gqz3ltP3SLtJWRYXuBSE0JENwm9ip7UBRlP++GjtAgH7snjDj5/HMe2+cGhxmFuIpDJWjzKCTWtnoIhoZvZYpGV6Pb+5hJiAlmxhZMgJiGOOaop/SrapFNFTWYZ77w9EwBQG6pJBrmEIMFtc0T7RayqwK4XnmT87f2Sm1dSDA0GtF1l3rdAtxDYlWjpTjJZZlLhMP7j9bLqYGm6yoQF6Vhu92kiz/k53K5jLlkNuWxDU5I1UGApx0OQdOm2gascPqxTMlu6KkoZQJO009O6QKtDxZMrfoEBpOdTjqTEU+YEutbKjzcjDgnxOKqyQha5dVHj22YBD/zETjr/1+eXme+A/mMg2N3hmjzX9kPeE3JYcy90w7Kuw5INfJ0S6q7cMS4umpDo3YRyQ7kQw0s4MCaAxuO2L91qFAaAQUNvtM13uyFjOCfbKPoZ6MaMK7X6nPfYWrW1xH/gO9gd2P27gN9L132Q7yazIZnSUM2lpKKiPd1tPJuGtCQwbi6ayZCSjIrTSPXztRJboVxNAPo9fn0bs4Gj04pByz3kHBbuI9dSvnSoZ7GMSwCACuii3zeBjeuzcsypzeHcaD+CDVUvv8bdujnN5kUtnoajSE07enuxmlOqkKUm7XAjsZE+9khUU3FwioTN5Wb+N+f7PZ9Mp2s4eyDwKo8H729fzo7HGNazI2FPCtN+gNOMTUFqg6l33+Lh710XnVvjjWsu7ozfXLHKX3ve+lbmWdQpCVRTkXdiZgxSaIp1DXC7T0ZPKm4fBrRYYNNBOwRiNxwexPefJWhKk3Uw0vtIUYbkKxF34+GJ5X3tOnzwWPcjhxlSRUuk+xXZ+OHsYTELBon/xCp3zG4IZnDzcQg/+y+E8UA3yshhxVVvGExxBysguxYlb2fm39KXaLzgOEatupsK4DYqJfSDUNiLYVx//5SWqav4Vhfz0=
+sidebar_class_name: "post api-method"
+info_path: docs/platform_api/plexicus-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Save Github Installation Id"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"post"}
+  path={"/github/save-configuration"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Save Github Installation Id
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={undefined}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={{"content":{"application/json":{"schema":{"properties":{"installation_id":{"type":"string","title":"Installation Id"}},"type":"object","required":["installation_id"],"title":"GithubUserData"}}},"required":true}}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"Successful Response","content":{"application/json":{"schema":{}}}},"422":{"description":"Validation Error","content":{"application/json":{"schema":{"properties":{"detail":{"items":{"properties":{"loc":{"items":{"anyOf":[{"type":"string"},{"type":"integer"}]},"type":"array","title":"Location"},"msg":{"type":"string","title":"Message"},"type":{"type":"string","title":"Error Type"}},"type":"object","required":["loc","msg","type"],"title":"ValidationError"},"type":"array","title":"Detail"}},"type":"object","title":"HTTPValidationError"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

@@ -1,0 +1,71 @@
+---
+id: remediatior-connection-openai-remediator-connection-post
+title: "Test & save OpenAI remediator connection"
+description: "Test & save OpenAI remediator connection"
+sidebar_label: "Test & save OpenAI remediator connection"
+hide_title: true
+hide_table_of_contents: true
+api: eJydVUtv4jAQ/ivRHPaUAlvtKaelD2mrfRQVdi8IIeNMwa1ju7ZTGkX576uxAwml7bZ7woy/fPP6ZlyDZ2sH2Rym6L1Qa5ecJNcG1fgqOddKIfdCKweLFHJ03ApD/yGDGTqffEoce8Qd3mKBuWBe24TvP4UUtEHL6HyVQwY7lNB22cGW2qBiYtlx9C+Ndh5SsPhQovNnOq8gq4Fr5VF5OjJjpODByfDOUYA1OL7BgtHJWArBC3QRK5b3GBiYqq5vIZvX4CuDkIHzVqg1NOneokopoVmk4IWXZBgbkXzHCpo0MK2YQ6I6JDiEnxGmxT+idSIG+L/e/7QUDfXESF0VqPxSseLNQC720OQXQZsm3WH16g75rsDCYk562Cd37KUXz7kUqHwUADTE2XF4W2IwOKOVi8U/HY3o51BL05JzdO62lMlNC4b03e1tgtsvp6fHxH+YFHn4LLm0VtsPsD4TTY6eCUkn4bFwxwCp+cHtO5orlMc1WmgWXSuYtazqde2HjgFSswu3fqvBP9E5tg5Ci5DXoaEYyYxu/yUDyiu6bnG95nfljdV9PY2LWL6XnO0g32azyRFh7K1DXlrhq1BOwp0hs2ghmy9oNgr0G02rpV0ThvkNZDCMK2X44kqBjnVKLY9N7HPvq7fx3hA8wCCDVQRQYKSam24pXT6xwkg8WDJd8bttcWjbb4TOfDTWnXpAqFsdomvrNpH4JHjpkvHkCp5v6f5lkmteEidrC0CjwHgYhdbLDg4plFa2ubtsONxutwPTXg6YGEIKWISBCPF87d1RjF1KnwejwYhM1JuCqZ6zD7wgB0n1Fv9HONpuenzyQyOZCCMVsqxbxcwhKiZMwEuaWaSwIYllc6hrauVvK5uGzA8lWpLnIoVHZgVbUWvmNNcbZHmQag1RD+cx+JMwfQSXZZiY58uIFkX8Ysw5Gv8mtj8Fk+vpDFJYta9koXP6xrIt5cW2kEF4k+O7ntXRVoNkal3S/sggcpLAWUmF2Y9CK/10d+itN6aqXoR1HREzfY+qaSBtU/H0nxZe0/wF1IvvCw==
+sidebar_class_name: "post api-method"
+info_path: docs/platform_api/plexicus-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Test & save OpenAI remediator connection"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"post"}
+  path={"/openai/remediator_connection"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Test & save OpenAI remediator connection
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={undefined}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={{"content":{"application/json":{"schema":{"properties":{"api_key":{"anyOf":[{"type":"string"},{"type":"null"}],"title":"Api Key"},"api_base":{"type":"string","title":"Api Base"},"api_version":{"anyOf":[{"type":"string"},{"type":"null"}],"title":"Api Version"},"deployment_name":{"type":"string","title":"Deployment Name"}},"type":"object","required":["api_base","deployment_name"],"title":"ClientOpenAI"}}},"required":true}}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"Successful Response","content":{"application/json":{"schema":{}}}},"422":{"description":"Validation Error","content":{"application/json":{"schema":{"properties":{"detail":{"items":{"properties":{"loc":{"items":{"anyOf":[{"type":"string"},{"type":"integer"}]},"type":"array","title":"Location"},"msg":{"type":"string","title":"Message"},"type":{"type":"string","title":"Error Type"}},"type":"object","required":["loc","msg","type"],"title":"ValidationError"},"type":"array","title":"Detail"}},"type":"object","title":"HTTPValidationError"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

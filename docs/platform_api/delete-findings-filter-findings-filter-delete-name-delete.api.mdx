@@ -1,0 +1,71 @@
+---
+id: delete-findings-filter-findings-filter-delete-name-delete
+title: "Delete Findings Filter by Name"
+description: "Delete Findings Filter by Name"
+sidebar_label: "Delete Findings Filter by Name"
+hide_title: true
+hide_table_of_contents: true
+api: eJyVVMFu2zAM/RWDpw1Q66zYyad1aIoV6LaizXYJgkCxmUStLasS3S4w9O8DJSVxmrXFTrakJ/Hx8ZE9kFw5KKZwqXSl9MplJ9mlqgltdm4MzARU6EqrDKlWQwEXWCNhtkMn7GKT/ZANgoDWoJUMvqqggCrA58sEny8D/GidYHMtG5ynFQhwWHZW0QaKaQ/fJpObrygtWiimMz8TYKSVDRJaFwB8GYr4EaCYrZG0BgEWHztlsYKCbIcCXLnGRkLRA20M33FklV6BAFJU80ZIxnMQi8602qFj+NloxJ9DSe66skTnll2d3SYwCChbTaiJ4dKYWpVBlPze8Z1+T8F77wV8Pjs7fvi3rFUVrmVja1v7H6+CsVwIUpF3hSRVzX+KsHHHgLotD06l3vxcBlUPFfJit6M04Qot+JkX2z1prdwMZLxuI0HwAhq3ekvx7+icXCHsHnsdGsTIJnzq97HbxT2WdFDtacgrhk642f6ZvbxR3dfTuIjy/SvYFsLuPHow1rZBWrf7ZgARbVlAvm2Dk9gGeQTkPVvYD/x/x2WNhRp2wU6hNZGBZGteLyKAgyu9bAMy8byp8Y8qO5ed31zBy+YeHmZVW3YNaooFjNaTZbBe6rQtHAR0tk48XJHnz8/PpyYdnkqVgwBsggEDny+DM1b9Ca2LBD6djk5HvGVaR43Ug2DvDp6DVPp9p7x/M6lI+IdyU0sV7Boy6lOppvCiVCFeqmYRGM4ErFtHjO37hXT4y9be8/Zjh5ZH2EzAk7RKLrgQ0x4q5fi/gmIpa4dvZPDhNln6Y/Ya3a1zNfv2SdYdr0DAA262MzE06hplFSZon47OyxINDS4dzRWegjsPX4yvx5MxCJAdC7OzYLKc2P4MRschp76PiEn7gNr7HUXiNXP0/i/Q7UB6
+sidebar_class_name: "delete api-method"
+info_path: docs/platform_api/plexicus-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Delete Findings Filter by Name"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"delete"}
+  path={"/findings-filter/delete/{name}"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Delete Findings Filter by Name
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"name":"name","in":"path","required":true,"schema":{"type":"string","title":"Name"}}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"Successful Response","content":{"application/json":{"schema":{}}}},"422":{"description":"Validation Error","content":{"application/json":{"schema":{"properties":{"detail":{"items":{"properties":{"loc":{"items":{"anyOf":[{"type":"string"},{"type":"integer"}]},"type":"array","title":"Location"},"msg":{"type":"string","title":"Message"},"type":{"type":"string","title":"Error Type"}},"type":"object","required":["loc","msg","type"],"title":"ValidationError"},"type":"array","title":"Detail"}},"type":"object","title":"HTTPValidationError"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

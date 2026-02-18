@@ -1,0 +1,32 @@
+---
+title: "AWS"
+description: "Connect Plexicus to your AWS environment"
+---
+
+## Setup Instructions \{#integrations_aws-1}
+
+:::note 
+Please read below instruction before submitting the form!
+:::
+
+1. Log into AWS Console (as admin)
+2. Type `IAM` in top search bar, click it
+3. Click `Users` on left side
+4. Click `Create user` (blue button)
+5. Fill in only these:
+   1. Name: `security-audit`
+   2. Check only `Access key - Programmatic access`
+6. Click `Next`
+7. For permissions:
+   1. Click `Attach existing policies`
+   2. Search for `SecurityAudit` and check it
+   3. Search for `ViewOnlyAccess` and check it
+8. Click `Next` twice
+9. Click `Create user`
+10. Copy these from the success screen:
+    1. Access Key ID
+    2. Secret Access Key
+
+---
+
+**That's it!** You now have the two values needed for the Plexicus form. Remember to save those keys immediately - you won't see the Secret Access Key again!

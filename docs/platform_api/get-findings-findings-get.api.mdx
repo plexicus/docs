@@ -1,0 +1,71 @@
+---
+id: get-findings-findings-get
+title: "Get Findings"
+description: "Get Findings"
+sidebar_label: "Get Findings"
+hide_title: true
+hide_table_of_contents: true
+api: eJytVlGP2zYM/isBn4VLdlhf/LTb2msLtOhhl20PQRDoZNpRa0uuRN81M/TfB0p27OQuQ9L2zTbJ76NIkZ87IFl6yFZwq02uTelhLSBHr5xuSFsDGbxFmu2tAmyDTrLpfQ4ZlEibojeODyUSCPCoWqdpB9mqg3fL5d3vKB06yFbrsBbQSCdrJHQ+OhhZI2TQyFKbiL9pZIkgQHMSX1t0OxDg8GurHeaQFbLyKMCrLdYSsg5o1zCANoQlOuBjFLKtCLKFANJUsfVuDz+7Y/gQxCnqe/3vz6G/fnWS3zPHiRyeNG03yraGLs/iwdoKpZlmQa7FF/P4R9N29kfkmWbirfsOYk9Om3LKC9IrGInvGfaYZ1NorPKfwrbR+RHb7DaCn6iyVKQfv6PPl1T4JnFMM4gH9j9w4oHmNgEdYscx3MSQ8xkmHWuaA4YIN1syXODJdegbazx6DrteLFL0dGfct0qh90Vbzf7snUGAsobQELvLpqm0iuWZf/Yc042phBCCgF+vr58D/y0rnaeqvnHOugtQoXG8u0invHMkqSt+0oS1f+5QWXVglWb3qYir6rAXXPmj4Q/rIIZv0jm5m5Tzg00JQhBQ+/L/evsRvY9LagA77RqLMbRoz20fPqOig7av4rkSde+3HmHG8qbqnj7G61S+l8gGF175zwBTb2ukre31A1gKaAsZzItRZgbxuOf2pYZMJWRfiS0RX9bY5TiXyYFJtCls9BwmssJvWrV+dnP3Ho5Vbmqc5Va1NRpKjUpXTKp4xfoZG9xBQOuqPg+fzedPT09XTW+8knoOArCOFy3m89vExtV9ROdTAr9cLa4W/KmxnmppJmRHCnyQeDfe/2O/vkKE32jeVFLHKxez7fqKr6CYyP7WeuJvXfcgPf7lqhD4c1odfO9z7eVDNVkeX3D3omQ/yqpl6jgb50X1anth5IFGnhPbq9q5rnthujCvvaqcE7fXgvOcD5b7GLLmF6c5Jv5hCdiizOPvVtfH3iiFzfT4z/Ylo+xn8+2bJQiQLd+UUffSfInhYbIPpdlNsLsueSztFzQhwHAA4nfekCH8B0UokqI=
+sidebar_class_name: "get api-method"
+info_path: docs/platform_api/plexicus-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Get Findings"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"get"}
+  path={"/findings"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Get Findings
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"name":"pagination_page","in":"query","required":false,"schema":{"type":"integer","default":0,"title":"Pagination Page"}},{"name":"pagination_pageSize","in":"query","required":false,"schema":{"type":"integer","default":25,"title":"Pagination Pagesize"}},{"name":"pagination_with_count","in":"query","required":false,"schema":{"type":"boolean","default":true,"title":"Pagination With Count"}},{"name":"sort","in":"query","required":false,"schema":{"type":"string","default":"asc","title":"Sort"}},{"name":"sort_field","in":"query","required":false,"schema":{"type":"string","default":"_id","title":"Sort Field"}},{"name":"pagination_active","in":"query","required":false,"schema":{"type":"boolean","default":true,"title":"Pagination Active"}},{"name":"fields","in":"query","required":false,"schema":{"type":"string","title":"Fields"}},{"name":"finding_type","in":"query","required":false,"schema":{"default":"app","title":"Finding Type"}}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"Successful Response","content":{"application/json":{"schema":{}}}},"422":{"description":"Validation Error","content":{"application/json":{"schema":{"properties":{"detail":{"items":{"properties":{"loc":{"items":{"anyOf":[{"type":"string"},{"type":"integer"}]},"type":"array","title":"Location"},"msg":{"type":"string","title":"Message"},"type":{"type":"string","title":"Error Type"}},"type":"object","required":["loc","msg","type"],"title":"ValidationError"},"type":"array","title":"Detail"}},"type":"object","title":"HTTPValidationError"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

@@ -1,0 +1,71 @@
+---
+title: "Manage Applications"
+description: "How to use Applications to works into Plexicus"
+---
+
+# Creating an Application \{#applications_index-1}
+
+Follow these steps to create a new application:
+
+## 1. Access the Applications Page \{#applications_index-2}
+
+- Navigate to the Applications page
+- Click `Add Applications`
+- View the list of configured SCM Connectors
+
+## 2. Select SCM Connector \{#applications_index-3}
+
+- Choose your preferred SCM Connector
+- Wait for the system to process and display repositories
+
+<img src="/docs/plexicus/applications.png" alt="Applications Page" />
+
+## 3. Select Repositories \{#applications_index-4}
+
+- Choose one or more repositories to create applications
+- Click `Create Selected Repositories`
+
+<img
+	src="/docs/plexicus/applications/repositories.png"
+	alt="Manage Repositories Page"
+/>
+
+## 4. Branch Selection (If Applicable) \{#applications_index-5}
+
+- If a repository has multiple branches, a modal will appear
+- Select the desired branch(es)
+
+<img
+	src="/docs/plexicus/applications/modal-branches.png"
+	alt="Applications Modal branches Page"
+/>
+
+## 5. BlackDuck Configuration (If Applicable) \{#applications_index-6}
+
+- If BlackDuck is configured in the Connectors page, a modal will appear
+  <img src="/docs/plexicus/blackduck/panel.png" alt="BlackDuck Page" />
+- Enter the project name for BlackDuck
+  <img src="/docs/plexicus/blackduck/form.png" alt="BlackDuck Form Page" />
+
+## 6. Application Creation Process \{#applications_index-7}
+
+- After submission, you'll be redirected to the Applications page
+- The application status will progress through 4 stages:
+  1. Queued: Repositories waiting turn for initialize in Plexalyzer
+  2. Running: Repositories being processed in Plexalyzer
+  3. Enriching: Repositories are enriched the information and findings
+  4. Completed: Scanning for findings done
+
+<img
+	src="/docs/plexicus/applications/item.png"
+	alt="Applications Item Page"
+/>
+
+## 7. View Application Status \{#applications_index-8}
+
+- When the loading indicator disappears, the application status is finished
+- Access all findings related to this application on the Findings page
+
+## Next Steps \{#applications_index-9}
+
+Once the application status is finished, you can explore the findings and start working with your new application.
