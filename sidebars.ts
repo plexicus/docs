@@ -1,4 +1,4 @@
-import type {SidebarsConfig} from '@docusaurus/plugin-content-docs';
+import type { SidebarsConfig } from '@docusaurus/plugin-content-docs';
 import { SidebarConfig } from '@docusaurus/plugin-content-docs/src/sidebars/types.js';
 
 /**
@@ -25,85 +25,84 @@ import platformSidebar from './docs/platform_api/sidebar'
  */
 
 const documentations: SidebarConfig = [
-    {
-      type: 'category',
-      label: 'Get Started',
-      link: {
-        type: 'doc',
-        id: 'getting-started/introduction'
+  {
+    type: 'category',
+    label: 'Get Started',
+    link: {
+      type: 'doc',
+      id: 'getting-started/introduction'
+    },
+    items: [
+      'getting-started/introduction',
+      'getting-started/key-features',
+      'getting-started/quickstart',
+    ],
+  },
+  {
+    type: 'category',
+    label: 'Connectors',
+    items: [
+      {
+        type: 'category',
+        label: 'SCM Integrations',
+        items: [
+          'integrations/github',
+          {
+            type: 'category',
+            label: 'GitLab',
+            items: [
+              'integrations/gitlab/index',
+              'integrations/gitlab/self-hosted',
+            ],
+          },
+          'integrations/bitbucket',
+          'integrations/gitea',
+        ],
       },
-      items: [
-        'getting-started/introduction',
-        'getting-started/key-features',
-        'getting-started/quickstart',
-      ],
-    },
-    {
-      type: 'category',
-      label: 'Connectors',
-      items: [
-        {
-          type: 'category',
-          label: 'SCM Integrations',
-          items: [
-            'integrations/github',
-            {
-              type: 'category',
-              label: 'GitLab',
-              items: [
-                'integrations/gitlab/index',
-                'integrations/gitlab/self-hosted',
-              ],
-            },
-            'integrations/bitbucket',
-            'integrations/gitea',
-          ],
-        },
-        {
-          type: 'category',
-          label: 'Cloud Deployment',
-          items: [
-            'integrations/aws',
-            'integrations/azure',
-            'integrations/gcp',
-            'integrations/oci',
-          ],
-        },
-      ],
-    },
-    {
-      type: 'category',
-      label: 'Plexicus Flow',
-      items: [
-        'applications/index', 
-        'findings/index'
-      ],
-    },
-    {
-      type: 'category',
-      label: 'Settings',
-      items: [
-        'settings/change-password',
-        'settings/two-factor-authentication',
-      ],
-    },
-    {
-      type: 'category',
-      label: 'Organization',
-      items: [
-        'organization/client'
-      ],
-    },
-  ]
+      {
+        type: 'category',
+        label: 'Cloud Deployment',
+        items: [
+          'integrations/aws',
+          'integrations/azure',
+          'integrations/gcp',
+          'integrations/oci',
+        ],
+      },
+    ],
+  },
+  {
+    type: 'category',
+    label: 'Plexicus Flow',
+    items: [
+      'applications/index',
+      'findings/index'
+    ],
+  },
+  {
+    type: 'category',
+    label: 'Settings',
+    items: [
+      'settings/change-password',
+      'settings/two-factor-authentication',
+    ],
+  },
+  {
+    type: 'category',
+    label: 'Organization',
+    items: [
+      'organization/client'
+    ],
+  },
+]
 const externalLinks: SidebarConfig = [
-      {type: 'link', href: 'https://github.com/apps/plexicus', label: "Github Apps", customProps: {icon: 'carbon:logo-github'}}, 
-    {type: 'link', href: 'https://github.com/marketplace/actions/plexicus-runner-action', label: "Github Action", customProps: {icon: 'material-icon-theme:github-actions-workflow'}}, 
-    {type: 'link', href: 'https://blog.plexicus.ai', label: "Plexicus Blog", customProps: {icon: 'material-symbols:post-rounded'}}, 
+  { type: 'link', href: 'https://github.com/apps/plexicus', label: "Github Apps", customProps: { icon: 'carbon:logo-github' } },
+  { type: 'link', href: 'https://www.plexicus.ai/blog', label: "Plexicus Blog", customProps: { icon: 'material-symbols:post-rounded' } },
 ]
 const sidebars: SidebarsConfig = {
   // By default, Docusaurus generates a sidebar from the docs folder structure
   docsSidebar: [...externalLinks, ...documentations],
-    // multi versioned sidebar
+  // multi versioned sidebar
   'platform-current': [
     {
       type: 'html',

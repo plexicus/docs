@@ -1,7 +1,7 @@
-import {themes as prismThemes} from 'prism-react-renderer';
-import type {Config} from '@docusaurus/types';
+import { themes as prismThemes } from 'prism-react-renderer';
+import type { Config } from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
-import {locales} from './config.json'
+import { locales } from './config.json'
 // This runs in Node.js - Don't use client-side code here (browser APIs, JSX...)
 
 const config: Config = {
@@ -13,7 +13,7 @@ const config: Config = {
   },
   // Future flags, see https://docusaurus.io/docs/api/docusaurus-config#future
   future: {
-    v4 : {removeLegacyPostBuildHeadAttribute: true},
+    v4: { removeLegacyPostBuildHeadAttribute: true },
     experimental_faster: true
   },
 
@@ -58,7 +58,7 @@ const config: Config = {
 
   plugins: [
     ['./src/plugins/tailwind-config.js', {}],
-        [
+    [
       'docusaurus-plugin-openapi-docs',
       {
         id: 'openapi',
@@ -103,21 +103,21 @@ const config: Config = {
   ],
   themes: ["docusaurus-theme-openapi-docs",
     '@docusaurus/theme-mermaid',
-      [
-    require.resolve('@easyops-cn/docusaurus-search-local'),
-    {
-      indexPages: true,
-      docsRouteBasePath: '/docs',
-      hashed: true,
-      language: ['en', 'es'],
-      highlightSearchTermsOnTargetPage: false,
-      searchResultContextMaxLength: 50,
-      searchResultLimits: 8,
-      searchBarShortcut: true,
-      searchBarShortcutHint: true
-    }
-  ]
-  ], 
+    [
+      require.resolve('@easyops-cn/docusaurus-search-local'),
+      {
+        indexPages: true,
+        docsRouteBasePath: '/docs',
+        hashed: true,
+        language: ['en'],
+        highlightSearchTermsOnTargetPage: false,
+        searchResultContextMaxLength: 50,
+        searchResultLimits: 8,
+        searchBarShortcut: true,
+        searchBarShortcutHint: true
+      }
+    ]
+  ],
   themeConfig: {
     // Replace with your project's social card
     image: 'img/plexicus-logo-color.png',
@@ -139,7 +139,7 @@ const config: Config = {
           label: 'Docs',
         },
         { label: 'API References', position: 'left', to: '/docs/category/platform_api' },
-        {type: 'search', position: 'left', className: 'mx-auto'},
+        { type: 'search', position: 'left', className: 'mx-auto' },
         {
           href: 'https://github.com/plexicus',
           label: ' ',
@@ -151,7 +151,7 @@ const config: Config = {
           label: 'Login',
           position: 'right',
         },
-                {
+        {
           href: 'https://app.plexicus.ai/register',
           label: 'Register',
           position: 'right',
@@ -168,10 +168,6 @@ const config: Config = {
             {
               label: 'Quickstart',
               to: '/docs/getting-started/introduction',
-            },
-            {
-              label: 'API Reference',
-              to: '/docs/category/petstore-versioned-api'
             },
             {
               label: 'Connectors',
@@ -204,7 +200,7 @@ const config: Config = {
             },
             {
               label: 'Blog',
-              href: 'https://blog.plexicus.ai'
+              href: 'https://www.plexicus.ai/blog'
             }
           ],
         },
