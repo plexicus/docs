@@ -1,0 +1,71 @@
+---
+id: pull-request-pull-request-post
+title: "Create pull request"
+description: "Create pull request of finding and remediation"
+sidebar_label: "Create pull request"
+hide_title: true
+hide_table_of_contents: true
+api: eJyVVU1v2zAM/SsGz2rSFTv5tG7tsAIbGrTZLkFQMDbjqJUlV5KbBob/+0DJSZT0Y+vJEkU9PZKPdAceKwf5DL5LXUpduewkuyCPUmU3VFMp0UujYS6gJFdY2YRtDt8soaesaZXKLD225HxmltkyomSoy8wm9wWYhmxYX5WQA9+7G+7dHW6M8yBg2H415QbyDgqjPWnPS2waJYsANb53TKYDV6yoRl41lh/ykhzvEgp3smSL3zQEOThvpa5AgJdesSEJNrsqoe/F1tUs7qnYUpKWSs7WEfB8DzRplbqJ5KdWVhXZC/QIPSPuEbxtKRhcY7SLZM9OT/lzmOfbtijIuWXL9YjOIP47HX149vPZ2UvgP6hkGeO9tNbYD6AeJbkMcuGV9FS7lw7KFAenqDfXS8hnx9Xoxc4itaeKLPTzfSHQWtwkJftpIkHoBdSueq+6v8g5rAh2YG+7hmRkUz79lwg4rvj04JfIYJ/emN23w4jd9upjW5cf0+nkBWCsraOitdJvQjrZ7yuhJQv5bN7PBdTkVyY0XGyrBv0KchinLQd7lFsucSxairXL1sr7ht2DG+SwiA5MhFVys2/ay2esG0WvNeG+3CD10gT4bfMoepZF67LzyRUcj5z0MCtN0dak/Xa8sHaxCNrVWKdYIKC1aiDv8vF4vV6PmuFwhHIMAqgOCg58viRnzPGJrIsEPo1OR6ds4mTWqJPHXhmHx/yTIfbx6Tnk39OzHzcKZRB9CKsbajo7mKksxRWXPJ9B1y3Q0W+r+p7Njy1ZlstcwBNaiQvO/Iz7bEVYBul08EAbphkJn4RuYHfVBgUfDwdu3HjjvCio8e/6pqqcXN9OQcBimPK1KfmOxTV3Gq4hh/Dn4NtxnrOtA4W6armfc4iYLEBsOQ07qQ7SFNtFMm5QbxKGXRc9puaBdN+DGELxvOcB1Pd/AT1zeyY=
+sidebar_class_name: "post api-method"
+info_path: docs/platform_api/plexicus-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Create pull request"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"post"}
+  path={"/pull_request"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Create pull request of finding and remediation
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={undefined}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={{"content":{"application/json":{"schema":{"properties":{"remediation_id":{"type":"string","title":"Remediation Id"}},"type":"object","required":["remediation_id"],"title":"PullRequestTriggerData"}}},"required":true}}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"Successful Response","content":{"application/json":{"schema":{}}}},"422":{"description":"Validation Error","content":{"application/json":{"schema":{"properties":{"detail":{"items":{"properties":{"loc":{"items":{"anyOf":[{"type":"string"},{"type":"integer"}]},"type":"array","title":"Location"},"msg":{"type":"string","title":"Message"},"type":{"type":"string","title":"Error Type"}},"type":"object","required":["loc","msg","type"],"title":"ValidationError"},"type":"array","title":"Detail"}},"type":"object","title":"HTTPValidationError"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

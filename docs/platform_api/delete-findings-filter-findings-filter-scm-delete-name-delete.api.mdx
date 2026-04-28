@@ -1,0 +1,71 @@
+---
+id: delete-findings-filter-findings-filter-scm-delete-name-delete
+title: "Delete Findings Filter SCM by Name"
+description: "Delete Findings Filter SCM by Name"
+sidebar_label: "Delete Findings Filter SCM by Name"
+hide_title: true
+hide_table_of_contents: true
+api: eJyVVE1v2zAM/SsGTxugxlmxk0/7aIoVaLeizXYJjECRmUStLbuS3DYw9N8HSortLG3RnWxJj+LT4yM7sHxjIFvAuVSFVBuTnCTnsrSok9vvV5AzKNAILRsrawUZnGGJFpMePWCT1S75ySsEBnWDmlPARQEZFD5kuY4hy7UPOVobUS0jdKl4hcu4AgYGRaul3UG26ODHfH79DblGDdkidzmDhmteoUVtPICCIQsfBpJYN9xugYHGh1ZqLCCzukUGRmyx4pB1YHcNxRirpdoAAyttSRv+QY6SaDRNrQwagp9Op/Q5lOa2FQKNWbdlchPBwEDUyqKyBOdNU0rhhUnvDMV0AwXnnGPw+fT0+OI/vJSFD0tmWtf6P26FRlMxrAy8C7RclvQnLVbmGFDW4uCUq92vtVf1UCHH+h2pLG5Qg8sd2+9xrfluJONlHQiCY1CZzVuKX6ExfIPQX/Y61IuRzOnUDbnr1R0Ke1DthX9XSB1x+XDNIG9Q9/VnnAX5Xkq2h5A7jy4Mta3QbuuhIYAFW2aQ7lvhJLTCiRFVGkBpRzZ2ox64pdKGYo07oVdpa20D0dq0XgUAEZBqXXtk5Hpd4rMUrUm+Xl/Av40+PkyKWrQVKhuKGOzHhbdf7LY9HBi0uow8TJamT09PkyYeTrhMgQFW3oSez5fRGSn/iNoEAp8m08mUtpra2IqrUbJ3DaGD53RDx7wvOqpp8dmmTcmlt65/WRfLtoAXyubzxupmnm3OYFsbS/iuW3GDv3XpHG0/tKhppOUMHrmWfEVFWXRQSEP/BWRrXhp84yUfbqLFPyavUd47WZGPH3nZ0goY3ONuPyN9426RF36idvHoqxDY2FHQ0Zyhqdh7+mx2OZvPgAFvSZzejtF+bP8zGiWHnLouIOb1PSrneoqW1sTRub9SkkfH
+sidebar_class_name: "delete api-method"
+info_path: docs/platform_api/plexicus-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Delete Findings Filter SCM by Name"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"delete"}
+  path={"/findings-filter-scm/delete/{name}"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Delete Findings Filter SCM by Name
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"name":"name","in":"path","required":true,"schema":{"type":"string","title":"Name"}}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"Successful Response","content":{"application/json":{"schema":{}}}},"422":{"description":"Validation Error","content":{"application/json":{"schema":{"properties":{"detail":{"items":{"properties":{"loc":{"items":{"anyOf":[{"type":"string"},{"type":"integer"}]},"type":"array","title":"Location"},"msg":{"type":"string","title":"Message"},"type":{"type":"string","title":"Error Type"}},"type":"object","required":["loc","msg","type"],"title":"ValidationError"},"type":"array","title":"Detail"}},"type":"object","title":"HTTPValidationError"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

@@ -1,0 +1,71 @@
+---
+id: auth-register-register-post
+title: "Register user"
+description: "Path for register a new user with general form inputs without using oauth token"
+sidebar_label: "Register user"
+hide_title: true
+hide_table_of_contents: true
+api: eJztV1Fv2zYQ/isHvmwDNNnLUqDTU9M12AJsiJE4ezGMgqbOFhuKVEnKjmHovxdHUrYapw4WLEAf5heL5JHfx7uPx+OOeb5yrJixi9ZXqL0U3Euj2TxjJTphZROaBZtwX8HSWLC4ks6jBQ4aN9A6tLCRvoIVarRckVENUjetd2HAtB5aJ/UKDG99Bd7co2YZMw3aAHZVsoLR0Md+7cNHY5xnGbP4uUXn35tyy4odE0Z71J4+edOoRHr0yRHVHXOiwprTV2MJxUt01MKaS0UfftsgK5jzVuoVyxhR5p4VySJjXnpFFpep/bUv7hzaHxwEY+BladG5nGUMH3jdKAz+JL+8Sx25MDWbd1no1LzGQFxvr5esmB2zqfnDX6hXvmLFr+OM1VLvm122N9etUqybH7je9Ys/pnsdPriCHj6DunUeFghcNRXXbY1Wipx1GWu4cxtjy6e8NCDy9gA76WccKyYOHMA8KOTOw1sQFbdceLQuoAqjl9LWH0+h93i/R1t4HjetGrSRtlxzLyrwFUIPlbOuy3ows/iEotebtFhSJHtNNAfAI76PwnCT5HsTZcs6wjis6W2LocM1RruozbPxmP6+3sptKwQ6t2wV3CTjiP4S9bu42MC3C2MUcj1wbgIMPl3yVvk92Rqd4ys8FZm/k8lgcvAGuP021HafP7DMYUJ6QBAVinvYmtamM0V5Zo1WLtPeQEl9/3SknnZ78lUXHH8+/u3YtdMKY+7iyiIvt4AP0nn3cveitcaGL+mxdscGiem3/TcN/+RrtzrpZ7d6VrTRNi41EOcflKOluCSuH9A/ldw+hNYCHXCgrK0wZnYpIGwxHNgEza3l22G6jD549kRFs2/wGij9OGTCUEL1CP3hgYUpt0Ew/f3z53Q6iVQd/Ij5Ks/gfHyewZvx+Ke8l8TZ2QlJbLgDbTxUfE2I1qLwkK6g/LtQiDOtFSdNb6PFf6umBHskq3+4kmVwwr9U1no/MUYsA6mFakuqFihLR0BYSlTlqwjvEfOXao/D+dkZ3OnGGsp0fKEQLrWXfrs/NEF3b57K8lfa072swKFdo40zvguZ/Z+IXjcRhXvVV4YK4FTpNpzqKzbqr0k6dShaK/32lgIeQ0hLv0du0Q7iU3nfkHkwo+s9GhAKaebmUENfxrp0UBMf16vDavUQ+kOFdug7rt76sS5jUi/NQHRsovBBitbBxeTquHQbDEJpRFuj9vFBEo8DF+E4JFa9OXG1KnnAFaPRZrPJmzSYczmi2jztk/i8G4wRxzVaFwn8ko/zcaiDjfM11wOwvrgIV8Rj5oMnySu8lFJ8PT74UaO41MQw7HiX9DJje73MM1aRlIoZ2+0W3OGdVV1H3Z9btFtWzOYZW3MrKUlRq8tYhbwkKc127B63scim3fw8JWQyV204Zo/TEL1H4owLIbDxJ23nA7VPrm+nLGOL9KCrTUlzLN/QCeUbVrDwQqTZQfChb8cU16s2lKEsrkm/L2ZaI8I=
+sidebar_class_name: "post api-method"
+info_path: docs/platform_api/plexicus-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Register user"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"post"}
+  path={"/register"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Path for register a new user with general form inputs without using oauth token
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={undefined}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={{"content":{"application/json":{"schema":{"properties":{"email":{"type":"string","format":"email","title":"Email","description":"User's email address.","examples":["user@example.com"]},"username":{"anyOf":[{"type":"string","maxLength":30,"minLength":3},{"type":"null"}],"title":"Username","description":"Optional username, must be alphanumeric."},"password":{"type":"string","minLength":8,"title":"Password","description":"Password must be at least 8 characters."},"confirm_password":{"type":"string","title":"Confirm Password","description":"Password confirmation, must match the password."}},"type":"object","required":["email","password","confirm_password"],"title":"UserRegisterRequest"}}},"required":true}}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"Successful Response","content":{"application/json":{"schema":{"properties":{"success":{"type":"boolean","title":"Success","default":true},"message":{"type":"string","title":"Message","default":"User successfully registered. Please check your email for verification link."}},"type":"object","title":"UserRegisterResponse"}}}},"409":{"description":"The user already exists","content":{"application/json":{"schema":{"properties":{"errors":{"items":{"properties":{"title":{"type":"string","title":"Title"},"msg":{"type":"string","title":"Msg"}},"type":"object","required":["title","msg"],"title":"GenericErrorDetail","description":"Describes a single generic error."},"type":"array","title":"Errors"}},"type":"object","required":["errors"],"title":"GenericErrorResponse","description":"The complete response body for general HTTP errors (e.g., 404, 500)."}}}},"422":{"description":"The user was not have correct request.","content":{"application/json":{"schema":{"properties":{"errors":{"items":{"properties":{"title":{"type":"string","title":"Title"},"source":{"type":"string","title":"Source"},"msg":{"type":"string","title":"Msg"}},"type":"object","required":["title","source","msg"],"title":"ValidationErrorDetail","description":"Describes a single validation error, including the source field."},"type":"array","title":"Errors"}},"type":"object","required":["errors"],"title":"ValidationErrorResponse","description":"The complete response body for a 422 Unprocessable Entity error."}}}},"500":{"description":"Internal server error","content":{"application/json":{"schema":{"properties":{"errors":{"items":{"properties":{"title":{"type":"string","title":"Title"},"msg":{"type":"string","title":"Msg"}},"type":"object","required":["title","msg"],"title":"GenericErrorDetail","description":"Describes a single generic error."},"type":"array","title":"Errors"}},"type":"object","required":["errors"],"title":"GenericErrorResponse","description":"The complete response body for general HTTP errors (e.g., 404, 500)."}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

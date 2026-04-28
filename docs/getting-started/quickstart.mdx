@@ -1,0 +1,273 @@
+---
+title: "Quickstart"
+description: "A comprehensive guide from registration to remediation"
+---
+import {Steps, Step} from '@site/src/components/steps'
+
+# Complete User Guide \{#getting-started_quickstart-1}
+
+This guide will walk you through the entire process of using our platform, from registration to managing security vulnerabilities.
+
+## 1. User Registration \{#getting-started_quickstart-2}
+
+<img
+	src="/docs/plexicus/getting-started/gif/Quickstart-Registration.gif"
+	alt="Demonstration of a feature"
+	class="w-full"
+/>
+
+There are two ways to register for an account:
+
+### Form Registration \{#getting-started_quickstart-3}
+
+1. Navigate to the registration page.
+2. Fill out the required fields:
+   - Email Address
+   - Password
+3. Click the "Register" button.
+4. After successful registration, check your email for a verification link.
+
+### Google Account Registration \{#getting-started_quickstart-4}
+
+1. Click on the "Login with Google" button.
+2. Select your Google account or enter your Google credentials.
+3. Grant the necessary permissions.
+4. Your account will be created using your Google information.
+
+:::note
+	If you register using Google, you won't need to verify your email as it's
+	already verified by Google.
+:::
+
+## 2. Email Verification \{#getting-started_quickstart-5}
+
+<img
+	src="/docs/plexicus/getting-started/gif/Quickstart-EmailVerification.gif"
+	alt="Demonstration of a feature"
+	class="w-full"
+/>
+
+After registering with the form method, you need to verify your email address.
+
+### Verification Process \{#getting-started_quickstart-6}
+
+1. Check your email inbox for a message from us.
+2. Open the email and click on the verification link.
+3. You will be redirected to a confirmation page.
+4. Click "Continue" to proceed to the login page.
+
+:::warning
+	The verification link is valid for 72 hours. If it expires, you can request a
+	new one from the login page.
+:::
+
+## 3. Initial Account Setup \{#getting-started_quickstart-7}
+
+<video
+	autoPlay
+	muted
+	loop
+	playsInline
+	className="w-full aspect-video"
+	src="/docs/plexicus/getting-started/video/Quickstart-SetupAccount.mp4"
+></video>
+
+After logging in for the first time, you'll need to complete the initial setup process.
+
+<Steps>
+	<Step title="Company Information">
+		Enter your company details: <p>- Company Name</p> <p>- Industry</p>{" "}
+		<p>- Other optional inputs</p>
+	</Step>
+	<Step title="Organization Location">
+		Provide your organization's primary location.
+		:::tip 
+		You can add subsidiary locations later in the settings.
+		:::
+	</Step>
+	<Step title="Comprehensive Regulation">
+		Select or create a comprehensive regulation for your organization:
+		<p>1. Choose from predefined options (e.g., ISO 27001, GDPR, HIPAA)</p>
+		<p>2. Or create a custom regulation tailored to your needs</p>
+		:::note
+			The comprehensive regulation helps in assessing and managing your security
+			posture.
+		:::
+	</Step>
+</Steps>
+
+## 4. Connectors \{#getting-started_quickstart-8}
+
+<video
+	autoPlay
+	muted
+	loop
+	playsInline
+	className="w-full aspect-video"
+	src="/docs/plexicus/getting-started/video/Quickstart-Connector.mp4"
+></video>
+
+Connectors allow you to integrate your Source Code Management (SCM) systems with our platform.
+
+### Adding an SCM Connector \{#getting-started_quickstart-9}
+
+1. Navigate to the Connectors page.
+2. Click on "Add Connector".
+3. Choose your SCM from the available options:
+   - GitHub
+   - GitLab
+   - Bitbucket
+   - Gitea (Soon)
+4. Follow the authentication process for your chosen SCM.
+5. Grant the necessary permissions to allow our platform to access your repositories.
+
+:::note
+You can add multiple various SCM systems used in your organization.
+:::
+
+## 5. Applications \{#getting-started_quickstart-10}
+
+<video
+	autoPlay
+	muted
+	loop
+	playsInline
+	className="w-full aspect-video"
+	src="/docs/plexicus/getting-started/video/Quickstart-Applications.mp4"
+></video>
+
+The Applications page allows you to manage your repositories and create applications for security scanning.
+
+### Creating an Application \{#getting-started_quickstart-11}
+
+1. Go to the Applications page.
+2. Click on "Add Applications".
+3. Select the SCM connector you want to use.
+4. Choose the repository you want to add as an application.
+5. Configure the application settings:
+   - Application name
+   - Branch to scan
+6. Click "Create selected repositories" to finalize the application setup.
+
+:::tip
+	You can create multiple applications from a different repositories if you need
+	to scan different repositories separately.
+:::
+
+## 6. Pipeline Setup \{#getting-started_quickstart-12}
+
+<video
+	autoPlay
+	muted
+	loop
+	playsInline
+	className="w-full aspect-video"
+	src="/docs/plexicus/getting-started/video/Quickstart-ApplicationsPipeline.mp4"
+></video>
+
+The pipeline determines how and when your applications are scanned for vulnerabilities.
+
+### Configuring Your Pipeline \{#getting-started_quickstart-13}
+
+1. Navigate to the Pipeline Setup page.
+2. Select the application you want to configure.
+
+:::note
+	Pipeline might only supported for speicifc SCM only (GitHub is the only
+	supported for now)
+:::
+
+## 7. Findings \{#getting-started_quickstart-14}
+
+<video
+	autoPlay
+	muted
+	loop
+	playsInline
+	className="w-full aspect-video"
+	src="/docs/plexicus/getting-started/video/Quickstart-Findings.mp4"
+></video>
+
+The Findings page displays all the vulnerabilities and issues detected by your security scans.
+
+### Filtering Findings \{#getting-started_quickstart-15}
+
+<video
+	autoPlay
+	muted
+	loop
+	playsInline
+	className="w-full aspect-video"
+	src="/docs/plexicus/getting-started/video/Quickstart-FindingsFilter.mp4"
+></video>
+
+You can use various filters to focus on specific types of findings:
+
+1. Click on the "Filter" button.
+2. Apply filters based on:
+   - Severity (Critical, High, Medium, Low)
+   - Type of vulnerability
+   - Repositories
+   - Date range
+   - Status
+3. Click "Apply Filter" to update the findings list.
+
+### Reviewing a Finding \{#getting-started_quickstart-16}
+
+<video
+	autoPlay
+	muted
+	loop
+	playsInline
+	className="w-full aspect-video"
+	src="/docs/plexicus/getting-started/video/Quickstart-FindingsDetail.mp4"
+></video>
+
+1. Click on a finding to view its details.
+2. Review the description, affected code, and potential impact.
+3. Assign the finding to a team member if needed.
+
+## 8. Remediation \{#getting-started_quickstart-17}
+
+<video
+	autoPlay
+	muted
+	loop
+	playsInline
+	className="w-full aspect-video"
+	src="/docs/plexicus/getting-started/video/Quickstart-FindingsRemediation.mp4"
+></video>
+
+The remediation process helps you address and fix the security vulnerabilities found in your applications.
+
+### Creating a Remediation \{#getting-started_quickstart-18}
+
+1. From the Findings page, select a vulnerability you want to address.
+2. Click on "Create Remediation".
+3. It will show the remediation type:
+   - Pull Request
+   - Issue
+4. If choosing a manual fix:
+   - Describe the proposed changes
+   - Assign the task to a team member
+   - Set a due date
+5. Click "Create Pull Request" / "Create Issue" to initiate the remediation process.
+
+:::note
+	The pull request will be created in your SCM system (e.g., GitHub, GitLab) for
+	review and merging.
+:::
+
+## Conclusion \{#getting-started_quickstart-19}
+
+By following this guide, you've learned how to:
+
+1. Register and verify your account
+2. Set up your organization's profile
+3. Connect your SCM systems
+4. Create and manage applications
+5. Configure security scanning pipelines
+6. Review and filter security findings
+7. Create and manage remediations
+
+Remember to regularly review your findings and create remediations to maintain a strong security posture. If you need any further assistance, don't hesitate to contact our support team.

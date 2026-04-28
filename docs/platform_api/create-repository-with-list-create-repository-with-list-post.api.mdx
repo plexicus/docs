@@ -1,0 +1,71 @@
+---
+id: create-repository-with-list-create-repository-with-list-post
+title: "Create repository with list"
+description: "Create repository with list"
+sidebar_label: "Create repository with list"
+hide_title: true
+hide_table_of_contents: true
+api: eJyVVcFu2zAM/RWDZzfJip18WtsVWIEWDZpsOwRBoMisrVa2XIluahj+94GSG7vpmm43i3qkyMdHugUSmYNkBWdVpZUUpEzpopPoRpQiw2hshXUMKTppVcVnSODCoiCMLFbGKTK2iXaK8kgrRxCDqdB6z6sUEpAeuxmwG8ZuGLs5dlcZH8ziU42Ozk3aQNKCNCVhSfwphhSnD47zasHJHAvBX5XlNEih41MqyFsVYcGGLgZqKoQEhLWigRhIkebzd0Z2MThTW4kbfs8azb69gyOrymzksfDI6KJHMlf3otYECWSK8noL3fCc2T6gfK1LWUy5BT679RAx0Hu3Z+W3ovxaOVpalWVoQ4ocdAhCtkZvcJUpXSj6dDbztb9p3aKWEp27r3V014Mh/mdaO//s19PT94F/Ca1S7xZdWmvsf0Q9bBaSUHrcrgOANvLNrSib23tIVoc96uK9RZWEGVro1h+3/tqEBLn9hcuO9fwGnRMZwj7Yx1BPRrTk2890wHWFp3vcSBMDvYHdIwoO9P3tsVfIj+Vy/i5g6K1DWVtFjaeTcecoLFpIVutuHUOBlBse6348K0E5JDA9MskwBF1wx0MPx6H35OVEFcM9DBLYBgDnxaK5G3bB5YsoKo3DbK/KWuv1+7ndz2AMqrw3/rGehbnGFyVrF53Nr+BwxY0vo9TIusCSgjyCsIX0wi5FMY4FMdRW96W4ZDrd7XaTqr+cCDWFGLDw8vb5fBvdcY7PaF1I4MtkNpmxiZkuRDl67Pj6fVPHaGN+4ta3gPCFppUWyo+Br6Xtu7w6tstZqzlrIllB226Fw59Wdx2bn2q0rKd1DM/CKrFl9lc8iDmK1GurhUdsOMWQ7IkfF4br2kv8cHvwZAePMymxoqPYsWznt4slxLDtfyeFSdnHih2PothBAv4HFv57SRtsLWhRZjUPfAIhJktS1MzKXry9WOPXj9E+EmUzyrBtA2JpHrHsOoj7UojPvKG67g/6+qji
+sidebar_class_name: "post api-method"
+info_path: docs/platform_api/plexicus-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Create repository with list"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"post"}
+  path={"/create_repository_with_list"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Create repository with list
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={undefined}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={{"content":{"application/json":{"schema":{"properties":{"data":{"items":{},"type":"array","title":"Data"},"source_control":{"type":"string","title":"Source Control","default":"github"}},"type":"object","required":["data"],"title":"CreateRepositoryWithListTriggerData"}}},"required":true}}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"Successful Response","content":{"application/json":{"schema":{}}}},"422":{"description":"Validation Error","content":{"application/json":{"schema":{"properties":{"detail":{"items":{"properties":{"loc":{"items":{"anyOf":[{"type":"string"},{"type":"integer"}]},"type":"array","title":"Location"},"msg":{"type":"string","title":"Message"},"type":{"type":"string","title":"Error Type"}},"type":"object","required":["loc","msg","type"],"title":"ValidationError"},"type":"array","title":"Detail"}},"type":"object","title":"HTTPValidationError"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

@@ -1,0 +1,71 @@
+---
+id: resend-verification-resend-verification-token-get
+title: "Resend verification user"
+description: "Resend verification email registered by user"
+sidebar_label: "Resend verification user"
+hide_title: true
+hide_table_of_contents: true
+api: eJy9VcFu2zgQ/RViTrsAa7tGTzptFg26PSwQJGkvhmHQ0lhiS5EsOXJiCPr3xVC0o8SJi8UuepJNvuG8eXyc6YFUHaFYwVVHDVrSpSLtrHgnvmLQu4O4xVpHwgBrCRXGMmjPACjgFiPaSuwZdwzDVmkjQo7BSmwPoosYQILzGBLocwUFhBS8mQZvXlvbkPuOdrOpkUCCV0G1SBiYcg9WtQgFJAhI0MzKK2pAQsAfnQ5YQUGhQwmxbLBVUPRAB89BkYK2NUggTYYX7tMpw7Dm4OidjRgZv1ws+PO89ruuLDHGXWfEbQaDhNJZQksMV96bXMP8W+SYfsLBB1aD9JghjodNyG2dM6jshF1OCIOEFmNUNV6q5e8MGQZ5xLjtNyzpmTKrU+anQ9dnKfNZpzKHgU/9sHh/rkqSUOgo8NFzCuGCsI7EXhldzX6NQOzSneoMQbFTJuL/K9grMl2H4MIbIi2Xb4pkfUcs1fF0sXNBUMPi2co7bek/CIbMKf3ShG08B2TyF15D+g4SoutCeRF6NyJY6FhfFDnWPxV4xJ7SjmdO1P7KVkoiJN0/Iilt4GVr+pj+bTEKJaK2tcHRg7lJcaQU2pamq7StBTUoxoRip9FUM3hiqUJQB3hx3fGndeQbeJv5pG288EeDonStN0gojp1IbF11SBZR4sNyKb5YHxz7XW0NimtLmg5jXbPkveR6ahy32mPrpAYKmI9N9t20yc771EEHlh3LLmg63LGxRqv8dX9/8yeqgGFytw2Rh9xV03scAZxX252bWAxuDD7qsovi6ubzWbHTTVG5smvRUiKVza/KZP7c6Y9wkNAFk3nEYj5/eHiY+bw5U3oOEtIogiLx+WOyx3e7xxBHAu9ni9mCl7yL1Co7SfbafMuz7FkR/dMr/bczMatJ+Ehzb5S2zCRV1ucLW8ErFwYSinHorSU0LhLj+n6rIn4JZhh4+UeH4QDFai1hr4Jmn6SZWenkmSq3xwu1/Hab/fy7eIvq8Y1YfiF7ZTr+BxK+4+E0l4f1IKFBVbGBVn3euypL9DSJOmtvPIhPHv50fQ/D8A88ygUw
+sidebar_class_name: "get api-method"
+info_path: docs/platform_api/plexicus-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Resend verification user"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"get"}
+  path={"/resend-verification/{token}"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Resend verification email registered by user
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"name":"token","in":"path","required":true,"schema":{"type":"string","title":"Token"}}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"Successful Response","content":{"application/json":{"schema":{"properties":{"success":{"type":"boolean","title":"Success"},"message":{"type":"string","title":"Message"}},"type":"object","required":["success","message"],"title":"SuccessMessageResponse"}}}},"401":{"description":"Token is expired or not valid.","content":{"application/json":{"schema":{"properties":{"success":{"type":"boolean","title":"Success","default":false},"message":{"type":"string","title":"Message"}},"type":"object","required":["message"],"title":"ErrorMessageResponse"}}}},"422":{"description":"Token input is required for this endpoint.","content":{"application/json":{"schema":{"properties":{"errors":{"items":{"properties":{"title":{"type":"string","title":"Title"},"source":{"type":"string","title":"Source"},"msg":{"type":"string","title":"Msg"}},"type":"object","required":["title","source","msg"],"title":"ValidationErrorDetail","description":"Describes a single validation error, including the source field."},"type":"array","title":"Errors"}},"type":"object","required":["errors"],"title":"ValidationErrorResponse","description":"The complete response body for a 422 Unprocessable Entity error."}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

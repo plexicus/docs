@@ -1,0 +1,63 @@
+---
+id: user-configure-2-fa-user-configure-2-fa-post
+title: "Configure 2FA"
+description: "Configure 2FA"
+sidebar_label: "Configure 2FA"
+hide_title: true
+hide_table_of_contents: true
+api: eJyNVU1v4zgM/SsCz8rHBnPyabM7KGYOg2a3mVMQFIpMx5pxJFUfTQND/31BS0mctmj3VEt8fSTfo5gegth7qDawjKFFHZQUQRnNJmx9NOxOyGAcu43BlkONXjplh2MFfxvdqH10yBZ3S+BgLLoB+r2GCqJH9yjPkMdFIx7fubLGB+Dg0FujPXqoeljM5/TnNtlDlBK9Z3vUlAXZmScXvrhbTtmdUB3WTHTeMIchOs1Cqzw7s7NdDCy0yGrVNOhQS2TK5xsRBGsUdjWLusZGaSLSNfMlb441ovM4BQ7S6IA6UJ3C2q5oNPvlqdgevGzxIOjLOpIlqNxaYaPPcLIIFeyM6VBo4BBU6PDaKSQOB/Re7HEE98EpvR+hfxRI4kA9vE1pgn18P+JROgwfkT9kROIDixWh/Qh9HyxbESYlfgaZ3S+U2eGnqBzWNHQl8Yh1e2VZH02ev/tgv1LdicOTk6b+UIZ/MuKzzBcxLpzvZb4Mds7/WTfFr6tdxYoPqf8tM0nt4Ys42A5vBiS4iKMB+B/zD9cJGHt+dhlOJrpJPk1+42ksfwmaYCfDeSR5jjyd5U2kxpf5l7cP9KdHx7QJrDFR158/kfeaHp7XuOtXpCW/RxmdCieoNj18W69Xf6Fw6KDabNOW/j20hlZQWS6lxRmtn9ll/UwWDY3BmeuBXmx+F2PGy8S1IViCDzB6txlA5SjdmAFZzF51+KJk9Gy5+g6vl+Y4yGoj4wF1yAs2SybkIJkWhzEXcIiuK3X4ajY7Ho9TW4JToWbAAQ9CEYTq+XMUIzuf0flcwB/T+XROV6TOQehRstcL/aby/mroG2DRKOBLmNlOKE38Q719UX8z/B7kFkf6bzm0ZFK1gb7fCY8/XZcSXT9FdGTwlsOzcErsSNrNNnFoUdSD2T3QGFewlBItGf0sukh1vBm3m6lY3T+sgYOIN9us+MnPH0RfQkKfRuR9nxFr8xt1SsBLFYHOkLYppf8A31CMkA==
+sidebar_class_name: "post api-method"
+info_path: docs/platform_api/plexicus-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Configure 2FA"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"post"}
+  path={"/user/configure-2fa"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Configure 2FA
+
+<ParamsDetails
+  parameters={undefined}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"Success generate configuration 2FA. Failed also return this response but the difference is the data field undefined and success field false.","content":{"application/json":{"schema":{"properties":{"success":{"type":"boolean","title":"Success"},"message":{"type":"string","title":"Message"},"data":{"properties":{"otp_data":{"properties":{"secret":{"type":"string","title":"Secret"},"otp_path":{"type":"string","title":"Otp Path"}},"type":"object","required":["secret","otp_path"],"title":"TwoFactorOtpData"},"qrcode":{"type":"string","title":"Qrcode"}},"type":"object","required":["otp_data","qrcode"],"title":"TwoFactorConfigureData"}},"type":"object","required":["success","message","data"],"title":"TwoFactorConfigureResponse"},"example":{"success":true,"message":"Success generate configuration 2FA","data":{"otp_data":{"secret":"your-secret-key","otp_path":"your-otp-path"},"qrcode":"your-qrcode"}}}}},"404":{"description":"User not found","content":{"application/json":{"example":{"success":false,"message":"User not found"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

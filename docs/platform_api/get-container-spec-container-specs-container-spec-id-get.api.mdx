@@ -1,0 +1,71 @@
+---
+id: get-container-spec-container-specs-container-spec-id-get
+title: "Get Container Spec"
+description: "Get Container Spec"
+sidebar_label: "Get Container Spec"
+hide_title: true
+hide_table_of_contents: true
+api: eJyVVE1v2zAM/SsGTxugJVmxk0/ruqILsGFBm+0SBIEiM45a21IlOm1g6L8PlJ3E+WiBnayPZ/Lp8ZENkMw9pDMYV4S5k6RN5ZNPycSZjc7Q8foec+3JbUG8h7opTJ3BXECGXjltGQMp3CElN6YiqSt0yYNFBQKMxTbIOIMUcqSF2kEW3qI62frF6b3OFoscCQR4VLXTtIV01sCP6XTyDaVDB+lsHuYCrHSyRELnI6CSJUIKZ9FAgGa2VtIaBDh8rrXDDFJyNQrwao2lhLQB2loO4MnpKgcBpKngg+MnJuMMAqd36K2pPHr+92o04s+xPg+1Uuj9qi6S+w4MIhLEihgurS20imoNHz3/0xz4hBCCgC9XV+eB/8pCZ/G35NY54/4jKljHFSLd8s6QpC54pQlLfw4ojDq6ldX29yrqfSxXEPsTzUZCB2EexO5MOie3PU1/mpYgBAGlz9+T/xd6L3OEfbC3oVGMZMq34ZDbLB9R0VHpZ/FdbeoONz+EOcjbqvv2M7638l1KtoOwb88CtrUtkdam6xIQrUFTGJ40yLA5s3ToNccDV7atVb9F9iKtiSx0Nuf9sgVwfl2tTER2VCcFvmpV++R6MobTZu9fJplRdYkVtTVs3SdVdF/Xhjs4CKhd0fHw6XD48vIysN3lQOohCMAyejDy+dq7Y+E36HxL4PNgNBjxkTWeSln1kl0cREf0m0ODXEZ3ahG+0tAWUkdnRuZNV5jZyWjhp6Xn02YuYG08Mb5pltLjH1eEwMfPNTqeZXMBG+m0XLLoswYy7XmdQbqShcd3mH+47xz8MXmL8s6oFdt0I4uadyDgCbcXh2Ns0jXKLM7VpsNdK4WWehHOZgpPwL1/726nIEDWLNPeeJ3RxG7RmxnH7JqmRUzNE1Yh7MkS75lgCP8AdTVYCw==
+sidebar_class_name: "get api-method"
+info_path: docs/platform_api/plexicus-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Get Container Spec"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"get"}
+  path={"/container_specs/{container_spec_id}"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Get Container Spec
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"name":"container_spec_id","in":"path","required":true,"schema":{"type":"string","title":"Container Spec Id"}}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"Successful Response","content":{"application/json":{"schema":{}}}},"422":{"description":"Validation Error","content":{"application/json":{"schema":{"properties":{"detail":{"items":{"properties":{"loc":{"items":{"anyOf":[{"type":"string"},{"type":"integer"}]},"type":"array","title":"Location"},"msg":{"type":"string","title":"Message"},"type":{"type":"string","title":"Error Type"}},"type":"object","required":["loc","msg","type"],"title":"ValidationError"},"type":"array","title":"Detail"}},"type":"object","title":"HTTPValidationError"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

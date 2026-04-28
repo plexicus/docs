@@ -1,0 +1,71 @@
+---
+id: get-remediation-remediations-finding-id-get
+title: "Get remediation"
+description: "Get remediation"
+sidebar_label: "Get remediation"
+hide_title: true
+hide_table_of_contents: true
+api: eJyVVMFu2zAM/RWDpw3QkqzYyad1WNcV2LCizXYJjECRGUetLbsS3TYw9O8DZSeWl7bATpalJ/Lp8ZEdkCwcpCv4pk2uTeGSD8lXJKnL5AYrzLUkXRvIBOTolNVN+E3hEimxEUBA3aAN66scUiiQ1tF5vHbr9bZPttb5el0ggQCHqrWa9pCuOvi+XF5/QWnRQrrKfCagkVZWSGhdABhZIaQwhgEBmmk1knYgwOJDqy3mkJJtUYBTO6wkpB3QvuGbjqw2BQggTSVvDM9PrnLwnNCia2rj0PGls8WCP1MFblul0Llty0r1YBCgakNoiOGyaUqtwpPnd47vdCMR770X8Ons7DTwH1nqPFxLLqyt7X9EhcZyGUj3vPNQSF5pwsqdAspaTU6l2f/aBoWnOnlx3NGGsEALPvPisCetlftIzB91TxC8gMoVb+n+E52TBcIx2OvQIEay5FM/5q43d6hoUvNVeFefesBlY5hR3l7d15/R98GLyQ4QdupJwL62FdKuHloBRO/MFOZxI8y70cE+aoJbrmdfobgVjtLsiBoYXM3/mx7AWbXZ1gE5ELwu8Vmr1iXn11fwbxPHh0leq7ZCQ4d+Zs9JFTw3tNsBDgJaWw48XDqfPz09zZrhcCb1HARgFZwX+HyOzljuR7SuJ/BxtpgteKupHVXSRMlOB8yEezf2xAvQQSfCZ5o3pdTBiYFzNxRiBXEhQEAaDZNMwK52xKiu20iHv23pPW8/tGh5RmUCHqXVcsMirzrIteN1DulWlg7fIPvuZvDp++Q1ogc7Gjbjoyxb/gMB97ifDr3QgzuUeRiU3QA4Vwobiq6ejAwecEd7Xl4sQYBsWZWjwwZHicMiGglTWl3XI5b1PRrvjyyJ/5mg938BJY8xVA==
+sidebar_class_name: "get api-method"
+info_path: docs/platform_api/plexicus-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Get remediation"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"get"}
+  path={"/remediations/{finding_id}"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Get remediation
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"name":"finding_id","in":"path","required":true,"schema":{"type":"string","title":"Finding Id"}}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"Successful Response","content":{"application/json":{"schema":{}}}},"422":{"description":"Validation Error","content":{"application/json":{"schema":{"properties":{"detail":{"items":{"properties":{"loc":{"items":{"anyOf":[{"type":"string"},{"type":"integer"}]},"type":"array","title":"Location"},"msg":{"type":"string","title":"Message"},"type":{"type":"string","title":"Error Type"}},"type":"object","required":["loc","msg","type"],"title":"ValidationError"},"type":"array","title":"Detail"}},"type":"object","title":"HTTPValidationError"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

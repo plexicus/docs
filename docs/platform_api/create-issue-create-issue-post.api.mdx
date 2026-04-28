@@ -1,0 +1,71 @@
+---
+id: create-issue-create-issue-post
+title: "Create issue on SCM"
+description: "Create issue on SCM"
+sidebar_label: "Create issue on SCM"
+hide_title: true
+hide_table_of_contents: true
+api: eJyVVU1v2zAM/SsGz2rSFTv5tH4NC7CiQZPtEgQFI7OOWltyJblpYPi/D5Sc2Ek/tp0iS09P5OMj04DH3EG6gO9KZ0rnLjlJrsijKpI7KilT6JXRsBSQkZNWVeEzhUtL6ClRztWUGJ3MLm9AgKnIhguTDFKQAXMfMPcHH5VxHgRYeq7J+QuTbSFtQBrtSXteYlUVSgaq8aPjFxtwck0l8qqy/JBX5PjL9nHeq4x3/LYiSMF5q3QOArzyBW8MMkomGbSt2EHN6pHkLiRlKWNJjoiXPVHMfsK5zK3Kc7JX6BFaZuwZvK0pbLjKaBeDPTs95Z9DMWe1lOTcQ82iRzCIf5ajDc9+PTt7S/wbC5XFfK+tNfY/WI9EzoIneKU8le4toDDy4BT19vYB0sVxNVqx31HaU04W2mVfCLQWt4OS/TQxQGgFlC7/rLo35BzmBHuyj6FBjGTOp38zAecVn+5wAxv08kZ1P04jttS7j+0gP+bz6RvCWFtHsrbKb4OcjLsgtGQhXSzbpYCS/Npww3VtVaFfQwrjYctBzzLjEseiDbn2aq29rxgeYJDCKgI4EHbJXd+0169YVgW914R9uUHpBxPou0SnBb0qWbvkfDqB47kyPEwyI+uStI8OiN5FGbyrsRxygYDaFl3wLh2PN5vNqOoOR6jGIIDK4OAQz7fBGcf4QtbFAL6MTkenvMVilqgHj70/8w7iHwyxD+CdyJ5e/bgqUAVnh9ibrnCLg8HJfltzXdMFNM0KHf2yRdvy9nNNlj2xFPCCVuGK5V1wM60Js+CPBp5oy7HEqE6C5Rle1MGmxxOAuzPeOJeSKv8pdmi96e1sDgJW3SgvTcZ3LG64nXADKYS/B74dhzbvNVCgzmtu2hQiJ7sMa5Zh78fOf2K3GMwU1NtBhE0TEXPzRLptQXSpeP7mKdO2fwDn32Qy
+sidebar_class_name: "post api-method"
+info_path: docs/platform_api/plexicus-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Create issue on SCM"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"post"}
+  path={"/create_issue"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Create issue on SCM
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={undefined}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={{"content":{"application/json":{"schema":{"properties":{"remediation_id":{"type":"string","title":"Remediation Id"}},"type":"object","required":["remediation_id"],"title":"CreateIssueTriggerData"}}},"required":true}}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"Successful Response","content":{"application/json":{"schema":{}}}},"422":{"description":"Validation Error","content":{"application/json":{"schema":{"properties":{"detail":{"items":{"properties":{"loc":{"items":{"anyOf":[{"type":"string"},{"type":"integer"}]},"type":"array","title":"Location"},"msg":{"type":"string","title":"Message"},"type":{"type":"string","title":"Error Type"}},"type":"object","required":["loc","msg","type"],"title":"ValidationError"},"type":"array","title":"Detail"}},"type":"object","title":"HTTPValidationError"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

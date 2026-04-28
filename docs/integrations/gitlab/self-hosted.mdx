@@ -1,0 +1,80 @@
+---
+title: "Self-Hosted"
+description: "Learn how to create an OAuth application and obtain a Client ID and Client Secret in GitLab Self-Hosted."
+---
+
+# Generate Client ID and Secret in GitLab Self-Hosted \{#integrations_gitlab-self-hosted-1}
+
+Follow these steps to create an **OAuth application** in GitLab Self-Hosted and obtain the **Client ID** and **Client Secret**.
+
+## 1. Register an OAuth Application \{#integrations_gitlab-self-hosted-2}
+
+1. Log in to your **GitLab Self-Hosted instance**.
+2. Navigate to **Admin Area** → **Applications** (`/admin/applications`),
+
+   <img src="/docs/plexicus/gitlab/admin-self-hosted.png" alt="Admin Page" />
+
+3. or go to **User Settings** → **Applications** (`/-/profile/applications`) for user-specific tokens.
+
+   <img src="/docs/plexicus/gitlab/general-user.png" alt="User Page" />
+
+4. Click **"New application"**.
+
+   <img
+   	src="/docs/plexicus/gitlab/create-application.png"
+   	alt="New Application"
+   />
+
+5. Fill in the required details:
+
+   <img
+   	src="/docs/plexicus/gitlab/form-application.png"
+   	alt="Form Application"
+   />
+
+- **Scopes**: The following scopes are required for different areas:
+
+  - `read_api`: For basic API access to GitLab endpoints
+  - `read_user`: For accessing user information
+  - `read_repository`: For accessing repository data and branches, reading and accessing issues
+  - `write_repository`: For creating merge requests and managing webhooks, creating and managing issues
+  - `api`: For general API access to all repository endpoints, managing CI/CD variables and secrets. Creating, updating, and deleting webhooks
+  - `openid`: Required for OpenID Connect authentication
+  - `profile`: Access to basic profile information
+  - `email`: Access to user email information
+
+- **Trusted**: Check this box for allowed **Plexicus** to use application credentials as a trusted first-party application.
+- **Name**: Enter a meaningful name for the application.
+- **Redirect URI**: Enter this callback URL: `https://app.plexicus.ai/api/callback/gitlab`
+
+6. Click **"Save application"**.
+
+## 2. Get Client ID and Client Secret \{#integrations_gitlab-self-hosted-3}
+
+:::warning
+	Ensure you select the required scopes (`openid`, `profile`, `email`,
+	`read_api`, `read_user`, `read_repository`, `write_repository`, `api`). We
+	follow the principle of least privilege and only request permissions that are
+	essential for Plexicus's functionality. These scopes provide the necessary
+	access for authentication and repository operations while maintaining
+	security.
+:::
+
+<img
+	src="/docs/plexicus/gitlab/application-created.png"
+	alt="Application Created"
+/>
+
+After saving the application, GitLab will generate:
+
+- **Application ID (Client ID)**: Used as the `client_id`.
+- **Secret (Client Secret)**: Used as the `client_secret`.
+
+These credentials will be used in the next step to obtain an **access token**.
+
+:::warning
+	Keep your **Client Secret** private and never expose it in public repositories
+	or frontend applications.
+:::
+
+Next, you can proceed to exchanging an authorization code for an access token. 🚀

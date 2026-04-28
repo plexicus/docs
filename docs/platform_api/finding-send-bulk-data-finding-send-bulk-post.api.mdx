@@ -1,0 +1,71 @@
+---
+id: finding-send-bulk-data-finding-send-bulk-post
+title: "Bulk Actions Send Findings to Developer"
+description: "Bulk Actions Send Findings to Developer"
+sidebar_label: "Bulk Actions Send Findings to Developer"
+hide_title: true
+hide_table_of_contents: true
+api: eJydVU1v2zAM/SsGz27SFTv5tHbtsAIbGjTZLkEQMDaTqJElV5KbBob/+0DJjp167dqdIlHP/HqPTAUONxaSOXwTKhNqY2ERQ0Y2NaJwQitI4KqUu+gy5ZuNpqSyqMVGTkfX9ERSF2QgBv5Bxt1mkMA6oJaWVLZclXK3zNDhcmgutHUQg6HHkqy70tkBkgpSrRwpx0csCilS73n8YDmpCmy6pRz5VBiO6wRZvmVtPkuReYNwlPuDOxQECVhnhNpAHbcGNAYPEIMTTvL9WFF0m1nGtRn/r8OmXcFdB9OrB0rbwoWhjGk4Tf809mLgcmZQ2TWZa3TINEHN/jt/zpTkDbbQyoYGXZyfhz71OZ6WaUrWrksZ3TdgiN9NQe3Dfr64GDr+jVJk/rPoxhhtPuB1QKxDIU8IOAVInZ68ojrcrSGZD4k6WoRytCED9eJ19n7okCATnNvNkPgO+pOsxQ11Ungd6psRzfj1X5LgukLoBtfTQdfe0N23VO3b97dgLeT7bDYZOAzcWkpLI9zBt5NxV4SGDCTzRb2IISe31TzzzSgX6LaQwLhR7xnP+hnPOnSupsxzYK7v8NiyrXMFwz0MElgFAGfDUrnvtsXNM+aFpL9M/7xt/OLFFHcPdQxCrbUP3PRhIulZpKWNLie38HIb9h+jTKdlTsoFgQRpY+qlrTDv+4IYSiObsmwyHu/3+1HRPI5QjCEGyr3AfT5fem/M6hMZGxL4NDofnbOJe52j6gV7/6Y+qam3az/goqHJ0bMbFxKFHxBfY9XwP4ch/4sYtqyRZA5VtUJLv4ysazY/lmRYX4sYntAIXDEXc+ZnS5h5rVWwowMk8DWke+bHh+Gy9JJ/uU140sMXl2lKhXsT25fx5G46gxhWzV9RrjP+xuCeRxP3kID/t/NdYoC3VSBRbUpeAAkEnyxWLLkXR1k3Mo7bQ28/oTr0MqyqgJjpHam6hrgpxfGdN1Zd/wG53q1l
+sidebar_class_name: "post api-method"
+info_path: docs/platform_api/plexicus-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Bulk Actions Send Findings to Developer"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"post"}
+  path={"/finding-send-bulk"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Bulk Actions Send Findings to Developer
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={undefined}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={{"content":{"application/json":{"schema":{"properties":{"developer_ids":{"items":{"type":"string"},"type":"array","title":"Developer Ids"},"finding_ids":{"items":{"type":"string"},"type":"array","title":"Finding Ids"}},"type":"object","required":["developer_ids","finding_ids"],"title":"FindingTransferDataBulk"}}},"required":true}}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"Successful Response","content":{"application/json":{"schema":{}}}},"422":{"description":"Validation Error","content":{"application/json":{"schema":{"properties":{"detail":{"items":{"properties":{"loc":{"items":{"anyOf":[{"type":"string"},{"type":"integer"}]},"type":"array","title":"Location"},"msg":{"type":"string","title":"Message"},"type":{"type":"string","title":"Error Type"}},"type":"object","required":["loc","msg","type"],"title":"ValidationError"},"type":"array","title":"Detail"}},"type":"object","title":"HTTPValidationError"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

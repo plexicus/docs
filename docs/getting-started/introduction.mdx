@@ -1,0 +1,59 @@
+---
+title: Introduction
+---
+
+<img
+	className="block dark:hidden"
+	src="/docs/diagram-light.png"
+	alt="Hero Light"
+/>
+<img
+	className="hidden dark:block"
+	src="/docs/diagram-dark.png"
+	alt="Hero Dark"
+/>
+
+# Welcome to Plexicus Documentation \{#getting-started_introduction-1}
+
+Plexicus is the leading AI-powered Cloud-Native Application Protection Platform (CNAPP), built to secure your entire cloud-native lifecycle from code to cloud. Designed for modern development and cloud environments, Plexicus provides a unified platform to identify, prioritize, and remediate risks across your applications, infrastructure, and workloads with unprecedented efficiency.
+
+Our platform automates critical aspects of application security, helping your teams:
+
+- **Streamline Security Workflows**: Automate vulnerability identification, enrichment, and remediation to reduce manual intervention by up to 95%.
+- **Ensure Compliance**: Maintain adherence to industry standards like PCI DSS, SOC 2, NIST 800-53, and more.
+- **Seamlessly Integrate**: Work effortlessly with your existing tools such as GitHub, GitLab, Bitbucket, and other CI/CD platforms.
+
+By leveraging advanced AI algorithms, Plexicus delivers actionable insights to secure every stage of the software development lifecycle, from code creation to deployment. Explore this documentation to unlock the full potential of Plexicus and transform the way your organization protects its digital assets.
+
+---
+
+# Workflow \{#getting-started_introduction-2}
+
+1. **Initiating Repository Analysis**:  
+   An **Admin**, **Cyberoper**, or **Developer** begins by analyzing a new repository.
+
+2. **Findings Creation**:  
+   Once the repository is analyzed, AI generates findings and suggests improvements.
+
+3. **File Editing and Review**:
+
+   - The **Admin** or **Cyberoper** reviews and edits the file containing AI-driven improvements.
+   - They send the edited file to the **Developer**.
+
+4. **Developer Review and Finalization**:
+   - The **Developer** analyzes the suggested improvements.
+   - They can make additional edits or finalize the changes by creating a pull request to update the file.
+
+---
+
+# Role Differences \{#getting-started_introduction-3}
+
+| **Action**                | **Admin** | **Cyberoper** | **Developer** |
+| ------------------------- | --------- | ------------- | ------------- |
+| Add Members to Team       | Yes       | No            | No            |
+| Analyze Repositories      | Yes       | **No**        | Yes           |
+| View All Findings         | Yes       | Yes           | No            |
+| Send Findings to Dev Team | Yes       | Yes           | **No**        |
+| Edit File                 | Yes       | Yes           | Yes           |
+| Make Pull Request         | Yes       | No            | Yes           |
+| Request Review            | No        | No            | Yes           |

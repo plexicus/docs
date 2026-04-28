@@ -1,0 +1,71 @@
+---
+id: verify-session-verify-session-post
+title: "Verify session 2FA"
+description: "Verify session 2FA"
+sidebar_label: "Verify session 2FA"
+hide_title: true
+hide_table_of_contents: true
+api: eJydVstu2zoQ/RVi1oqda3SlVdM2xe2isNEo3RiGQUtjiy1FsuQojmDo34shZVtO0gSIN+LjzOvMgz4AyV2AfAk3LdVoSJWSlDXiShR7K77KkqwXl3ewyqDCUHrl4jaHn+jVthMBQ2DZ2dcbyMA69BH/rYIcHiJkPUDWT7bOBoIMPP5pMdAnW3WQH6C0htAQL6VzejA//RXY6AFCWWMjeeU8GyOFgXeW3Lq0FfKaOoeQQyCvzA4yIEWaD+bkxGfG9BlgI5V+Cby1vpEE+YA4S9/Gfd9nRxG7+YXlMQLlsWJGT34cTazOGu4D+sQak9WzqrMo+RbjQXDWhBTU7PqaP5e837VliSFsWy1+DGDI3kvbkBJLbsTFxlqN0oxiH3I9J8fcyejAmuxvjMql6eZbyJdPyeyz04lptYZ+xMVN1CGKqIM55cU6od+nMaoSBd++laRR1GMFe5tKP0V7IrePmfowmz3PxbxYCM62UMa1JKSpRMDSIwnpURxNiq31gmoVBJrKWWVo8v6MoffWx5UibMJzwBDOv9ugiN8+g2BbX74KvUuIPoMm7F4Dfg+7N1lP2JPZpHPE/0+pVRVJuOUYvyClBryk/EvcbTAIKYIyO43i4SQoIjuZUKbUbaXMTlCNIhkUW4W6msDZS+m97MYdnqh9K44hA//2fNSWl74XNYrSNk4jcXUklNjYqoslIsWH2UzcG+ctN4fcaBS3hhR1Ka5JLEVOBlJtecAOI9RJqiGHaarrq2HAMtVYtl5Rd8fFlMrj/6JYfELp0Y/yWRM5hkcYT4AEYFtcjz/OI/r2UbL/lyP3XA/DWIU2oP+ICTspbcOsK7O1owKFhcZHVbZB3Cy+PaNqfCkqW7YNGkovUWodWcbWMbIZ64IMWq+HiEI+ne73+4kbLidSTUc+sj8fR3fs4wP6kBz4b3I9ueYj5riRZmTsxZfvwv3RM/YyeuCd8JGmTksVZ2D0/DBk8zilTtlcZVBzuvMlHA4bGfDe677n4z8t+g7y5SqDB+kV1w3v+gxqlBUnenmA39hBDp+TW1dxTDJct7ETng4gHrRJgge1o1exq1FFLuZ3BWSwGV7zJtWHl3tuIrmHHOK/BJaO5RjPDqCl2bVyx9ikk39/AfI8AGM=
+sidebar_class_name: "post api-method"
+info_path: docs/platform_api/plexicus-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Verify session 2FA"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"post"}
+  path={"/verify-session"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Verify session 2FA
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={undefined}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={{"content":{"application/json":{"schema":{"properties":{"otp_code":{"type":"string","title":"Otp Code"},"email":{"type":"string","format":"email","title":"Email"}},"type":"object","required":["otp_code","email"],"title":"UserVerify2FA"}}},"required":true}}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"Successful Response","content":{"application/json":{"schema":{"properties":{"verify_otp":{"type":"boolean","title":"Verify Otp"},"access_token":{"anyOf":[{"type":"string"},{"type":"null"}],"title":"Access Token"},"token_type":{"anyOf":[{"type":"string"},{"type":"null"}],"title":"Token Type"}},"type":"object","required":["verify_otp"],"title":"TwoFactorVerifyResponse"}}}},"422":{"description":"OTP code input and secret are required for this endpoint.","content":{"application/json":{"schema":{"properties":{"errors":{"items":{"properties":{"title":{"type":"string","title":"Title"},"source":{"type":"string","title":"Source"},"msg":{"type":"string","title":"Msg"}},"type":"object","required":["title","source","msg"],"title":"ValidationErrorDetail","description":"Describes a single validation error, including the source field."},"type":"array","title":"Errors"}},"type":"object","required":["errors"],"title":"ValidationErrorResponse","description":"The complete response body for a 422 Unprocessable Entity error."}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

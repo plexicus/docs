@@ -1,0 +1,71 @@
+---
+id: findings-by-repo-chart-findings-by-repo-chart-get
+title: "Findings by repository chart"
+description: "Findings by repository chart"
+sidebar_label: "Findings by repository chart"
+hide_title: true
+hide_table_of_contents: true
+api: eJyVVE1v2zAM/SsGz0KSBdvFp3VYuxXYsKLNdgmCgLGZRK0tqZLcxjD03wfKjuMkDYqebEmPjx+PZAMeNw7SOdxIlUu1cbAQkJPLrDReagVp/5Ks6sSS0U56besk26L1IEAbssjQ2xxSWHfg5apeMngZYcsL1xtiBkdZZaWvIZ038HM2u/tGaMlCOl+EhQCDFkvyZF0EKCwJUihxF5kcCJAc5nNFtgYBlp4raSmHdI2FIwEu21KJkDbga8OmUnnakAVOdI1V4SGdfhHgpS/4+TfukvvIHILo/XUZLCPHh106b6XaDD0CGgMHp12RkxnjA6dtyRmtHDmmmU4m/DkW5qHKMnJuXRXJfQcGAZlWnpRnOBpTyCyKM350bNMcQgshBAGfp9Nz4n9YyDyaJdfWavsBVjCWG8LLNu6cPMqC/6Sn0p0DCp0dvaKq/6yjzseVYyVO5AuLIPZ3aC3Wg3L+0m2AEASUbvOWEr3c5BxuCHqyy9BYjL1EvW+9eqTMH7XBPObVuu5wiwPNobxtdS+n8b0t31vO9hCelzPCVtuS/FbzULZjZtBvIYXx27M4mMMHFrOVZziNfV223nPrRs35vGoB7FKqtY7ILrq7gnYyq1xydXcLp4tl+JjkOqtKUr6VrW04zGLDdRO4h4OAyhZdHC4dj19fX0emexyhHIMAKmPbxXi+Dt641i9kXRvAp9FkNOEro50vUQ2cvbP0jhJpDtPxnl1XQU87PzYFytigMZum02d+YYVyA22184xomhU6+muLEPi6XUM8M7l0uCoGi+iJ6pNd+YJFxSHEibqAP9l1B5MFH6xkm7idBWwJ87iqm872KsvI+IHV2bpglr41f1zPQABWnHrfYF1Dif3PYB2gqgfcTdMiZvqJVAiwT8DzmRdECP8B8m1ewQ==
+sidebar_class_name: "get api-method"
+info_path: docs/platform_api/plexicus-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Findings by repository chart"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"get"}
+  path={"/findings_by_repo_chart"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Findings by repository chart
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"name":"max_repos","in":"query","required":false,"schema":{"type":"integer","default":25,"title":"Max Repos"}},{"name":"finding_type","in":"query","required":false,"schema":{"type":"string","default":"app","title":"Finding Type"}}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"Successful Response","content":{"application/json":{"schema":{}}}},"422":{"description":"Validation Error","content":{"application/json":{"schema":{"properties":{"detail":{"items":{"properties":{"loc":{"items":{"anyOf":[{"type":"string"},{"type":"integer"}]},"type":"array","title":"Location"},"msg":{"type":"string","title":"Message"},"type":{"type":"string","title":"Error Type"}},"type":"object","required":["loc","msg","type"],"title":"ValidationError"},"type":"array","title":"Detail"}},"type":"object","title":"HTTPValidationError"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

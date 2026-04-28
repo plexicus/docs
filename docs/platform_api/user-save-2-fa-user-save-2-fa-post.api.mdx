@@ -1,0 +1,71 @@
+---
+id: user-save-2-fa-user-save-2-fa-post
+title: "Save 2FA"
+description: "Save 2FA"
+sidebar_label: "Save 2FA"
+hide_title: true
+hide_table_of_contents: true
+api: eJyVVcFu2zAM/RWBZzXpgp18Wtu1WIENDZZ0lyAIGJlJ1NqWK8lJA8P/PlByYiddu+1kSXwiqcdHugaPawfJDK4qv6HCa4Vem0JciOnOiDtU3lhxaoO5hJScsroM2wQmuCUxursCCaYkG1D3KSRQObILh1tajFa4ON2VxnmQYOmlIuevTbqHpAZlCk+F5yWWZdaGHD45DlSDUxvKkVel5VBek+Od8eVCmZR47fclQQLOW12sQYLXPuODB1+KG8Y0EhwpS/4j9CQimkYeIGb5ROqQsraUMm3HwEef887HoyPL3DA1DXvqbnpbUThwpSlcfMTo8pI/Z9xWSpFzwrUciyU6SoUphGstBx+CfQpjxQozRwOQ/0xmI4FeMS+zwF/rt80x5P15NHqb2S/MdBrVcmutsf8R8Kx6KXnUGa+0p9y9BWRGnVix2D+sIJmdl6+RxxNdeFqThWbeVRCtxX2vxt9Nq+hGQu7WH8nhBzmH66CdCHkfGsgQU7b+TT38rhi6xfXE09Eb2X3/GV8jfX8KdoB8m07HbxzG2jpSldV+H+hk3DWhJQvJbN7MJeTkN4Z7ue3XEv0GEhhyMw9ZlBejFULnZsI1jlXrOzvStfG+ZHiAQQLLCOBMWCY/u3Fw20mya++O7kMLd7UHXaxMCNW+epzRq1aVE1fjezgfWn2jSI2qcip8lEMUMqog5ALzvi+QUNmsfYhLhsPdbjcoW+MA9RAkUB7kHPL50rNxjluyLibwaXA5uOQjZjbHohesN1BPku7Nxz6mpdbTqx+WGeog6JBl3dZrFkYxs3ao2FzChiuazKCueaY82qxp+PilIstqmEvYotW4ZC5n3EYbwjQoo4Zn2kMCNzGbiyB2hmdVEOh573NfxhtXSlHpP8T2RTd+mExBwrL9O+RRAxZ33Ei4gwTCP4dvB8mFsxoyLNYVt2sC0SfLCytm4ijEVnjysOhNEyz2vQzrOiKm5pmKpgHZPsXznudL0/wGQmZ84g==
+sidebar_class_name: "post api-method"
+info_path: docs/platform_api/plexicus-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Save 2FA"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"post"}
+  path={"/user/save-2fa"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Save 2FA
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={undefined}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={{"content":{"application/json":{"schema":{"properties":{"otp_code":{"type":"string","title":"Otp Code"},"secret":{"type":"string","title":"Secret"}},"type":"object","required":["otp_code","secret"],"title":"UserSave2FA"}}},"required":true}}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"Success save 2FA based on success response true or false.","content":{"application/json":{"schema":{},"example":{"success":true}}}},"422":{"description":"Validation Error","content":{"application/json":{"schema":{"properties":{"detail":{"items":{"properties":{"loc":{"items":{"anyOf":[{"type":"string"},{"type":"integer"}]},"type":"array","title":"Location"},"msg":{"type":"string","title":"Message"},"type":{"type":"string","title":"Error Type"}},"type":"object","required":["loc","msg","type"],"title":"ValidationError"},"type":"array","title":"Detail"}},"type":"object","title":"HTTPValidationError"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

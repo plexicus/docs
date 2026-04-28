@@ -1,0 +1,71 @@
+---
+id: fill-template-remediation-fill-template-remediation-id-post
+title: "Fill template remediation"
+description: "Fill template remediation"
+sidebar_label: "Fill template remediation"
+hide_title: true
+hide_table_of_contents: true
+api: eJyVVcFu2zAM/RWDpw1Qk67Yyae1W4sV2NCgzXYJjECxmUStbLmS3DQw9O8DJTuRkzbbTpbFJ4p85KNasHxlIJ3BjagKUa1McpZ8Q8uFTO6xxEJwK1QFGYMCTa5F7X9TuBFSJhbLWnKLiY6gDFSN2q9vC0hhKaSc98h5hJwPLQOTKObzWhkLDAzmjRZ2C+mshe/T6eQKuUYN6SxzGYOaa16iRW08oOIlQgpDX8BAUNA1t2tgoPG5ERoLSK1ukIHJ11hySFuw25pOG6tFtQIGVlhJGxEVyW0Bji4mL2jslSq2dPTQaa4qi5UlE69rKXJ/evxoiL42urPWxJcVaHwEPR1LgbIwUVBq8Yi5jYKa9uzfBKhz7Ai7j2p25Dp7Mz8qbO8ZnCOnGk2tKhMCvDg/p8+wGx6aPEdjlg11TQDDv1MQbvl8cXHs+DeXogi8X2ut9H94PSC28E1NK2GxNMcAqfKBlVfbu6XvqWFXOLbbEZXFFWpw2Z56rjXfRlX6oUKA4BiUZnWqy36iMXyFsHP2PtSTkUzJ+reyU17h6g4X1X1Pb2D3/TTCTHjzsh5C2jxyGGpbol0rGgadpr0QUxhHMh3TNDjre3TcDhXsokHwQBUONYvHwY6stbU1dKqm/0UAUBzUJPd73V6/8rKW+LbuCC+qpfLWLsWJxFeRNya5nNzC4UiMjUmh8qbEyvYzkbqW575ruxHVw4FBo2UXt0nH481mM6o744iLMTDA0veuj+dLZKOCvaA2IYBPo/PROW0RyyWvostOjetBFu1eXycPdVxbfLXjWnLh+9vn0XbVncHwxKC+wCA9mNEZgzV1RzqDtl1wg7+0dI62nxvUNP4zBi9cC76gWsxaKIShdQHpkkuDJzL5cN8J4mPyXux931fU9S9cNvQHDJ5we/yeeMGvkRf+HWo70Ndw35mX5d7J0ZSiCRJOXOY51vYkNovUM7l7mAKDRffklKrwbx3fkOT5JgSsfP5eHn6vBcmrVUODJYXgk1qbN1SknWg6kbB+Ec29ISVtGxBT9YSVczuGLP0TMc79Af7k5V8=
+sidebar_class_name: "post api-method"
+info_path: docs/platform_api/plexicus-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Fill template remediation"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"post"}
+  path={"/remediation/fill-template/{remediation_id}"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Fill template remediation
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"name":"remediation_id","in":"path","required":true,"schema":{"type":"string","title":"Remediation Id"}}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={{"required":true,"content":{"application/json":{"schema":{"properties":{"template_fields":{"type":"object","title":"Template Fields"}},"type":"object","required":["template_fields"],"title":"RemediationFillTemplate"}}}}}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"Successful Response","content":{"application/json":{"schema":{}}}},"422":{"description":"Validation Error","content":{"application/json":{"schema":{"properties":{"detail":{"items":{"properties":{"loc":{"items":{"anyOf":[{"type":"string"},{"type":"integer"}]},"type":"array","title":"Location"},"msg":{"type":"string","title":"Message"},"type":{"type":"string","title":"Error Type"}},"type":"object","required":["loc","msg","type"],"title":"ValidationError"},"type":"array","title":"Detail"}},"type":"object","title":"HTTPValidationError"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

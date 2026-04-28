@@ -1,0 +1,58 @@
+---
+title: "Gitea"
+description: "How to connecting Gitea into Plexicus"
+---
+
+# Connecting Gitea to Your Application \{#integrations_gitea-1}
+
+Follow these steps to connect your Gitea account:
+
+## 1. Access the Connector Page \{#integrations_gitea-2}
+
+- Log in to your account
+- Navigate to the Connector page
+- Find the SCM Panel
+- Click on the Gitea section
+
+<img src="/docs/plexicus/connector.png" alt="Connector Page" />
+
+## 2. Initiate the Connection \{#integrations_gitea-3}
+
+- It will show tab `Gitea Configuration`
+- URL input can be filled with original `gitea.com` or use your own gitea cloud domain
+
+<img src="/docs/plexicus/gitea/panel.png" alt="Gitea Panel" />
+
+- For the token, you can login into your Gitea account and inside setting click Applications tab. Then you will have to fill the permission and token name before generating the token
+
+<img src="/docs/plexicus/gitea/manage-token.png" alt="Gitea manage token" />
+
+## 3. Finalize the Connection \{#integrations_gitea-4}
+
+- After all input are filled, click the `Connect` button
+- Verify that the connector is successfully configured
+
+## 4. Setup app.ini file \{#integrations_gitea-5}
+
+- To make sure if the Gitea url can be accessible to our platform, you can apply below changes:
+
+```
+[cors]
+ENABLED = true
+ALLOW_DOMAIN = plexicus.com
+ALLOW_SUBDOMAIN = true
+```
+
+- If some cases you want to have some extra configuration like firewall or IP
+  Whitelist, this is our latest IP: **68.221.250.222**
+
+:::note
+	Please take a note the IP will likely to change in any moment due to our
+	application updates.
+:::
+
+## Next Steps \{#integrations_gitea-6}
+
+You can now create an application using GitHub as your Source Control Management (SCM) system.
+
+<img src="/docs/plexicus/applications.png" alt="Applications Page" />

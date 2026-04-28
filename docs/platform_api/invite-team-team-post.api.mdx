@@ -1,0 +1,71 @@
+---
+id: invite-team-team-post
+title: "Invite Team"
+description: "Invite Team to Client"
+sidebar_label: "Invite Team"
+hide_title: true
+hide_table_of_contents: true
+api: eJyVVdtu2zAM/RWDz26SFXvSUy8rsAIbGjTZXoJgUGQmUWtJriQnNQz/+0BJTtyk3eUl0eWQIs8h6RY83zhgC5ih91JvXHaRzZErWOZQoBNWVl4aDQzu9U56DJeZN9ltKVF7yMFUaDlh7gtgIAPql0eu4k9lHKEsvtTo/I0pGmAtCKM9mbMWeFWVUgQP4ydHT7XgxBYVp1Vlyb+X6GiHisuSFr6pEBg4b6XeQA5rYxX3wBIiBy99SYi7sO9ysIb255aoa0X580JJDTmIZoXhTSACdliG9fLo8ZEcdV3eezKrJxR9itJiQd76MMKrA+NAYsg1kNyRn6OdtzWGA1cZ7WLKl5MJ/b3VYlYLgc6t6zJ7TGAK/R9J7cKzny8vzx3/5KUsgll2Z62x/+H1RKoCfdJKelTuHFAa8eaW6+ZhDWxxKlGXH06k9rhBC93ySD+3ljcDwb+ZGCBprtzmPcl76Hd0jm8QDs4+hgYysjnd/k16yis+nXAD+Y/0RnY/TuNLpO+9x3rI1/l8euYwautQ1Fb6JtBJuBvkFi2wxbJb5qDQbw11a2rOivstMBhTw8LRekbSRrGGPg4sbb2vCB5gwGAVARQAVcfjseXvXrmqYv+lFobaob3CeD4SRvXNwlIndjlIvTbhuZTwtMRXKWqXXU/v4XQ8DS+zwohaoY6dlmqYi1DDmquhL8ihtmVKxrHxeL/fj6p0OeJyTCMihUzxXA3uKMYdWhcD+DSajCZ0RKQqrgePDUbnadyDUfjhhE10e3z146rkkZwQdZukW4BPM3tLirIFtO2KO/xhy66j45caLVXDMocdt5KviNAFtdEWeREqo4VnbIDBbYznIhQ7wcs6qHLa+9SX0eJaCKz8H7HDops+zOaQwyp9CpQpyMbyPZUA3wOD8FUh61B74ayFkutNTe3KIPqkOuM1pX+oyFSBeb8YTBOum0GEbRsRc/OMuusgT6l42tN86brfrnJteg==
+sidebar_class_name: "post api-method"
+info_path: docs/platform_api/plexicus-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Invite Team"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"post"}
+  path={"/team"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Invite Team to Client
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={undefined}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={{"content":{"application/json":{"schema":{"properties":{"email":{"type":"string","format":"email","title":"Email"},"role":{"type":"string","enum":["admin","cyberoper","developer"],"title":"Role"}},"type":"object","required":["email","role"],"title":"InvitationTeam"}}},"required":true}}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"Successful Response","content":{"application/json":{"schema":{}}}},"422":{"description":"Validation Error","content":{"application/json":{"schema":{"properties":{"detail":{"items":{"properties":{"loc":{"items":{"anyOf":[{"type":"string"},{"type":"integer"}]},"type":"array","title":"Location"},"msg":{"type":"string","title":"Message"},"type":{"type":"string","title":"Error Type"}},"type":"object","required":["loc","msg","type"],"title":"ValidationError"},"type":"array","title":"Detail"}},"type":"object","title":"HTTPValidationError"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

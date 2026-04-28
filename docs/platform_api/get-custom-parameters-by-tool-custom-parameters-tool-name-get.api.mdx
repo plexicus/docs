@@ -1,0 +1,71 @@
+---
+id: get-custom-parameters-by-tool-custom-parameters-tool-name-get
+title: "Get Custom Parameters By Tool"
+description: "Get Custom Parameters By Tool"
+sidebar_label: "Get Custom Parameters By Tool"
+hide_title: true
+hide_table_of_contents: true
+api: eJyVVE1v2zAM/SsGTxugxVmxk09rt6IrsI+gzXYJgkCRmUStbbkS3TYw9N8HSo7tLO2GnSyLX0+Pj2zB1GglaVNd55DBFmmlGkemXNXSyhIJrVut9ysypnjBEu8rWeJqtUUCAQ5VYzXtIVu08GU+n12gtGghWyz9UsAQGxw4EjLos4AAXUEGtaQdCLD40GiLOWRkGxTg1A5LCVkLtK850JHV1RYEkKaCL+bGFMl3zuS5nEVXm8qh45iz6ZQ/OTpldc1vhgxuG6XQuU1TJDedMwhQpiKsiN1lXRdaBYrSO8cx7YDDe+8FfDg7O038SxY6D2HJpbXG/kdWqC23hXTEnSNJXfBJE5bu1KEw6sgqq/2PTeD3mCYv+htdEW7Rgl96cbiT1sr9iMuvJgIEL6B027/R/g2dk1uEPtnrroGMZM5WP9Q26ztUdNTyRXhXLN35LYc0A72R3def8TnS91Kxgwvr9CRh7O1xU6+Qkk9hCpJZr+TkYp+w7hgr0s50gwQiyjiDNA7Ou0H8adtL3o+G5pYVEHs6Hp2ezB1RDd0Y8P86OjBOXW1M8OyeNCvwWavGJeeza/jzGWNjkhvVlFhR7HVUqVRBpd14HtxBQGOLDofL0vTp6WlSd8aJ1CkIwDJoNeD5OLJxgx7Rugjg/WQ6mfJVbRyVshoV+xfFRy/pmSF8prQupA5qDSjbjv4FnNAPArJh5ywF7Iwj9mzbtXT40xbe8/VDg5Y32VLAo7RarpnaRQu5dnzOIdvIwuEJqH7Q4c1Np+e3CYiXwR5kW7FoH2XR8B8IuMf90WoMo7pDmYdt2nb2c6WwplHkyWbhPdjr8upyDgJkw8T05HUyEofDaHMco2rb6DE391h5PwJ5j1zIe/8bvIstcA==
+sidebar_class_name: "get api-method"
+info_path: docs/platform_api/plexicus-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Get Custom Parameters By Tool"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"get"}
+  path={"/custom-parameters/{tool_name}"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Get Custom Parameters By Tool
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"name":"tool_name","in":"path","required":true,"schema":{"type":"string","title":"Tool Name"}}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"Successful Response","content":{"application/json":{"schema":{}}}},"422":{"description":"Validation Error","content":{"application/json":{"schema":{"properties":{"detail":{"items":{"properties":{"loc":{"items":{"anyOf":[{"type":"string"},{"type":"integer"}]},"type":"array","title":"Location"},"msg":{"type":"string","title":"Message"},"type":{"type":"string","title":"Error Type"}},"type":"object","required":["loc","msg","type"],"title":"ValidationError"},"type":"array","title":"Detail"}},"type":"object","title":"HTTPValidationError"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

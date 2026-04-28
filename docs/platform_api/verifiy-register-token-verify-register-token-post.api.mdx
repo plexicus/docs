@@ -1,0 +1,71 @@
+---
+id: verifiy-register-token-verify-register-token-post
+title: "Verify user register"
+description: "Verify user register"
+sidebar_label: "Verify user register"
+hide_title: true
+hide_table_of_contents: true
+api: eJy9Vltv2zYU/ivEedoAxU69PulpaZthfRhqJE5fDMOgpSOLLUWqJBVHEPTfh0NStmzHTrENy4sj8ju379zYgeNbC+kS7hpXonIi405oxW7YVzSiaNkDboV1aGCVQI42M6ImAKQQAY1Fw8yASkDXaLyOzzmk8Ewg0a4HwNrp76jW/nh0Go/XtbYOEqi54RU6NORaB4pXCCl4DCQgyHrNXQkJGPzRCIM5pM40mIDNSqw4pB24tiYh64xQW0jACSfpYOG19P0qCKN1H3TeksSprkwrh8rRFa9rGamZfrMUfjcyVRsK2gm0/otbu9Mmv+bEfMD03kwhTLX+GbmPAcvG8pSAwFAHXLVfCs/ZsYY+2Z+oRkqg6AedT4N83ycDSG++YeaO+F0eAnvF5xN9oTaG2vlDmwr6nvQbtLVWNjA1u72ln+OyemyyDK0tGskeIhj+cS5sUDaidKO1RK5GnEaDRGWF1vItXsvAXxHyFlmD5YPS1ZnJqGsfZqDo/WuseEKH5vSNwIR65lLkTBumtGOFblTOhGI5d3zDLU7AK3t3ruy+4kIyYb3c0IOYT/4fnmmOFLyRDtKCS4v/Le+vsH1vjDaXuP7tnJ5FoNcyfKlJ7cCwpzuwOptdFFN140h4cIoV2jBXkjqV11oo9y94RgrF/yccVvYcEGO+Mv78b5+A1Y3JrkIfA4LyY7dXc2O3b+YlYPdmg85Rkr4SuZ4En65P6LiQcLpzPvmvDVrGmRVqKzFkJfSFZydhQmWyyYXaMlciCwZZIVCG5EUvuTG8hZMqsW/GETNw2fPR0DqpjxJZpqtaokM2zEG20XnrS4Sz97MZe1K10dQmfCOR3SsnXBvimviS9c3iSk27db8sXQkpTMNOvRn6edr5MdET55g1Rrj2kaoq1Mmfi8X8A3KDZpTY0rka4g71PRwAZJQK8+GwLu9fOAVyvO4OhXG+0g53h3V1WE4gVKFH5QtziS8iayy7m38+I3J8yXKdNRUq5xMQG4tnvrGilQFOto2MYdp0Ot3tdpM6Xk64mEICSJMRUu/P76M78vEZjQ0OvJvcTm7piDJQcTUyduFRdBRAd+j+S/iYEIcvblpLLpRf9OR9F/O9hJN8QwJpeCGtEiipNNIldB1tgicj+56OfzRoWkiXqwSeuRFUY/6xkAtfb3mcyFf8/eUh9sKv7JKbQ38p6q5nLhv6ggS+Y7t/xPWrPoESeU71t+zi3cdg5mZBGg6yZwOSXjNB4i7LsHZXsatRx8y/PC4ggU188FU6JxnDd9TkfBf81D5s3yX+rAPJ1bbx+wmCTvr7Gw0U6a8=
+sidebar_class_name: "post api-method"
+info_path: docs/platform_api/plexicus-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Verify user register"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"post"}
+  path={"/verify-register/{token}"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Verify user register
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"name":"token","in":"path","required":true,"schema":{"type":"string","title":"Token"}}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={{"required":true,"content":{"application/json":{"schema":{"properties":{"password":{"type":"string","title":"Password"},"confirm_password":{"type":"string","title":"Confirm Password"},"username":{"anyOf":[{"type":"string"},{"type":"null"}],"title":"Username"}},"type":"object","required":["password","confirm_password"],"title":"UserVerifyRegisterForm"}}}}}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"Successful Response","content":{"application/json":{"schema":{"properties":{"success":{"type":"boolean","title":"Success"},"message":{"type":"string","title":"Message"}},"type":"object","required":["success","message"],"title":"SuccessMessageResponse"}}}},"400":{"description":"Verification token invalid or not found in database."},"401":{"description":"Email is not registered.","content":{"application/json":{"schema":{"properties":{"success":{"type":"boolean","title":"Success","default":false},"message":{"type":"string","title":"Message"}},"type":"object","required":["message"],"title":"ErrorMessageResponse"}}}},"403":{"description":"Token is expired or not valid."},"422":{"description":"Token input is required for this endpoint.","content":{"application/json":{"schema":{"properties":{"errors":{"items":{"properties":{"title":{"type":"string","title":"Title"},"source":{"type":"string","title":"Source"},"msg":{"type":"string","title":"Msg"}},"type":"object","required":["title","source","msg"],"title":"ValidationErrorDetail","description":"Describes a single validation error, including the source field."},"type":"array","title":"Errors"}},"type":"object","required":["errors"],"title":"ValidationErrorResponse","description":"The complete response body for a 422 Unprocessable Entity error."}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

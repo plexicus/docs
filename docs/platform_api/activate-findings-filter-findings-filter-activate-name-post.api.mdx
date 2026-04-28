@@ -1,0 +1,71 @@
+---
+id: activate-findings-filter-findings-filter-activate-name-post
+title: "Activate Findings Filter by Name"
+description: "Activate Findings Filter by Name"
+sidebar_label: "Activate Findings Filter by Name"
+hide_title: true
+hide_table_of_contents: true
+api: eJyVVMFu2zAM/RWDpw1Q46zYyadl2IoV2NagzXYxgkCRmUStLauSnC4w9O8DZdlxmrXoTrakR+nx8ZEtOL61kOVwJVUh1dYmF8mVLB2aZKY1LBkUaIWR2slaQQYz4eSeO0wGfESvD8lPXiEwqDUaTvDrAjLgMWC1iQGrTQg4Ww/AleIVrla6tg4YWBSNke4AWd7Ct8Vi/hm5QQNZvvRLBpobXqFDYwOAQiHrPgwkMdbc7YCBwcdGGiwgc6ZBBlbssOKQteAOmmKsM1JtgYGTrqSNkI6nRwxaXSuLluCX0yl9TmW5a4RAazdNmdxGMDAQtXKoHMG51qUUQZb03lJMe6TgvfcMPl5enl/8m5eyCGHJV2Nq8x+3gjZUCic73gU6Lkv6kw4rew4oa3FyytXhZhNUPVXIs2FHKodbNOCXnvV73Bh+GMn4ve4IgmdQ2e1riv9Aa/kWYbjsZWgQI1nQqT++Xa/vUbiTauchr+7piFserznK26n7chpfOvn+9VgPIXeeXdjVtkK3q6kdoquDKTNI+ya46Jog7ZsgbcnCfuT/OyprV6hxFwwK7ZzTEG1N63UHoMel2tQBGXnOS/wjRWOT2fwanjf4+DApatFUqFxXwM56XATrxU7r4cCgMWXkYbM0fXp6muh4OOEyBQZYBQMGPp9GZ6T6Ho3tCHyYTCdT2iKpKq5Gj71h+Jwk0x575S2xUUmHf1yqSy6DZUNWbSxYDs8KBmwYcMAgCzyXDHZU5SyHtl1zi79M6T1tPzZoaJAtGey5kXxN5chbKKSl/wKyDS8tvpLFu9to7PfJS4R7/ypy756XDa2AwQMe+skY2nWHvAhztI1HMyFQu1HQ2XShWTg4eX5zt6D0GxJmsGG0Het/RuPjlFHbdohF/YDK+4GgozUx9P4v/SVExQ==
+sidebar_class_name: "post api-method"
+info_path: docs/platform_api/plexicus-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Activate Findings Filter by Name"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"post"}
+  path={"/findings-filter/activate/{name}"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Activate Findings Filter by Name
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"name":"name","in":"path","required":true,"schema":{"type":"string","title":"Name"}}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"Successful Response","content":{"application/json":{"schema":{}}}},"422":{"description":"Validation Error","content":{"application/json":{"schema":{"properties":{"detail":{"items":{"properties":{"loc":{"items":{"anyOf":[{"type":"string"},{"type":"integer"}]},"type":"array","title":"Location"},"msg":{"type":"string","title":"Message"},"type":{"type":"string","title":"Error Type"}},"type":"object","required":["loc","msg","type"],"title":"ValidationError"},"type":"array","title":"Detail"}},"type":"object","title":"HTTPValidationError"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

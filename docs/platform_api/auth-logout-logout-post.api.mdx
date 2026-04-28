@@ -1,0 +1,63 @@
+---
+id: auth-logout-logout-post
+title: "Logout user"
+description: "Logout user authentication"
+sidebar_label: "Logout user"
+hide_title: true
+hide_table_of_contents: true
+api: eJydVE1v2zAM/SsCTxsgOO7QXXxahxZbgQ0L2vQUGIMiM7ZaWXIlOqlh+L8Pkp3GbdYO2Mmy9Eg+Pn70QKL0kK3hoqUKDSkpSFkDOYcCvXSqib8Z/LClbYm1Hh0TL7EcbIMunq8LyCA8/9YRf/g01hNwcOgbazx6yHr4lKbh8zLMbSsler9tNbuZwMBBWkNoKMBF0+gp8OLeB5sevKywFuHUuECF1BihRu9FieFIXYOQgSenTAkcSJEOFz8nSEh3K1pNkMHKPqBh/pmJ7pjDnX3AAoaBH1zZzT1Kmrm68+ii6c0zOMDP07PTNFcVjlLuhWfGEtva1hTMOkYVskZ4v7euiK/KSOscSkrYNTFpW10wob1lZJlGUTCKdIV2KIqO4VOjHBbJ/6uGzlkXT4qw9qeAKeG3RV3F78Ch9uW74vvyr4o6fGxDEqEvR+zoKj+afkODTsmrwPUSSSgNrzv2Mv5t0DPBvDKlRlaOViymmMAxtHBOdDNmV6MG/yI3SfUGr1kDn1Zf2rrRSMgOM8E2tujY1rqRpdDs+2q1HKl69gGTMuHsPD3n7HOafkxidw0cPMrWKeogW/cQLL6icOggW+dDzqFGqmwYymkCG0EVZLAY5xKO9rehG8b6zr08F68iagI8wiCDzQgIFJTZ2llfwFLjk5KtZxfL65Pc54+ssLKt0dBhj4SOFTJ2rBH13BdwaJ2eePhssdjv90kzPSZCLYAD1qENssjny+wt1HmHzo8EzpI0ScNVUKQWZhZstuNe8+6P0/T+KpzkInyiRaOFMiFUpN5P4q9hEj/nUIWqZGvo+43weOf0MITrxxZdqGjOYSecEpug6zofOFQoiljdHh6wgwwupMQmFHIndBtb+fWov2iD5a/bFfC4omfFnYrJD4fg/jAZpps57/sREffcMACfWMQdBEM+DMMf/hsv/w==
+sidebar_class_name: "post api-method"
+info_path: docs/platform_api/plexicus-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Logout user"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"post"}
+  path={"/logout"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Logout user authentication
+
+<ParamsDetails
+  parameters={undefined}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"Successful Response","content":{"application/json":{"schema":{"properties":{"message":{"type":"string","title":"Message","default":"Token successfully revoked"}},"type":"object","title":"UserTokenRevoked"}}}},"401":{"description":"The user was not found or the password was incorrect. It could also to lead token already expired.","content":{"application/json":{"schema":{"properties":{"errors":{"items":{"properties":{"title":{"type":"string","title":"Title"},"msg":{"type":"string","title":"Msg"}},"type":"object","required":["title","msg"],"title":"GenericErrorDetail","description":"Describes a single generic error."},"type":"array","title":"Errors"}},"type":"object","required":["errors"],"title":"GenericErrorResponse","description":"The complete response body for general HTTP errors (e.g., 404, 500)."}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

@@ -1,0 +1,71 @@
+---
+id: activate-findings-filter-findings-filter-update-activate-put
+title: "Update Findings Filter Activate"
+description: "Update Findings Filter Activate"
+sidebar_label: "Update Findings Filter Activate"
+hide_title: true
+hide_table_of_contents: true
+api: eJyVVclu2zAQ/RVhzvLSoCedmjYJGqCLkTi9GEYwlsY2E4liyFEcQ9C/F0PKlmw3S0+SyDfrezOqgXHlIJnBldKZ0isXDaIrlTPZ6NwYmMeQkUutMqxKDQncmQyZoj16h01ZPSMTxFAasijo6wwSwPbiftla3C+9xcl35R3f7/GmYojB0lNFjr+W2RaSGtJSM2mWVzQmV6kPNHpwklsNLl1TgfJmrKTBipx8aSxInrw1BAk4tkqvIAZWnMvBL7lvYgipeBPFVPgXzDIlQTCfHPg89NXEu4Ny8UAp9w7QWtz2gl21QZoTm1CuspQJIT7pLqd534NvXevoAhmhEW+dNduK/IEzpXYh4bPxWB6HdN5WaUrOLas8umnBEH+4zY0P+/ns7NTxH8xV5s2iS2tL+x9ej8jLiFHlB5wcAvIyPWRMb38vIZmdcrQ/UZppRRaa+es8/ShDgkJl4VZv6ecnOYcr6kh/HeqbEU3l9j0BSF0hdIvrSaBrb+ju62VchPb9K9gO8n06nZw4DNw6SiureOvbKbivhJYsJLN5M4+hIF6XMuZhWg3yGhIY7WZ7EMQ7CrM9wG5J7PzeCumBxr73ff/WzEbgHgYJLAJAUhPd3HTr4fIFC5NTN+5d7/djPas94UovSx+jrX+S04tKKxedT67heOH1L6OsTKuCNAdhBEljyr2gOzjEUNm8rcAlo9Fmsxma9nKIagQxUOGF7fP50rsTNp/JupDAp+F4OJYjUzouUPeCvb+MD2rp7c8PmLYMML3wyOSo/CD4muqW6BkcES1FH1E9j2FdOhZwXS/Q0Z3Nm0aOnyqyoqt5DM9oFS6Ei5nwsybMvMZqeKQtJPAtpD3wYyPwvPJSP94iMuHB4jxNyfCb2L58J3dTiGHR/mWKMhMTixuZSNxAAv6/JsZeqv6shhz1qpK5TyC4FFliJa3ZC7gVbLx76a0l1NtegnUdENPykXTTQNxWwvIti6pp/gIf5KgB
+sidebar_class_name: "put api-method"
+info_path: docs/platform_api/plexicus-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Update Findings Filter Activate"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"put"}
+  path={"/findings-filter/update-activate"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Update Findings Filter Activate
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={undefined}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={{"content":{"application/json":{"schema":{"properties":{"name":{"type":"string","title":"Name"},"filters":{"items":{"additionalProperties":{"type":"string"},"type":"object"},"type":"array","title":"Filters"}},"type":"object","required":["name","filters"],"title":"FindingFiltersData"}}},"required":true}}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"Successful Response","content":{"application/json":{"schema":{}}}},"422":{"description":"Validation Error","content":{"application/json":{"schema":{"properties":{"detail":{"items":{"properties":{"loc":{"items":{"anyOf":[{"type":"string"},{"type":"integer"}]},"type":"array","title":"Location"},"msg":{"type":"string","title":"Message"},"type":{"type":"string","title":"Error Type"}},"type":"object","required":["loc","msg","type"],"title":"ValidationError"},"type":"array","title":"Detail"}},"type":"object","title":"HTTPValidationError"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

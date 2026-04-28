@@ -1,0 +1,71 @@
+---
+id: update-client-company-info-client-update-company-info-put
+title: "Update Client Organization Information"
+description: "Update Client organization information"
+sidebar_label: "Update Client Organization Information"
+hide_title: true
+hide_table_of_contents: true
+api: eJzVV1tv2zYU/ivCeVZiN9vDoKelWbAF6NYgl70YhkFLJzJbilR4SeIZ+u/FISWLsuQm7UPRPVnmuV/5cQeWlQayBdyitVyWJjlJLgRHaWGZQoEm17y2XEnI4L4umMWWnChdMsn/Y0RMuHxQuvLfkIKqUfvvqwIycF5slXuxVa6qmsntiiS6s44jJtXOQgoaHx0a+14VW8h2kCtpybVsB6yuBc+9ldknQ/7twOQbrBh91Zp8sBwN/Yu9GxEFlkysJKuQ/tltjZCBsZrLElKw3Ao6+EBcyT/E1aTgtOi8nRKq2MsHlKXdQHY2/+2XFCouu4N3KQRnKDOaRybutUguWqVNCjXTUb58yHL78QGyxaHBJt2fSCcENMte6bXXEusthVozsUJpud2ueEEfDxz191r40+tLLr2+5KrX16SQM4ul0pNJ6uQvOp6mSTsmtf6EeVd/rrGgDo0KNaxAZCfyqw35Kqp9k5J5l1uncdwIG2TFo2PaojZjaq6ULrhkdkJSMBtFKF21Rh33DrNkWihZfpWN6K8mgdGJVzWIde+cNxTmIvS+xcqM89+bYVqz7cCNTvo1X6KUxEYjv/6KU0rZd2vDC85CRxwk8Qd5PeloJ367b48mhbVmMt/8Hzw1qJ94PtWZP52rBbNsVWuVozE8DMTP7fIragZbY9Dh+wbq6zMOf7ywBtnSWDrRp2OYqfYKXAtcHfB1aTuep/O9bHITyb4W7RGT4yi+RekQPPQbehj+9GqHpmlibVY79AemVtKEPJ3N5/QzBDO3LqcaPDiR3LTMdJG8EWA03uyvZ2djxf8ywYuAii61VvobtB7Ut0DLuBiMwWhUBtQ3XN9cWizpcl6+PkPUgJUpx+PXs/6NxrAS+4E8zuqTkdwR9Q2jCcF0yxfVvk9vyO7xMP4I6Zsytr+f7u6uRwpDbQ3mTnO79ekkvvfINKGkxZLQT4V2owjdBpxaM8J2MAuAdhYA7UkLUE6owaFXeUv1DhWMFe9Tt7G2JnbPBhmsAwN5RS1z02PiyxdW1QInMG6MavtaDHBrf3wINXvKcbDY8/QgL1rPA5x1iKyGWMqjp3mHj+ZDALPodC5H8OEYV39tH9XTX5fHWCauqWnW8ZI+tpYXBJ29gO8HqncH0gW+8NyZ5Pz6Cg5fXTExKVTuKpS2W5a0WVjuN0tb6449VLvtJpPNZs/Pz6d1SzxlfAYpYOX3i/fn94hGBXxCbYID707np3P/IlHGVkxGxoYvwo/xi/BqsNQHIUXvuLe/KdvZsPhiZ7VgXLbvML8V/fQtIEwfRT4xf8sUNspY4tvt1szgvRZNQ8ePDqmjFssUnpjmVDk/5qlvXD/zO/iMW3/zeMdP/BojduH86jnc6rRxg8R5nmNtv8obr5Pr+zsCDu17t1IFiWj2TBuSPUMG/nm97zV/RiMkS0d7OIOgkrqMObuJtkq7RdLuI7omwiOqc3C3Cxx36jPKpoG0jcTSf7o4muYL4RuuGw==
+sidebar_class_name: "put api-method"
+info_path: docs/platform_api/plexicus-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Update Client Organization Information"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"put"}
+  path={"/client/update-company-info"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Update Client organization information
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={undefined}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={{"content":{"application/json":{"schema":{"properties":{"information":{"properties":{"legal_name":{"type":"string","title":"Legal Name"},"url_company":{"type":"string","maxLength":2083,"minLength":1,"format":"uri","title":"Url Company"},"parent_company":{"anyOf":[{"type":"string"},{"type":"null"}],"title":"Parent Company"},"global_entity_identifier":{"anyOf":[{"type":"string"},{"type":"null"}],"title":"Global Entity Identifier"},"category":{"type":"string","title":"Category"}},"type":"object","required":["legal_name","url_company","category"],"title":"CompanyInformation"},"structure":{"properties":{"headquarters":{"properties":{"coordinate":{"properties":{"lat":{"type":"number","title":"Lat"},"long":{"type":"number","title":"Long"}},"type":"object","required":["lat","long"],"title":"Coordinate"},"locations":{"items":{"type":"string"},"type":"array","title":"Locations"}},"type":"object","required":["coordinate","locations"],"title":"Headquarters"},"subsidiary":{"properties":{"locations":{"items":{"type":"string"},"type":"array","title":"Locations"}},"type":"object","required":["locations"],"title":"LocationStructure"},"branch":{"properties":{"locations":{"items":{"type":"string"},"type":"array","title":"Locations"}},"type":"object","required":["locations"],"title":"LocationStructure"},"service":{"properties":{"locations":{"items":{"type":"string"},"type":"array","title":"Locations"}},"type":"object","required":["locations"],"title":"LocationStructure"},"data_processing":{"properties":{"locations":{"items":{"type":"string"},"type":"array","title":"Locations"}},"type":"object","required":["locations"],"title":"LocationStructure"}},"type":"object","required":["headquarters","subsidiary","branch","service","data_processing"],"title":"CompanyStructure"},"regulations":{"properties":{"applicable_regulations":{"items":{},"type":"array","title":"Applicable Regulations"}},"type":"object","required":["applicable_regulations"],"title":"CompanyRegulations"}},"type":"object","required":["information","structure","regulations"],"title":"CompanyInfo"}}},"required":true}}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"Successful Response","content":{"application/json":{"schema":{}}}},"422":{"description":"Validation Error","content":{"application/json":{"schema":{"properties":{"detail":{"items":{"properties":{"loc":{"items":{"anyOf":[{"type":"string"},{"type":"integer"}]},"type":"array","title":"Location"},"msg":{"type":"string","title":"Message"},"type":{"type":"string","title":"Error Type"}},"type":"object","required":["loc","msg","type"],"title":"ValidationError"},"type":"array","title":"Detail"}},"type":"object","title":"HTTPValidationError"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

@@ -1,0 +1,71 @@
+---
+id: save-finding-selected-columns-findings-columns-save-post
+title: "Save Finding Selected Columns"
+description: "Save Finding Selected Columns"
+sidebar_label: "Save Finding Selected Columns"
+hide_title: true
+hide_table_of_contents: true
+api: eJyVVVFv2jAQ/ivonl1g1Z7ytLbrtGqdigrbC0KVSa7g1rFT2wGiKP99OtshKaywPSXxfb473/f5Sw2Orywkc/gmVCbUysKCQYY2NaJwQitIYMo3OIjhwRQlpg6zwY2WZa4sMNAFGk7YuwwSsHyDT88B/WQj+ikN6DZg9wseXmjrgIHBtxKtu9ZZBUkNqVYOlaNXXhRSpL7I6MVSVzXYdI05p7fCUAtOoA3bQmNJDcJhbo8RVhuf1VUFUsfOCLUCBk44SQtTijcMJF+iPAW894CGwStWp3A/sCKUUBnuejihHK7Q9IB3HtE0rIXo5Qum7WyEwYyo8v237YXibfJFlysy1hIW+IIuNTeGV73aLaHnqrfzPS7VZWj6W5wp0S/YQisbKLgcj+lxILQyTdHa51IOHiMY2D/LoPFlP19eHif+zaXI/LbBrTHa/EfWA+lk6LiQJ7QldfouylX18AzJ/FAcDTuSQbP4mJx7HRok/nK7OiW2n2gtX2HH9MdQP4zBjKLnWKdzhdIR16O/G2+Y7sfH+BrG97diLeT7bDY5Shi4tZiWRrjKj5Nw18gNGkjmi2bBIEe31mRB0U4K7taQwKj1nIuo3BF5DnTppsR1YK+fdD+2tXMFwT0MElgGAHVEcnnsXOt2x/NC4jsXmrd+040/+kq34O2j+4w+MfaCEOpZ+2bifCYSdyIt7eBqcgeHVt0PDjKdljkqF4QTJM9TL3nF834uYFAaGY9qk9Fou90OixgccjECBph74ft+vvRixPYGjQ0NfBqOh2NaIg5yrnrFzv1G3p2k5/5nN0aaHO7cqJBc+Eviz1NHDczhUAPEJ6lgwWBNaknmUNdLbvGXkU1Dy28lGlLagsGGG8GXNP05MbJGnnnV1ZG4m9Dqhb9IBJelF/+hr9CdDzuu0hQLdxLbF/TkYToDBsv4Y8x1RnsM39Il5VtIwP+GabeXsV+rQXK1KskKEgg5SbK8pInsxR3FzNqXnlNxVfU6rOuAmOlXVE2zV62jb/KupvkD247a4A==
+sidebar_class_name: "post api-method"
+info_path: docs/platform_api/plexicus-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Save Finding Selected Columns"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"post"}
+  path={"/findings-columns/save"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Save Finding Selected Columns
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={undefined}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={{"content":{"application/json":{"schema":{"properties":{"columns":{"items":{"properties":{"sort":{"type":"string","title":"Sort"},"label":{"type":"string","title":"Label"},"key":{"type":"string","title":"Key"},"index":{"type":"integer","title":"Index"}},"type":"object","required":["sort","label","key","index"],"title":"FindingSelectedColumn"},"type":"array","title":"Columns"}},"type":"object","required":["columns"],"title":"FindingColumns"}}},"required":true}}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"Successful Response","content":{"application/json":{"schema":{}}}},"422":{"description":"Validation Error","content":{"application/json":{"schema":{"properties":{"detail":{"items":{"properties":{"loc":{"items":{"anyOf":[{"type":"string"},{"type":"integer"}]},"type":"array","title":"Location"},"msg":{"type":"string","title":"Message"},"type":{"type":"string","title":"Error Type"}},"type":"object","required":["loc","msg","type"],"title":"ValidationError"},"type":"array","title":"Detail"}},"type":"object","title":"HTTPValidationError"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      
