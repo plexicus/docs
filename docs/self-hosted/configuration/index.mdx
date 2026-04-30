@@ -27,7 +27,7 @@ Integrations where **you bring your own credentials and your own external servic
 
 | Integration | Purpose | Required? | Source of truth |
 |-------------|---------|-----------|-----------------|
-| **GitHub App** | Scan GitHub repositories | Conditional — required if you scan GitHub | _coming soon_ — see [chart secrets reference](https://github.com/plexicus/platform-charts/blob/main/docs/secrets-management.md) |
+| **GitHub App** | Scan GitHub repositories | Conditional — required if you scan GitHub | _coming soon_ — see `docs/secrets-management.md` bundled with the chart artifact |
 | **GitHub OAuth** | "Login with GitHub" for end users | Optional | _coming soon_ |
 | **GitLab OAuth** | Scan GitLab repositories + login | Optional | _coming soon_ |
 | **Bitbucket OAuth** | Scan Bitbucket repositories + login | Optional | _coming soon_ |
@@ -37,8 +37,8 @@ Integrations where **you bring your own credentials and your own external servic
 | **SMTP** | Email verification, invitations, password resets | **Required** | _coming soon_ |
 | **Cloudflare Turnstile** | Bot protection on public signup forms | Optional — leave empty to disable | _coming soon_ |
 | **Object storage** | Artifacts, scan reports, AI inputs/outputs | Required (bundled MinIO works out-of-the-box) | _coming soon_ |
-| **Image registry mirror** | Mirror all custom images from your own registry — required for air-gapped or restricted networks | Optional | [image-registry.md](https://github.com/plexicus/platform-charts/blob/main/docs/image-registry.md) |
-| **External dependencies (BYO Redis/Temporal/MongoDB)** | Use your own Redis, Temporal, or MongoDB instead of the bundled subcharts | Optional | See `global.dependencies` in [values-customer.yaml.example](https://github.com/plexicus/platform-charts/blob/main/values-customer.yaml.example) |
+| **Image registry mirror** | Mirror all custom images from your own registry — required for air-gapped or restricted networks | Optional | `docs/image-registry.md` (bundled with the chart artifact) |
+| **External dependencies (BYO Redis/Temporal/MongoDB)** | Use your own Redis, Temporal, or MongoDB instead of the bundled subcharts | Optional | See `global.dependencies` in `values-customer.yaml.example` (bundled with the chart artifact) |
 
 ### 🟡 Chart-internal (no setup needed) \{#self-hosted_configuration_index-4}
 
@@ -57,32 +57,38 @@ Chart 1.2.0+ ships restrictive NetworkPolicies and PodDisruptionBudgets per serv
 
 Some integrations exist in the platform code because Plexicus uses them on the **managed SaaS** offering at `plexicus.ai`. They are **not relevant to self-hosted deployments** and the chart ships with them disabled or empty by default.
 
-The following integrations will **not** be documented for self-hosted, will not appear in any guide, and should remain unset:
+Categories of integrations that fall under this policy:
 
-- Stripe (Plexicus billing)
-- Cloudflare / Mautic (Plexicus marketing automation)
-- Canny (Plexicus product feedback)
-- PostHog (Plexicus product analytics)
-- Azure Application Insights (Plexicus monitoring)
-- Firebase (Plexicus push notifications)
-- Microsoft Marketplace (Plexicus listing on Azure Marketplace)
-- The `freeSastToolUrl` funnel (points to plexicus.ai)
+- Commercial / billing systems
+- Marketing automation
+- Product analytics and telemetry
+- Customer feedback platforms
+- Application performance monitoring
+- Push-notification services
+- Marketplace listings
+- Public-funnel URLs that point at `plexicus.ai`
 
-If you encounter env vars or features in the chart values that look related to any of the above, leave them empty — the chart is designed to behave correctly when these are unset.
+These are **not documented for self-hosted, will not appear in any guide, and should remain unset**. If you encounter env vars in the chart values that look related to any of the categories above, leave them empty — the chart is designed to behave correctly when these are unset.
 
 ---
 
 ## Where to Look in the Meantime \{#self-hosted_configuration_index-6}
 
-Until each per-provider guide is published, the canonical reference for every customer-facing environment variable lives in the chart repository:
+Until each per-provider guide is published, the canonical references ship **inside the chart artifact**. After authenticating to the registry and pulling the chart with `--untar`, the bundled documentation is available locally:
 
-→ **[Chart `secrets-management.md`](https://github.com/plexicus/platform-charts/blob/main/docs/secrets-management.md)**
+```bash
+helm pull oci://europe-west3-docker.pkg.dev/plexicus-registry/charts/plexicus \
+  --version $CHART_VERSION --untar
+ls plexicus/docs/
+```
 
-That file lists every sensitive key per service, the `existingSecret` pattern used by the chart, and example `kubectl create secret` commands you can adapt directly.
+The bundled files most relevant to configuration:
 
-→ **[Chart `image-registry.md`](https://github.com/plexicus/platform-charts/blob/main/docs/image-registry.md)** — image mirroring procedure, air-gapped deployments, registry auth.
+- `docs/secrets-management.md` — every sensitive key per service, the `existingSecret` pattern, and example `kubectl create secret` commands you can adapt directly.
+- `docs/image-registry.md` — image mirroring procedure, air-gapped deployments, registry auth.
+- `values-customer.yaml.example` — the canonical ~30-line starter overlay with inline comments for every customer knob.
 
-→ **[Chart `values-customer.yaml.example`](https://github.com/plexicus/platform-charts/blob/main/values-customer.yaml.example)** — the canonical 30-line starter overlay with inline comments for every customer knob.
+These ship with the version of the chart you pulled and stay in sync with it.
 
 ---
 
