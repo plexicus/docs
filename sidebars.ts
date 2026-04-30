@@ -40,6 +40,13 @@ const documentations: SidebarConfig = [
   },
   {
     type: 'category',
+    label: 'Self-Hosted',
+    items: [
+      'self-hosted/helm-chart',
+    ],
+  },
+  {
+    type: 'category',
     label: 'Connectors',
     items: [
       {
