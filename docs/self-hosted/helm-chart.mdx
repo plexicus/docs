@@ -1,0 +1,417 @@
+---
+title: "Self-Hosted Installation (Helm)"
+description: "Deploy Plexicus on your own Kubernetes cluster using the official Helm chart from Google Artifact Registry"
+---
+
+import {Steps, Step} from '@site/src/components/steps'
+
+# Self-Hosted Installation \{#self-hosted_helm-chart-1}
+
+Plexicus can be deployed on any Kubernetes cluster using the official Helm chart, published to a private Google Artifact Registry (GAR). This guide walks you through every step — from requesting access credentials to a running installation.
+
+## Prerequisites \{#self-hosted_helm-chart-2}
+
+Before you begin, make sure the following tools are installed and configured:
+
+| Requirement | Minimum version | Notes |
+|-------------|----------------|-------|
+| Kubernetes | v1.25 | Any CNCF-conformant distribution |
+| Helm | v3.8 | OCI registry support is required |
+| kubectl | — | Must be configured to target your cluster |
+| Ingress controller | — | Traefik is the default; nginx also works |
+| cert-manager | v1.x | Recommended for automatic TLS provisioning |
+
+:::tip
+Run `helm version` to confirm your Helm version. If it is below 3.8, upgrade it before continuing — earlier versions cannot pull OCI charts.
+:::
+
+---
+
+## 1. Request Registry Access \{#self-hosted_helm-chart-3}
+
+The Plexicus Helm chart and all container images are hosted in a private GAR repository. You need a Google Cloud service account key to pull them.
+
+Send an email to **engineering@plexicus.ai** with the following information:
+
+- Your **organization name**
+- The **target environment** (e.g., staging, production)
+- The **Kubernetes provider** you are using (e.g., GKE, EKS, AKS, on-premises)
+
+You will receive a JSON key file (`sa-key.json`). This file authenticates both Helm (to pull the chart) and Kubernetes (to pull the container images at runtime).
+
+:::warning
+`sa-key.json` is equivalent to a password. Never commit it to version control, share it over unencrypted channels, or store it in plain text on shared systems.
+:::
+
+---
+
+## 2. Authenticate Helm Against the Registry \{#self-hosted_helm-chart-4}
+
+Use the service account key to log Helm in to the OCI registry:
+
+```bash
+cat sa-key.json | helm registry login \
+  europe-west3-docker.pkg.dev \
+  --username _json_key \
+  --password-stdin
+```
+
+A successful login prints `Login Succeeded`. You only need to do this once per machine.
+
+---
+
+## 3. Create the Kubernetes Namespace \{#self-hosted_helm-chart-5}
+
+```bash
+kubectl create namespace plexicus
+```
+
+---
+
+## 4. Create the Image Pull Secret \{#self-hosted_helm-chart-6}
+
+Kubernetes needs the same GAR credentials to pull container images at runtime. The chart expects this secret to be named **`gar-secret`**:
+
+```bash
+kubectl create secret docker-registry gar-secret \
+  --docker-server=europe-west3-docker.pkg.dev \
+  --docker-username=_json_key \
+  --docker-password="$(cat sa-key.json)" \
+  --namespace plexicus
+```
+
+:::note
+If you rotate the service account key later, re-create this secret with the new key and restart the affected deployments.
+:::
+
+---
+
+## 5. Create Application Secrets \{#self-hosted_helm-chart-7}
+
+Plexicus follows a GitOps-safe secrets pattern: sensitive values (passwords, API keys, OAuth secrets) are **never** stored in `values.yaml`. Instead, each service reads them from a dedicated Kubernetes Secret at runtime via `existingSecret`.
+
+You must create all secrets **before** installing the chart.
+
+:::warning
+Use the same password value for a given dependency (e.g. `DATABASE_PASSWORD`) across every service that shares it. Mismatches will cause connection errors at runtime.
+:::
+
+### fastapi \{#self-hosted_helm-chart-8}
+
+```bash
+kubectl create secret generic plexicus-fastapi \
+  --from-literal=DATABASE_PASSWORD=<your-db-password> \
+  --from-literal=REDIS_PASSWORD=<your-redis-password> \
+  --from-literal=SECRET_KEY=<random-32-char-string> \
+  --from-literal=PLEXALYZER_SECRET_KEY=<plexalyzer-secret> \
+  --from-literal=GH_APP_PRIVATE_KEY="$(cat /path/to/gh-app.pem)" \
+  --from-literal=GITHUB_CLIENT_SECRET=<github-oauth-secret> \
+  --from-literal=GITLAB_CLIENT_SECRET=<gitlab-oauth-secret> \
+  --from-literal=BITBUCKET_CLIENT_SECRET=<bitbucket-oauth-secret> \
+  --from-literal=MINIO_ROOT_PASSWORD=<minio-password> \
+  --from-literal=OPENAI_API_KEY=<openai-key> \
+  --namespace plexicus
+```
+
+### Remaining services \{#self-hosted_helm-chart-9}
+
+Create one secret per service using the key catalog below:
+
+| Secret name | Required keys |
+|-------------|--------------|
+| `plexicus-worker` | `DATABASE_PASSWORD`, `REDIS_PASSWORD`, `SECRET_KEY`, `PLEXALYZER_SECRET_KEY`, `GH_APP_PRIVATE_KEY`, `MINIO_ROOT_PASSWORD`, `PLEXALYZER_TOKEN` |
+| `plexicus-frontend` | `NUXT_SECRET_KEY` |
+| `plexicus-analysis-scheduler` | `DATABASE_PASSWORD`, `OPENAI_API_KEY` |
+| `plexicus-codex-remedium` | `DATABASE_PASSWORD`, `REDIS_PASSWORD`, `PLEXALYZER_SECRET_KEY` |
+| `plexicus-exporter` | `DATABASE_PASSWORD`, `OPENAI_API_KEY` |
+| `plexicus-plexalyzer-code` | `PLEXALYZER_SECRET_KEY`, `OPENAI_API_KEY` |
+| `plexicus-plexalyzer-prov` | `PLEXALYZER_SECRET_KEY`, `OPENAI_API_KEY` |
+
+Example for `worker`:
+
+```bash
+kubectl create secret generic plexicus-worker \
+  --from-literal=DATABASE_PASSWORD=<your-db-password> \
+  --from-literal=REDIS_PASSWORD=<your-redis-password> \
+  --from-literal=SECRET_KEY=<random-32-char-string> \
+  --from-literal=PLEXALYZER_SECRET_KEY=<plexalyzer-secret> \
+  --from-literal=GH_APP_PRIVATE_KEY="$(cat /path/to/gh-app.pem)" \
+  --from-literal=MINIO_ROOT_PASSWORD=<minio-password> \
+  --from-literal=PLEXALYZER_TOKEN=<plexalyzer-token> \
+  --namespace plexicus
+```
+
+Repeat the same pattern for `plexicus-frontend`, `plexicus-analysis-scheduler`, `plexicus-codex-remedium`, `plexicus-exporter`, `plexicus-plexalyzer-code`, and `plexicus-plexalyzer-prov`.
+
+---
+
+## 6. Prepare Your Values File \{#self-hosted_helm-chart-10}
+
+Pull the default values from the registry to use as a starting point:
+
+```bash
+helm show values \
+  oci://europe-west3-docker.pkg.dev/plexicus-registry/charts/plexicus \
+  --version 1.1.0 > my-values.yaml
+```
+
+Open `my-values.yaml` and fill in every field marked `<to-fill>`. The sections below describe the most important ones.
+
+### Domain and scheme \{#self-hosted_helm-chart-11}
+
+```yaml
+global:
+  domain: plexicus.yourdomain.com
+  scheme: https
+  wsScheme: wss
+```
+
+### Infrastructure connection details \{#self-hosted_helm-chart-12}
+
+These are non-sensitive host/port values. Passwords should remain empty here — they are sourced from the Kubernetes Secrets you created in step 5.
+
+```yaml
+global:
+  required:
+    database:
+      host: "your-mongodb-host"
+      name: "plexicus"
+      port: 27017
+      username: "plexicus"
+      options: "authSource=admin"
+      password: ""          # sourced from existingSecret
+    redis:
+      host: "your-redis-host"
+      port: 6379
+      password: ""          # sourced from existingSecret
+    minio:
+      rootUser: "plexicus"
+      rootPassword: ""      # sourced from existingSecret
+    postgresql:
+      password: ""          # used by Temporal; sourced from existingSecret
+```
+
+### Wire the secrets \{#self-hosted_helm-chart-13}
+
+Reference the Kubernetes Secrets you created in step 5:
+
+```yaml
+fastapi:
+  existingSecret: plexicus-fastapi
+worker:
+  existingSecret: plexicus-worker
+frontend:
+  existingSecret: plexicus-frontend
+analysis-scheduler:
+  existingSecret: plexicus-analysis-scheduler
+codex-remedium:
+  existingSecret: plexicus-codex-remedium
+exporter:
+  existingSecret: plexicus-exporter
+plexalyzer-code:
+  existingSecret: plexicus-plexalyzer-code
+plexalyzer-prov:
+  existingSecret: plexicus-plexalyzer-prov
+```
+
+### Ingress hostnames \{#self-hosted_helm-chart-14}
+
+```yaml
+fastapi:
+  ingress:
+    hosts:
+      - host: api.plexicus.yourdomain.com
+    tls:
+      - secretName: plexicus-api-tls
+        hosts:
+          - api.plexicus.yourdomain.com
+
+frontend:
+  ingress:
+    hosts:
+      - host: plexicus.yourdomain.com
+    tls:
+      - secretName: plexicus-frontend-tls
+        hosts:
+          - plexicus.yourdomain.com
+```
+
+:::tip
+The default `ingressClassName` is `traefik` and the default cert-manager cluster issuer is `letsencrypt-prod`. If you use a different ingress controller or issuer, override `ingress.ingressClassName` and the `cert-manager.io/cluster-issuer` annotation per service in your values file.
+:::
+
+---
+
+## 7. Install the Chart \{#self-hosted_helm-chart-15}
+
+```bash
+helm install plexicus \
+  oci://europe-west3-docker.pkg.dev/plexicus-registry/charts/plexicus \
+  --version 1.1.0 \
+  --namespace plexicus \
+  --values my-values.yaml
+```
+
+The installation takes a few minutes while all pods and dependencies initialize.
+
+---
+
+## 8. Verify the Installation \{#self-hosted_helm-chart-16}
+
+```bash
+# All pods should reach Running or Completed status
+kubectl get pods -n plexicus
+
+# Ingress should have an external address assigned
+kubectl get ingress -n plexicus
+```
+
+Pods typically reach a healthy state within 3–5 minutes. If a pod is stuck in `CrashLoopBackOff` or `Error`, inspect its logs:
+
+```bash
+kubectl logs -n plexicus <pod-name> --previous
+```
+
+Common causes are missing secret keys or incorrect connection details in `my-values.yaml`.
+
+---
+
+## 9. Upgrading \{#self-hosted_helm-chart-17}
+
+Contact **engineering@plexicus.ai** to obtain the latest chart version, then run:
+
+```bash
+helm upgrade plexicus \
+  oci://europe-west3-docker.pkg.dev/plexicus-registry/charts/plexicus \
+  --version <new-version> \
+  --namespace plexicus \
+  --values my-values.yaml
+```
+
+:::warning
+Review the release notes provided by the Plexicus team before upgrading. Any breaking changes or required values migrations will be described there.
+:::
+
+---
+
+## ArgoCD Deployment (Alternative) \{#self-hosted_helm-chart-18}
+
+If you manage your cluster with ArgoCD, you can point it directly at the OCI chart instead of using the Helm CLI.
+
+<Steps>
+  <Step title="Configure the OCI repository secret">
+    Create a file named `repo-gar.yaml` with the following content, replacing `<CONTENTS OF sa-key.json>` with the literal text of your service account JSON key:
+
+    ```yaml
+    apiVersion: v1
+    kind: Secret
+    metadata:
+      name: plexicus-gar
+      namespace: argocd
+      labels:
+        argocd.argoproj.io/secret-type: repository
+    type: Opaque
+    stringData:
+      type: helm
+      name: plexicus-gar
+      url: europe-west3-docker.pkg.dev/plexicus-registry/charts
+      enableOCI: "true"
+      username: _json_key
+      password: |
+        <CONTENTS OF sa-key.json>
+    ```
+
+    Apply it to your cluster:
+
+    ```bash
+    kubectl apply -f repo-gar.yaml
+    ```
+
+    :::warning
+    Do not commit `repo-gar.yaml` with real credentials to version control.
+    :::
+  </Step>
+
+  <Step title="Create the ArgoCD Application">
+    Save the following manifest as `application.yaml`, adjusting the domain, version, and values to match your environment:
+
+    ```yaml
+    apiVersion: argoproj.io/v1alpha1
+    kind: Application
+    metadata:
+      name: plexicus
+      namespace: argocd
+    spec:
+      project: default
+      source:
+        repoURL: europe-west3-docker.pkg.dev/plexicus-registry/charts
+        chart: plexicus
+        targetRevision: "1.1.0"
+        helm:
+          values: |
+            global:
+              domain: plexicus.yourdomain.com
+              scheme: https
+              wsScheme: wss
+            fastapi:
+              existingSecret: plexicus-fastapi
+            worker:
+              existingSecret: plexicus-worker
+            frontend:
+              existingSecret: plexicus-frontend
+            analysis-scheduler:
+              existingSecret: plexicus-analysis-scheduler
+            codex-remedium:
+              existingSecret: plexicus-codex-remedium
+            exporter:
+              existingSecret: plexicus-exporter
+            plexalyzer-code:
+              existingSecret: plexicus-plexalyzer-code
+            plexalyzer-prov:
+              existingSecret: plexicus-plexalyzer-prov
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: plexicus
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+    ```
+
+    :::note
+    ArgoCD ≤ 2.12 does not support semver ranges for OCI sources. Always pin `targetRevision` to an exact version string (e.g. `"1.1.0"`).
+    :::
+
+    Apply the manifest:
+
+    ```bash
+    kubectl apply -f application.yaml
+    ```
+  </Step>
+
+  <Step title="Verify the sync">
+    Open the ArgoCD UI or run:
+
+    ```bash
+    argocd app get plexicus
+    ```
+
+    The application should reach `Healthy` and `Synced` status within a few minutes.
+  </Step>
+</Steps>
+
+---
+
+## Next Steps \{#self-hosted_helm-chart-19}
+
+Once the platform is running, open `https://plexicus.yourdomain.com` in your browser to complete the initial account setup.
+
+From there you can:
+
+- Connect your source code repositories from the [Connectors](/docs/integrations/github) section
+- Review advanced configuration options (resource limits, replica counts, storage classes) in the full `values.yaml` reference
+- Set up [two-factor authentication](/docs/settings/two-factor-authentication) for your account
+
+For questions, access requests, or support, contact **engineering@plexicus.ai**.
