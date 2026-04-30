@@ -1,0 +1,79 @@
+---
+title: "Configuration Reference"
+description: "Configure provider integrations for a self-hosted Plexicus deployment — SCM, AI, OAuth login, email, and CAPTCHA"
+---
+
+# Configuration Reference \{#self-hosted_configuration_index-1}
+
+After Plexicus is running on your cluster, you need to wire up the external provider integrations that power its features. This page is the index — per-provider walkthroughs are linked below as they are published.
+
+:::note Status
+Detailed per-provider guides are being added incrementally as the umbrella Helm chart stabilizes. Until each guide is live, the **Source of truth** column links to the canonical reference (the chart's `secrets-management.md` or the provider's own documentation), which is enough to configure a working deployment today.
+:::
+
+---
+
+## What Is Documented Here \{#self-hosted_configuration_index-2}
+
+Plexicus integrations fall into three categories. Only the first two are documented for self-hosted deployments.
+
+### ✅ Customer-facing (documented) \{#self-hosted_configuration_index-3}
+
+Integrations where **you bring your own credentials and your own external service**. Self-hosted Plexicus connects to the endpoints you specify, using the keys you provide.
+
+| Integration | Purpose | Required? | Source of truth |
+|-------------|---------|-----------|-----------------|
+| **GitHub App** | Scan GitHub repositories | Conditional — required if you scan GitHub | _coming soon_ — see [chart secrets reference](https://github.com/plexicus/platform-charts/blob/main/docs/secrets-management.md) |
+| **GitHub OAuth** | "Login with GitHub" for end users | Optional | _coming soon_ |
+| **GitLab OAuth** | Scan GitLab repositories + login | Optional | _coming soon_ |
+| **Bitbucket OAuth** | Scan Bitbucket repositories + login | Optional | _coming soon_ |
+| **Gitea OAuth** | Scan self-hosted Gitea repositories + login | Optional | _coming soon_ |
+| **Google OAuth** | "Login with Google" for end users | Optional | _coming soon_ |
+| **AI Piloting** (Azure OpenAI / OpenAI) | AI-powered remediation and enrichment | Required for AI features; degraded gracefully without | _coming soon_ |
+| **SMTP** | Email verification, invitations, password resets | **Required** | _coming soon_ |
+| **Cloudflare Turnstile** | Bot protection on public signup forms | Optional — leave empty to disable | _coming soon_ |
+| **Object storage** | Artifacts, scan reports, AI inputs/outputs | Required (bundled MinIO works out-of-the-box) | _coming soon_ |
+
+### 🟡 Chart-internal (no setup needed) \{#self-hosted_configuration_index-4}
+
+Credentials that exist purely for service-to-service communication inside your cluster. Generate a strong random value once and use the same value across the relevant Kubernetes Secrets — no external provider account is involved.
+
+| Credential | Used by | Action |
+|------------|---------|--------|
+| `PLEXALYZER_TOKEN`, `PLEXALYZER_SECRET_KEY` | Internal Plexalyzer scanning service | Generate any 32+ character random string |
+| `SECRET_KEY` (Django/FastAPI) | Session signing | Generate any 32+ character random string |
+| `NUXT_SECRET_KEY` | Frontend session signing | Generate any 32+ character random string |
+| Bundled subchart passwords (MongoDB, Redis, MinIO, Temporal PostgreSQL) | Bundled databases | Generate strong passwords; reuse across the services that connect to each |
+
+### 🔒 Plexicus-internal (intentionally not documented) \{#self-hosted_configuration_index-5}
+
+Some integrations exist in the platform code because Plexicus uses them on the **managed SaaS** offering at `plexicus.ai`. They are **not relevant to self-hosted deployments** and the chart ships with them disabled or empty by default.
+
+The following integrations will **not** be documented for self-hosted, will not appear in any guide, and should remain unset:
+
+- Stripe (Plexicus billing)
+- Cloudflare / Mautic (Plexicus marketing automation)
+- Canny (Plexicus product feedback)
+- PostHog (Plexicus product analytics)
+- Azure Application Insights (Plexicus monitoring)
+- Firebase (Plexicus push notifications)
+- Microsoft Marketplace (Plexicus listing on Azure Marketplace)
+- The `freeSastToolUrl` funnel (points to plexicus.ai)
+
+If you encounter env vars or features in the chart values that look related to any of the above, leave them empty — the chart is designed to behave correctly when these are unset.
+
+---
+
+## Where to Look in the Meantime \{#self-hosted_configuration_index-6}
+
+Until each per-provider guide is published, the canonical reference for every customer-facing environment variable lives in the chart repository:
+
+→ **[Chart `secrets-management.md`](https://github.com/plexicus/platform-charts/blob/main/docs/secrets-management.md)**
+
+That file lists every sensitive key per service, the `existingSecret` pattern used by the chart, and example `kubectl create secret` commands you can adapt directly.
+
+---
+
+## Reporting Gaps \{#self-hosted_configuration_index-7}
+
+If you discover an environment variable that is not categorized here, or a feature that requires configuration not yet covered, open an issue at [github.com/plexicus/docs](https://github.com/plexicus/docs) — those reports prioritize which per-provider guide is published next.

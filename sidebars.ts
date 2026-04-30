@@ -41,8 +41,26 @@ const documentations: SidebarConfig = [
   {
     type: 'category',
     label: 'Self-Hosted',
+    link: {
+      type: 'doc',
+      id: 'self-hosted/index',
+    },
     items: [
+      'self-hosted/index',
       'self-hosted/helm-chart',
+      'self-hosted/local-evaluation',
+      'self-hosted/air-gapped',
+      {
+        type: 'category',
+        label: 'Configuration',
+        link: {
+          type: 'doc',
+          id: 'self-hosted/configuration/index',
+        },
+        items: [
+          'self-hosted/configuration/index',
+        ],
+      },
     ],
   },
   {
