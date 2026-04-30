@@ -7,6 +7,10 @@ import {Steps, Step} from '@site/src/components/steps'
 
 # Local Evaluation \{#self-hosted_local-evaluation-1}
 
+:::note
+Examples on this page assume chart 1.2.0 or later.
+:::
+
 This guide spins up Plexicus on a local Kubernetes cluster using [kind](https://kind.sigs.k8s.io/) and self-signed TLS certificates. It is intended for evaluation, demos, and development — **not production**. For production deployments, follow the [Self-Hosted Installation](/docs/self-hosted/helm-chart) guide instead.
 
 :::warning
@@ -156,11 +160,17 @@ kubectl create secret docker-registry gar-secret \
 
 Save the following as `values-local.yaml`. Unlike production, local evaluation can rely on the bundled MongoDB, Redis, PostgreSQL, and MinIO subcharts with shared bootstrap passwords:
 
+Local evaluation uses the same `global.ingressClassName` and `global.certManager` fields as production — only the values change (nginx + self-signed instead of traefik + letsencrypt-prod).
+
 ```yaml
 global:
   domain: plexicus.local
   scheme: https
   wsScheme: wss
+  ingressClassName: "nginx"
+  certManager:
+    enabled: true
+    clusterIssuer: "selfsigned-issuer"
   required:
     database:
       host: "plexicus-mongodb"
@@ -179,12 +189,8 @@ global:
     postgresql:
       password: "localdev-password"
 
-# Override the default cert-manager issuer for self-signed certs
 fastapi:
   ingress:
-    className: "nginx"
-    annotations:
-      cert-manager.io/cluster-issuer: "selfsigned-issuer"
     hosts:
       - host: api.plexicus.local
     tls:
@@ -194,9 +200,6 @@ fastapi:
 
 frontend:
   ingress:
-    className: "nginx"
-    annotations:
-      cert-manager.io/cluster-issuer: "selfsigned-issuer"
     hosts:
       - host: plexicus.local
     tls:
@@ -213,10 +216,10 @@ For local evaluation, application secrets (OAuth client secrets, OpenAI API key,
 
 ## 7. Install the Chart \{#self-hosted_local-evaluation-9}
 
-Set the chart version (find the latest at [github.com/plexicus/platform-charts/releases](https://github.com/plexicus/platform-charts/releases)):
+Set the chart version (your Plexicus contact provides this when you receive registry credentials, or contact **[engineering@plexicus.ai](mailto:engineering@plexicus.ai)** for the current version):
 
 ```bash
-export CHART_VERSION=1.1.0
+export CHART_VERSION=1.2.0
 
 helm install plexicus \
   oci://europe-west3-docker.pkg.dev/plexicus-registry/charts/plexicus \
