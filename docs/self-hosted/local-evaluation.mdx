@@ -1,0 +1,304 @@
+---
+title: "Local Evaluation (Self-Signed)"
+description: "Run Plexicus on a local Kubernetes cluster with self-signed TLS certificates for evaluation, demos, and development"
+---
+
+import {Steps, Step} from '@site/src/components/steps'
+
+# Local Evaluation \{#self-hosted_local-evaluation-1}
+
+This guide spins up Plexicus on a local Kubernetes cluster using [kind](https://kind.sigs.k8s.io/) and self-signed TLS certificates. It is intended for evaluation, demos, and development — **not production**. For production deployments, follow the [Self-Hosted Installation](/docs/self-hosted/helm-chart) guide instead.
+
+:::warning
+Self-signed certificates produce browser warnings and cannot be used by webhook integrations (GitHub, GitLab, Bitbucket) that require a publicly trusted certificate. Use this setup only for local testing.
+:::
+
+## Prerequisites \{#self-hosted_local-evaluation-2}
+
+| Requirement | Minimum version | Install command |
+|-------------|----------------|-----------------|
+| Docker | 20.10 | [Docker Desktop](https://www.docker.com/products/docker-desktop/) |
+| kind | v0.20 | `brew install kind` (macOS) |
+| Helm | v3.8 | `brew install helm` |
+| kubectl | — | `brew install kubectl` |
+
+You also need **registry access credentials** (`sa-key.json`). If you do not have them yet, request access by emailing **engineering@plexicus.ai** — see step 1 of the [Self-Hosted Installation](/docs/self-hosted/helm-chart#self-hosted_helm-chart-3) guide.
+
+---
+
+## 1. Create a Local Cluster \{#self-hosted_local-evaluation-3}
+
+Create a kind configuration file `kind-config.yaml` that exposes ports 80 and 443 to the host:
+
+```yaml
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+nodes:
+  - role: control-plane
+    kubeadmConfigPatches:
+      - |
+        kind: InitConfiguration
+        nodeRegistration:
+          kubeletExtraArgs:
+            node-labels: "ingress-ready=true"
+    extraPortMappings:
+      - containerPort: 80
+        hostPort: 80
+        protocol: TCP
+      - containerPort: 443
+        hostPort: 443
+        protocol: TCP
+```
+
+Create the cluster:
+
+```bash
+kind create cluster --name plexicus --config kind-config.yaml
+```
+
+Verify the cluster is running:
+
+```bash
+kubectl cluster-info --context kind-plexicus
+```
+
+---
+
+## 2. Install Ingress Controller \{#self-hosted_local-evaluation-4}
+
+Install ingress-nginx (recommended for kind):
+
+```bash
+helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+helm repo update
+helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx \
+  --namespace ingress-nginx --create-namespace \
+  --set controller.hostPort.enabled=true \
+  --set controller.service.type=NodePort
+```
+
+Wait for the controller to be ready:
+
+```bash
+kubectl wait --namespace ingress-nginx \
+  --for=condition=ready pod \
+  --selector=app.kubernetes.io/component=controller \
+  --timeout=180s
+```
+
+---
+
+## 3. Install cert-manager and Self-Signed Issuer \{#self-hosted_local-evaluation-5}
+
+Install cert-manager:
+
+```bash
+helm repo add cert-manager https://charts.jetstack.io
+helm repo update
+helm upgrade --install cert-manager cert-manager/cert-manager \
+  --namespace cert-manager --create-namespace \
+  --set installCRDs=true
+```
+
+Wait for cert-manager to be ready, then apply a self-signed `ClusterIssuer`:
+
+```bash
+kubectl wait --namespace cert-manager \
+  --for=condition=ready pod \
+  --selector=app.kubernetes.io/instance=cert-manager \
+  --timeout=180s
+
+cat <<EOF | kubectl apply -f -
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: selfsigned-issuer
+spec:
+  selfSigned: {}
+EOF
+```
+
+---
+
+## 4. Add Local DNS Entries \{#self-hosted_local-evaluation-6}
+
+Add the following lines to `/etc/hosts` (Linux/macOS) or `C:\Windows\System32\drivers\etc\hosts` (Windows):
+
+```
+127.0.0.1  plexicus.local
+127.0.0.1  api.plexicus.local
+```
+
+---
+
+## 5. Authenticate and Create Pull Secret \{#self-hosted_local-evaluation-7}
+
+Log Helm in to the OCI registry and create the namespace plus image pull secret:
+
+```bash
+cat sa-key.json | helm registry login \
+  europe-west3-docker.pkg.dev \
+  --username _json_key \
+  --password-stdin
+
+kubectl create namespace plexicus
+
+kubectl create secret docker-registry gar-secret \
+  --docker-server=europe-west3-docker.pkg.dev \
+  --docker-username=_json_key \
+  --docker-password="$(cat sa-key.json)" \
+  --namespace plexicus
+```
+
+---
+
+## 6. Prepare a Minimal Values File \{#self-hosted_local-evaluation-8}
+
+Save the following as `values-local.yaml`. Unlike production, local evaluation can rely on the bundled MongoDB, Redis, PostgreSQL, and MinIO subcharts with shared bootstrap passwords:
+
+```yaml
+global:
+  domain: plexicus.local
+  scheme: https
+  wsScheme: wss
+  required:
+    database:
+      host: "plexicus-mongodb"
+      name: "plexicus"
+      port: 27017
+      username: "plexicus"
+      options: "authSource=admin"
+      password: "localdev-password"
+    redis:
+      host: "plexicus-redis-master"
+      port: 6379
+      password: "localdev-password"
+    minio:
+      rootUser: "plexicus"
+      rootPassword: "localdev-password"
+    postgresql:
+      password: "localdev-password"
+
+# Override the default cert-manager issuer for self-signed certs
+fastapi:
+  ingress:
+    className: "nginx"
+    annotations:
+      cert-manager.io/cluster-issuer: "selfsigned-issuer"
+    hosts:
+      - host: api.plexicus.local
+    tls:
+      - secretName: plexicus-api-tls
+        hosts:
+          - api.plexicus.local
+
+frontend:
+  ingress:
+    className: "nginx"
+    annotations:
+      cert-manager.io/cluster-issuer: "selfsigned-issuer"
+    hosts:
+      - host: plexicus.local
+    tls:
+      - secretName: plexicus-frontend-tls
+        hosts:
+          - plexicus.local
+```
+
+:::tip
+For local evaluation, application secrets (OAuth client secrets, OpenAI API key, etc.) can be omitted. Features that depend on them (e.g. SCM connectors, AI remediation) will be disabled until you provide them.
+:::
+
+---
+
+## 7. Install the Chart \{#self-hosted_local-evaluation-9}
+
+Set the chart version (find the latest at [github.com/plexicus/platform-charts/releases](https://github.com/plexicus/platform-charts/releases)):
+
+```bash
+export CHART_VERSION=1.1.0
+
+helm install plexicus \
+  oci://europe-west3-docker.pkg.dev/plexicus-registry/charts/plexicus \
+  --version $CHART_VERSION \
+  --namespace plexicus \
+  --values values-local.yaml
+```
+
+Watch the pods come up (this can take 5–10 minutes on a fresh local cluster while images are pulled):
+
+```bash
+kubectl get pods -n plexicus -w
+```
+
+---
+
+## 8. Access the Platform \{#self-hosted_local-evaluation-10}
+
+Open your browser at:
+
+**https://plexicus.local**
+
+Your browser will warn that the certificate is not trusted — this is expected with self-signed certificates. Accept the warning to continue. On Chrome, type `thisisunsafe` directly on the warning page to bypass it.
+
+---
+
+## Cleanup \{#self-hosted_local-evaluation-11}
+
+To remove the entire local environment:
+
+```bash
+kind delete cluster --name plexicus
+```
+
+To remove the entries from `/etc/hosts`, simply delete the lines you added in step 4.
+
+---
+
+## Troubleshooting \{#self-hosted_local-evaluation-12}
+
+### Pods stuck in `ImagePullBackOff` \{#self-hosted_local-evaluation-13}
+
+Verify the pull secret was created in the correct namespace and that your service account key is still valid:
+
+```bash
+kubectl get secret gar-secret -n plexicus
+kubectl describe pod <pod-name> -n plexicus | grep -A5 Events
+```
+
+### Browser cannot reach `https://plexicus.local` \{#self-hosted_local-evaluation-14}
+
+Check that the ingress controller is reachable on port 443:
+
+```bash
+curl -kv https://plexicus.local
+```
+
+If this fails, confirm the kind cluster's port mappings are active:
+
+```bash
+docker ps --filter "name=plexicus-control-plane"
+```
+
+The output should show `0.0.0.0:80->80/tcp` and `0.0.0.0:443->443/tcp`.
+
+### Certificate is not being issued \{#self-hosted_local-evaluation-15}
+
+```bash
+kubectl get certificate -n plexicus
+kubectl describe certificate plexicus-api-tls -n plexicus
+```
+
+If the certificate is stuck in `Pending`, verify the `selfsigned-issuer` `ClusterIssuer` exists and is ready:
+
+```bash
+kubectl get clusterissuer selfsigned-issuer
+```
+
+---
+
+## Next Steps \{#self-hosted_local-evaluation-16}
+
+- Once you are ready to deploy to a real cluster, follow the [Self-Hosted Installation](/docs/self-hosted/helm-chart) guide.
+- For SCM integration testing, you will need a publicly reachable cluster with valid TLS — local evaluation cannot receive webhooks from GitHub/GitLab/Bitbucket.
+- For questions or issues, contact **engineering@plexicus.ai**.
