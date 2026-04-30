@@ -12,11 +12,10 @@ configurable and every optional integration that phones home can be disabled.
 
 :::note Chart support is mature; this guide is a starter
 The umbrella chart fully supports air-gapped deployments via image mirroring and
-pluggable cert-manager issuers. The authoritative step-by-step mirror procedure lives
-in the chart's own
-[image-registry.md](https://github.com/plexicus/platform-charts/blob/main/docs/image-registry.md).
+pluggable cert-manager issuers. The authoritative step-by-step mirror procedure ships
+**inside the chart artifact** under `docs/image-registry.md` (extract via `helm pull --untar`).
 This page is a high-level orientation for self-hosted customers — it summarises what
-to mirror, what to override, and points at the deeper material. Examples on this page
+to mirror, what to override, and points at the bundled material. Examples on this page
 assume chart **1.2.0 or later**.
 :::
 
@@ -43,13 +42,13 @@ be disabled.
    Mirror the Plexicus chart OCI artifact and all 8 custom service images — plus the 6
    third-party subchart images (Redis, PostgreSQL, Temporal, MinIO, Elasticsearch stack,
    MongoDB) — into an internal registry reachable from your cluster.
-   Full procedure: [chart image-registry.md](https://github.com/plexicus/platform-charts/blob/main/docs/image-registry.md).
+   Full procedure: see `docs/image-registry.md` inside the chart artifact (extracted via `helm pull --untar`).
 
 2. **Mirror the mongo-seed-data init image separately.**
    The MongoDB seed image (`platform-standalone/mongo-seed-data`) is an init container
    passed directly to the Bitnami subchart and is **not** covered by `global.imageRegistry`.
    It must be overridden explicitly under `mongodb.initContainers`.
-   See [image-registry.md](https://github.com/plexicus/platform-charts/blob/main/docs/image-registry.md) for the exact override block.
+   See `docs/image-registry.md` (bundled with the chart artifact) for the exact override block.
 
 3. **Set `global.imageRegistry` in your values overlay.**
    This single field redirects all 8 custom Plexicus service images:
@@ -125,9 +124,18 @@ be disabled.
 ## Authoritative Reference \{#self-hosted_air-gapped-4}
 
 For the complete mirror procedure — every image to mirror, exact tags, registry auth
-wiring, and the mongo-seed-data init container override — see:
+wiring, and the mongo-seed-data init container override — pull and extract the chart
+artifact and read the bundled `docs/image-registry.md`:
 
-**[Chart image-registry.md](https://github.com/plexicus/platform-charts/blob/main/docs/image-registry.md)** — the source of truth, maintained alongside the chart.
+```bash
+helm pull oci://europe-west3-docker.pkg.dev/plexicus-registry/charts/plexicus \
+  --version $CHART_VERSION --untar
+cat plexicus/docs/image-registry.md
+```
+
+This file is the source of truth, maintained alongside the chart and shipped with the
+version you installed. For environment-specific questions, contact
+**[engineering@plexicus.ai](mailto:engineering@plexicus.ai)**.
 
 ---
 
@@ -140,10 +148,10 @@ After install, verify the cluster makes zero unexpected outbound calls. Suggeste
   ```bash
   kubectl get networkpolicy -n plexicus
   ```
-- **Integration blocklist** — confirm that Stripe, Canny, PostHog, Mautic, Application
-  Insights, Firebase, Microsoft Marketplace, and the `freeSastToolUrl` funnel keys are
-  unset in your values. See the
-  [Configuration Reference](/docs/self-hosted/configuration) for the full blocklist.
+- **Managed-SaaS integrations** — confirm that any env vars referencing services
+  Plexicus operates on the managed SaaS (commercial integrations) are unset in your
+  values. The chart ships with these disabled by default; verify nothing was accidentally
+  set. See the [Configuration Reference](/docs/self-hosted/configuration) for the policy.
 - **Egress audit** — use a transparent egress proxy or DNS sink to capture any outbound
   DNS queries during a 1-hour soak after install.
 

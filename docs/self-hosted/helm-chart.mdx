@@ -8,7 +8,7 @@ import {Steps, Step} from '@site/src/components/steps'
 # Self-Hosted Installation \{#self-hosted_helm-chart-1}
 
 :::note Chart version
-Examples on this page assume chart **1.2.0** or later. For 1.1.0 deployments see [PR #1 history](https://github.com/plexicus/platform-charts/pulls?q=is%3Apr).
+Examples on this page assume chart **1.2.0** or later. For older deployments, contact **[engineering@plexicus.ai](mailto:engineering@plexicus.ai)** for migration guidance.
 :::
 
 Plexicus can be deployed on any Kubernetes cluster using the official Helm chart, published to a private Google Artifact Registry (GAR). This guide walks you through every step — from requesting access credentials to a running installation.
@@ -152,7 +152,7 @@ Repeat the same pattern for `plexicus-frontend`, `plexicus-analysis-scheduler`, 
 ## 6. Prepare Your Values File \{#self-hosted_helm-chart-10}
 
 :::note Chart version
-The remaining commands in this guide reference a `$CHART_VERSION` shell variable. Set it once to the version you want to install — find the latest at [github.com/plexicus/platform-charts/releases](https://github.com/plexicus/platform-charts/releases):
+The remaining commands in this guide reference a `$CHART_VERSION` shell variable. Set it once to the version you want to install — your Plexicus contact will provide the current version when you receive registry credentials. To upgrade later, contact **[engineering@plexicus.ai](mailto:engineering@plexicus.ai)** for the latest version.
 
 ```bash
 export CHART_VERSION=1.2.0
@@ -161,16 +161,20 @@ export CHART_VERSION=1.2.0
 This variable persists for the rest of your shell session.
 :::
 
-Instead of dumping the full 700-line default values file, start from the canonical customer overlay. Copy it from the chart repository and fill in the placeholders:
+Instead of dumping the full 700-line default values file, start from the canonical customer overlay that ships **inside the chart artifact**. Pull and extract the chart, then copy the example overlay:
 
 ```bash
-# Download the example overlay
-curl -fsSL https://github.com/plexicus/platform-charts/blob/main/values-customer.yaml.example \
-  -o my-values.yaml
-# Then edit my-values.yaml to replace every <to-fill> placeholder
+# Pull and extract the chart (creates a ./plexicus/ directory)
+helm pull oci://europe-west3-docker.pkg.dev/plexicus-registry/charts/plexicus \
+  --version $CHART_VERSION --untar
+
+# Copy the canonical customer overlay
+cp plexicus/values-customer.yaml.example my-values.yaml
+
+# Edit my-values.yaml to replace every <to-fill> placeholder
 ```
 
-The full file is at [values-customer.yaml.example](https://github.com/plexicus/platform-charts/blob/main/values-customer.yaml.example). Its relevant contents are shown below (~30 lines):
+The relevant contents of the overlay are shown below (~30 lines):
 
 ```yaml
 global:
@@ -341,12 +345,21 @@ helm get notes plexicus -n plexicus
 
 ## Day 2 References \{#self-hosted_helm-chart-day2}
 
-The following chart-repo docs cover ongoing operations. They are not mirrored in this site — follow the links for the latest version:
+The chart artifact bundles operator documentation under `docs/`. After running `helm pull --untar` (see step 6), the following guides are available locally:
 
-- [Troubleshooting](https://github.com/plexicus/platform-charts/blob/main/docs/troubleshooting.md) — common install failures and fixes
-- [Upgrading & Rollback](https://github.com/plexicus/platform-charts/blob/main/docs/upgrading.md) — how to upgrade to a new chart version and roll back
-- [Uninstall](https://github.com/plexicus/platform-charts/blob/main/docs/uninstall.md) — clean removal of all chart resources
-- [Image Registry & Mirroring](https://github.com/plexicus/platform-charts/blob/main/docs/image-registry.md) — air-gapped deployments and private mirror setup
+```bash
+ls plexicus/docs/
+```
+
+- `getting-started.md` — customer install walk-through
+- `secrets-management.md` — secrets catalog and ESO/Sealed Secrets recipes
+- `ingress-tls.md` — ingress and TLS configuration
+- `image-registry.md` — image mirroring and air-gapped deployments
+- `upgrading.md` — how to upgrade to a new chart version and roll back
+- `troubleshooting.md` — common install failures and fixes
+- `uninstall.md` — clean removal of all chart resources
+
+These ship with the chart and stay in sync with the version you installed. For environment-specific guidance, contact **[engineering@plexicus.ai](mailto:engineering@plexicus.ai)**.
 
 ---
 
@@ -461,7 +474,7 @@ If you manage your cluster with ArgoCD, you can point it directly at the OCI cha
     ```
 
     :::note
-    ArgoCD ≤ 2.12 does not support semver ranges for OCI sources. Always pin `targetRevision` to an exact version string from the [releases page](https://github.com/plexicus/platform-charts/releases) (e.g. `"1.1.0"`).
+    ArgoCD ≤ 2.12 does not support semver ranges for OCI sources. Always pin `targetRevision` to an exact version string (e.g. `"1.1.0"`). Contact **[engineering@plexicus.ai](mailto:engineering@plexicus.ai)** for the current version.
     :::
 
     Apply the manifest:
