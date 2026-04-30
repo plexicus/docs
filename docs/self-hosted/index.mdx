@@ -1,0 +1,56 @@
+---
+title: "Self-Hosted Overview"
+description: "Deploy Plexicus on your own Kubernetes cluster — installation paths, persona router, and the no-phone-home guarantee"
+---
+
+# Self-Hosted Plexicus \{#self-hosted_index-1}
+
+Plexicus can be deployed on any Kubernetes cluster using the official Helm chart, published as an OCI artifact to Google Artifact Registry. This section covers everything you need to install Plexicus on your own infrastructure — no support ticket required.
+
+:::tip No phone-home guarantee
+A self-hosted Plexicus deployment **does not send telemetry, analytics, or feedback data outside your cluster**. Features that depend on Plexicus' own commercial services (billing, marketplace listings, product analytics) are disabled in this mode. Only the integrations *you* configure (your GitHub, your AI provider, your SMTP server) talk to external systems — and only to the endpoints you specify.
+:::
+
+---
+
+## Choose Your Path \{#self-hosted_index-2}
+
+Pick the guide that matches what you are trying to do:
+
+### 🧪 I want to evaluate Plexicus locally \{#self-hosted_index-3}
+
+You want to spin up Plexicus on your laptop with [kind](https://kind.sigs.k8s.io/) or minikube, click around, and see if it solves your problem. You don't care about TLS, scaling, or production hardening yet.
+
+→ **[Local Evaluation (Self-Signed)](/docs/self-hosted/local-evaluation)**
+
+### 🏭 I'm deploying to a production Kubernetes cluster \{#self-hosted_index-4}
+
+You have a real cluster (GKE, EKS, AKS, on-premises, etc.), a domain you own, and you want a TLS-enabled installation that your team will use day-to-day.
+
+→ **[Self-Hosted Installation (Helm)](/docs/self-hosted/helm-chart)**
+
+### 🔒 I'm deploying to an air-gapped or restricted environment \{#self-hosted_index-5}
+
+Your cluster has no public internet access, or you need to mirror images to an internal registry, or you have strict egress controls.
+
+→ **[Air-Gapped Installation](/docs/self-hosted/air-gapped)**
+
+---
+
+## After Installation \{#self-hosted_index-6}
+
+Once the platform is running and reachable, you'll want to configure provider integrations: SCM (GitHub, GitLab, Bitbucket, Gitea), AI (OpenAI or Azure OpenAI), email (SMTP), and OAuth login providers.
+
+→ **[Configuration Reference](/docs/self-hosted/configuration)**
+
+:::note
+Per-provider configuration guides are published incrementally as the chart stabilizes. The configuration index lists which guides are available today and what is coming next.
+:::
+
+---
+
+## Getting Help \{#self-hosted_index-7}
+
+- **Documentation gaps or issues:** open an issue at [github.com/plexicus/docs](https://github.com/plexicus/docs)
+- **Chart bugs or feature requests:** [github.com/plexicus/platform-charts](https://github.com/plexicus/platform-charts)
+- **Registry access, license keys, or anything that requires a real human:** [engineering@plexicus.ai](mailto:engineering@plexicus.ai)

@@ -1,0 +1,50 @@
+---
+title: "Air-Gapped Installation"
+description: "Deploy Plexicus to a Kubernetes cluster with no public internet access"
+---
+
+# Air-Gapped Installation \{#self-hosted_air-gapped-1}
+
+:::warning Coming soon
+A complete, step-by-step air-gapped installation guide is in preparation and will be published once the umbrella Helm chart reaches its first stable 1.x release.
+:::
+
+## What Air-Gapped Means Here \{#self-hosted_air-gapped-2}
+
+In this guide, "air-gapped" refers to any of the following deployment scenarios:
+
+- The Kubernetes cluster has **no outbound internet access** at all
+- The cluster can only reach an **internal mirror registry**, not the public Google Artifact Registry
+- Strict egress policies prevent reaching public OAuth providers, public ACME servers (Let's Encrypt), or external AI APIs
+
+The Plexicus chart is designed to support these environments — every external dependency is configurable, and every optional integration that requires public internet access can be disabled.
+
+---
+
+## What You Will Need \{#self-hosted_air-gapped-3}
+
+The full guide will cover:
+
+- Mirroring the Plexicus chart and all container images to an internal OCI registry
+- Replacing Let's Encrypt with an internal CA or pre-provisioned certificates
+- Disabling integrations that require public internet (Cloudflare Turnstile, Google OAuth, public OpenAI)
+- Bringing your own AI endpoint (e.g., self-hosted LLM, internal Azure OpenAI deployment)
+- Verifying the cluster makes zero unexpected outbound calls after install
+
+---
+
+## Early Access \{#self-hosted_air-gapped-4}
+
+If you need to deploy in an air-gapped environment before the official guide is published, contact **[engineering@plexicus.ai](mailto:engineering@plexicus.ai)** with:
+
+- Your **organization name**
+- The **type of restriction** (no internet at all, internal mirror only, specific egress allowlist)
+- Your **certificate authority** setup (internal CA, ACME-compatible internal server, manual cert provisioning)
+
+You will receive an early-access deployment runbook tailored to your environment.
+
+---
+
+## In the Meantime \{#self-hosted_air-gapped-5}
+
+If you only need to handle a private container registry (and not full air-gap), the standard [Self-Hosted Installation](/docs/self-hosted/helm-chart) works as-is — the chart already supports custom `imagePullSecrets` and per-service `image.registry` overrides.
