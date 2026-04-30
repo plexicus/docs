@@ -5,6 +5,10 @@ description: "Configure provider integrations for a self-hosted Plexicus deploym
 
 # Configuration Reference \{#self-hosted_configuration_index-1}
 
+:::note
+Categories below reflect chart 1.2.0+ surface area. Older chart versions may expose additional or fewer fields.
+:::
+
 After Plexicus is running on your cluster, you need to wire up the external provider integrations that power its features. This page is the index — per-provider walkthroughs are linked below as they are published.
 
 :::note Status
@@ -33,6 +37,8 @@ Integrations where **you bring your own credentials and your own external servic
 | **SMTP** | Email verification, invitations, password resets | **Required** | _coming soon_ |
 | **Cloudflare Turnstile** | Bot protection on public signup forms | Optional — leave empty to disable | _coming soon_ |
 | **Object storage** | Artifacts, scan reports, AI inputs/outputs | Required (bundled MinIO works out-of-the-box) | _coming soon_ |
+| **Image registry mirror** | Mirror all custom images from your own registry — required for air-gapped or restricted networks | Optional | [image-registry.md](https://github.com/plexicus/platform-charts/blob/main/docs/image-registry.md) |
+| **External dependencies (BYO Redis/Temporal/MongoDB)** | Use your own Redis, Temporal, or MongoDB instead of the bundled subcharts | Optional | See `global.dependencies` in [values-customer.yaml.example](https://github.com/plexicus/platform-charts/blob/main/values-customer.yaml.example) |
 
 ### 🟡 Chart-internal (no setup needed) \{#self-hosted_configuration_index-4}
 
@@ -44,6 +50,8 @@ Credentials that exist purely for service-to-service communication inside your c
 | `SECRET_KEY` (Django/FastAPI) | Session signing | Generate any 32+ character random string |
 | `NUXT_SECRET_KEY` | Frontend session signing | Generate any 32+ character random string |
 | Bundled subchart passwords (MongoDB, Redis, MinIO, Temporal PostgreSQL) | Bundled databases | Generate strong passwords; reuse across the services that connect to each |
+
+Chart 1.2.0+ ships restrictive NetworkPolicies and PodDisruptionBudgets per service. They have sensible defaults — no customer action needed unless you want to tighten further.
 
 ### 🔒 Plexicus-internal (intentionally not documented) \{#self-hosted_configuration_index-5}
 
@@ -71,6 +79,10 @@ Until each per-provider guide is published, the canonical reference for every cu
 → **[Chart `secrets-management.md`](https://github.com/plexicus/platform-charts/blob/main/docs/secrets-management.md)**
 
 That file lists every sensitive key per service, the `existingSecret` pattern used by the chart, and example `kubectl create secret` commands you can adapt directly.
+
+→ **[Chart `image-registry.md`](https://github.com/plexicus/platform-charts/blob/main/docs/image-registry.md)** — image mirroring procedure, air-gapped deployments, registry auth.
+
+→ **[Chart `values-customer.yaml.example`](https://github.com/plexicus/platform-charts/blob/main/values-customer.yaml.example)** — the canonical 30-line starter overlay with inline comments for every customer knob.
 
 ---
 

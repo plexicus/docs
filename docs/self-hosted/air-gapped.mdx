@@ -5,9 +5,22 @@ description: "Deploy Plexicus to a Kubernetes cluster with no public internet ac
 
 # Air-Gapped Installation \{#self-hosted_air-gapped-1}
 
-:::warning Coming soon
-A complete, step-by-step air-gapped installation guide is in preparation and will be published once the umbrella Helm chart reaches its first stable 1.x release.
+This guide covers deploying Plexicus to clusters that have no outbound internet access,
+can only reach an internal container registry, or operate under strict egress policies.
+The Plexicus umbrella chart is fully air-gap capable — every external dependency is
+configurable and every optional integration that phones home can be disabled.
+
+:::note Chart support is mature; this guide is a starter
+The umbrella chart fully supports air-gapped deployments via image mirroring and
+pluggable cert-manager issuers. The authoritative step-by-step mirror procedure lives
+in the chart's own
+[image-registry.md](https://github.com/plexicus/platform-charts/blob/main/docs/image-registry.md).
+This page is a high-level orientation for self-hosted customers — it summarises what
+to mirror, what to override, and points at the deeper material. Examples on this page
+assume chart **1.2.0 or later**.
 :::
+
+---
 
 ## What Air-Gapped Means Here \{#self-hosted_air-gapped-2}
 
@@ -15,36 +28,129 @@ In this guide, "air-gapped" refers to any of the following deployment scenarios:
 
 - The Kubernetes cluster has **no outbound internet access** at all
 - The cluster can only reach an **internal mirror registry**, not the public Google Artifact Registry
-- Strict egress policies prevent reaching public OAuth providers, public ACME servers (Let's Encrypt), or external AI APIs
+- Strict egress policies prevent reaching public OAuth providers, public ACME servers
+  (Let's Encrypt), or external AI APIs
 
-The Plexicus chart is designed to support these environments — every external dependency is configurable, and every optional integration that requires public internet access can be disabled.
-
----
-
-## What You Will Need \{#self-hosted_air-gapped-3}
-
-The full guide will cover:
-
-- Mirroring the Plexicus chart and all container images to an internal OCI registry
-- Replacing Let's Encrypt with an internal CA or pre-provisioned certificates
-- Disabling integrations that require public internet (Cloudflare Turnstile, Google OAuth, public OpenAI)
-- Bringing your own AI endpoint (e.g., self-hosted LLM, internal Azure OpenAI deployment)
-- Verifying the cluster makes zero unexpected outbound calls after install
+The Plexicus chart is designed to support these environments — every external dependency
+is configurable, and every optional integration that requires public internet access can
+be disabled.
 
 ---
 
-## Early Access \{#self-hosted_air-gapped-4}
+## High-Level Procedure \{#self-hosted_air-gapped-3}
 
-If you need to deploy in an air-gapped environment before the official guide is published, contact **[engineering@plexicus.ai](mailto:engineering@plexicus.ai)** with:
+1. **Mirror all images to your internal registry.**
+   Mirror the Plexicus chart OCI artifact and all 8 custom service images — plus the 6
+   third-party subchart images (Redis, PostgreSQL, Temporal, MinIO, Elasticsearch stack,
+   MongoDB) — into an internal registry reachable from your cluster.
+   Full procedure: [chart image-registry.md](https://github.com/plexicus/platform-charts/blob/main/docs/image-registry.md).
 
-- Your **organization name**
-- The **type of restriction** (no internet at all, internal mirror only, specific egress allowlist)
-- Your **certificate authority** setup (internal CA, ACME-compatible internal server, manual cert provisioning)
+2. **Mirror the mongo-seed-data init image separately.**
+   The MongoDB seed image (`platform-standalone/mongo-seed-data`) is an init container
+   passed directly to the Bitnami subchart and is **not** covered by `global.imageRegistry`.
+   It must be overridden explicitly under `mongodb.initContainers`.
+   See [image-registry.md](https://github.com/plexicus/platform-charts/blob/main/docs/image-registry.md) for the exact override block.
 
-You will receive an early-access deployment runbook tailored to your environment.
+3. **Set `global.imageRegistry` in your values overlay.**
+   This single field redirects all 8 custom Plexicus service images:
+
+   ```yaml
+   global:
+     imageRegistry: "registry.internal.example.com/plexicus"
+     imagePullSecrets:
+       - name: my-registry-secret   # pull secret for your mirror
+     security:
+       allowInsecureImages: true     # required when mirror is non-Bitnami
+   ```
+
+   Leave `global.imageRegistry` empty to pull directly from Plexicus GAR (requires
+   network access and the `gar-secret` pull secret). Setting it to your mirror removes
+   the runtime dependency on Plexicus's GCP account.
+
+4. **Replace Let's Encrypt with an internal CA.**
+   Override `global.certManager.clusterIssuer` to the name of your in-cluster issuer
+   (for example, `internal-ca-issuer`). Provision the corresponding `ClusterIssuer`
+   resource before running `helm install`.
+
+   ```yaml
+   global:
+     certManager:
+       enabled: true
+       clusterIssuer: "internal-ca-issuer"
+   ```
+
+5. **Disable integrations that require public internet.**
+   Leave the following keys empty or unset in your values overlay:
+
+   | Integration | Values key(s) to leave empty |
+   |---|---|
+   | Cloudflare Turnstile | `global.required.auth.turnstile.*` |
+   | Google OAuth | `global.required.auth.google.clientId/clientSecret` |
+   | Public OpenAI | Use `global.required.ai.*` to point at a self-hosted or internal Azure OpenAI endpoint instead |
+
+6. **Optionally disable the dependency wait-loop.**
+   If your cluster DNS does not resolve the bundled service names before first boot, set:
+
+   ```yaml
+   global:
+     dependencies:
+       waitEnabled: false
+   ```
+
+   Or override individual hosts:
+
+   ```yaml
+   global:
+     dependencies:
+       redis:
+         host: "my-redis.internal"
+       temporal:
+         host: "temporal.internal"
+   ```
+
+7. **Install with Helm (or ArgoCD).**
+   Pass your air-gapped values overlay alongside the standard customer overlay:
+
+   ```bash
+   helm install plexicus \
+     oci://my-internal-registry.example.com/charts/plexicus \
+     --version 1.2.0 \
+     --namespace plexicus --create-namespace \
+     -f values.yaml \
+     -f values-override.yaml
+   ```
 
 ---
 
-## In the Meantime \{#self-hosted_air-gapped-5}
+## Authoritative Reference \{#self-hosted_air-gapped-4}
 
-If you only need to handle a private container registry (and not full air-gap), the standard [Self-Hosted Installation](/docs/self-hosted/helm-chart) works as-is — the chart already supports custom `imagePullSecrets` and per-service `image.registry` overrides.
+For the complete mirror procedure — every image to mirror, exact tags, registry auth
+wiring, and the mongo-seed-data init container override — see:
+
+**[Chart image-registry.md](https://github.com/plexicus/platform-charts/blob/main/docs/image-registry.md)** — the source of truth, maintained alongside the chart.
+
+---
+
+## Verifying No Phone-Home \{#self-hosted_air-gapped-5}
+
+After install, verify the cluster makes zero unexpected outbound calls. Suggested checks:
+
+- **NetworkPolicy** — chart 1.2.0 ships restrictive `NetworkPolicy` resources by default.
+  Inspect them with:
+  ```bash
+  kubectl get networkpolicy -n plexicus
+  ```
+- **Integration blocklist** — confirm that Stripe, Canny, PostHog, Mautic, Application
+  Insights, Firebase, Microsoft Marketplace, and the `freeSastToolUrl` funnel keys are
+  unset in your values. See the
+  [Configuration Reference](/docs/self-hosted/configuration) for the full blocklist.
+- **Egress audit** — use a transparent egress proxy or DNS sink to capture any outbound
+  DNS queries during a 1-hour soak after install.
+
+---
+
+## Need Help? \{#self-hosted_air-gapped-6}
+
+For environment-specific guidance — custom CA chains, FIPS clusters, GovCloud, or
+air-gapped ArgoCD setups — contact **[engineering@plexicus.ai](mailto:engineering@plexicus.ai)**
+with your environment description.
