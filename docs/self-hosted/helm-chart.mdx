@@ -147,12 +147,22 @@ Repeat the same pattern for `plexicus-frontend`, `plexicus-analysis-scheduler`, 
 
 ## 6. Prepare Your Values File \{#self-hosted_helm-chart-10}
 
+:::note Chart version
+The remaining commands in this guide reference a `$CHART_VERSION` shell variable. Set it once to the version you want to install — find the latest at [github.com/plexicus/platform-charts/releases](https://github.com/plexicus/platform-charts/releases):
+
+```bash
+export CHART_VERSION=1.1.0
+```
+
+This variable persists for the rest of your shell session.
+:::
+
 Pull the default values from the registry to use as a starting point:
 
 ```bash
 helm show values \
   oci://europe-west3-docker.pkg.dev/plexicus-registry/charts/plexicus \
-  --version 1.1.0 > my-values.yaml
+  --version $CHART_VERSION > my-values.yaml
 ```
 
 Open `my-values.yaml` and fill in every field marked `<to-fill>`. The sections below describe the most important ones.
@@ -247,7 +257,7 @@ The default `ingressClassName` is `traefik` and the default cert-manager cluster
 ```bash
 helm install plexicus \
   oci://europe-west3-docker.pkg.dev/plexicus-registry/charts/plexicus \
-  --version 1.1.0 \
+  --version $CHART_VERSION \
   --namespace plexicus \
   --values my-values.yaml
 ```
@@ -346,7 +356,7 @@ If you manage your cluster with ArgoCD, you can point it directly at the OCI cha
       source:
         repoURL: europe-west3-docker.pkg.dev/plexicus-registry/charts
         chart: plexicus
-        targetRevision: "1.1.0"
+        targetRevision: "1.1.0"  # replace with the latest version from the releases page
         helm:
           values: |
             global:
@@ -381,7 +391,7 @@ If you manage your cluster with ArgoCD, you can point it directly at the OCI cha
     ```
 
     :::note
-    ArgoCD ≤ 2.12 does not support semver ranges for OCI sources. Always pin `targetRevision` to an exact version string (e.g. `"1.1.0"`).
+    ArgoCD ≤ 2.12 does not support semver ranges for OCI sources. Always pin `targetRevision` to an exact version string from the [releases page](https://github.com/plexicus/platform-charts/releases) (e.g. `"1.1.0"`).
     :::
 
     Apply the manifest:
