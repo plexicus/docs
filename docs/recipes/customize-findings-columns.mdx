@@ -1,0 +1,92 @@
+---
+title: "Customize Findings Columns"
+description: "Pick which fields appear in the Findings table, and persist the choice per-user."
+---
+
+# Customize Findings Columns \{#recipes_customize-findings-columns-1\}
+
+The Findings table shows a default set of columns. You can add, remove, and reorder them — your choice persists across sessions via `POST /findings-columns/save`.
+
+## Pick columns \{#recipes_customize-findings-columns-2\}
+
+<Steps>
+  <Step title="Click 'Columns to Show'">
+    Top-right of the Findings page. A panel slides in with every available field.
+  </Step>
+  <Step title="Toggle the columns you want">
+    Drag to reorder; click the eye icon to hide. Changes preview live in the table behind the panel.
+  </Step>
+  <Step title="Click Save">
+    Plexicus calls `POST /findings-columns/save` with the new column list. Your choice persists across browsers and devices via your user record.
+  </Step>
+</Steps>
+
+## Available columns \{#recipes_customize-findings-columns-3\}
+
+| Column | Field | Default? |
+|---|---|:-:|
+| Severity | `severity` | ✅ |
+| Title | `title` | ✅ |
+| Repository | `repository_name` | ✅ |
+| Tool | `tool` | ✅ |
+| CWE | `cwe` | ✅ |
+| OWASP | `owasp` | — |
+| File | `file` | ✅ |
+| Line | `line` | — |
+| Status | `status` | ✅ |
+| Priority | `priority` | — (sortable column) |
+| EPSS | `epss` | — |
+| Created | `created_at` | ✅ |
+| Last seen | `last_seen` | — |
+| Owner | `owner` (from git blame) | — |
+| Tag | `tags` | — |
+
+Some columns require enrichment to be populated:
+
+- **OWASP / CWE** — set during `rule_enricher` step.
+- **EPSS** — set during enrichment if the CVE exists in FIRST.org's EPSS feed.
+- **Owner** — set by `FindingEnrichmentWorkflow` from `git blame`.
+
+If a column is empty for a finding, the source data is missing. The column itself is still visible.
+
+## Read your current columns \{#recipes_customize-findings-columns-4\}
+
+`GET /findings-columns/selected` returns your saved column list. Useful when scripting:
+
+```bash
+curl -X GET "https://app.plexicus.ai/findings-columns/selected" \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+Response:
+
+```json
+{
+  "selected_columns": [
+    { "title": "Severity", "file_path": "severity", "status": "visible", "severity_numerical": 1 },
+    { "title": "Title", "file_path": "title", "status": "visible", "severity_numerical": 2 }
+  ]
+}
+```
+
+## Reset to default \{#recipes_customize-findings-columns-5\}
+
+There is no UI button for **Reset to default**. To revert, save an empty array via the API — Plexicus will fall back to the default column set on next page load:
+
+```bash
+curl -X POST "https://app.plexicus.ai/findings-columns/save" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"columns": []}'
+```
+
+## Related \{#recipes_customize-findings-columns-6\}
+
+<CardGroup cols={2}>
+  <Card title="Work with Findings" icon="material-symbols:bug-report-outline" href="/docs/recipes/work-with-findings">
+    The full Findings page guide.
+  </Card>
+  <Card title="Configure Finding Filters" icon="material-symbols:filter-alt-outline" href="/docs/recipes/configure-finding-filters">
+    Save and activate filter views.
+  </Card>
+</CardGroup>

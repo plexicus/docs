@@ -56,7 +56,18 @@ const recipes: SidebarConfig = [
     },
     items: [
       'recipes/manage-applications',
-      'recipes/work-with-findings',
+      {
+        type: 'category',
+        label: 'Findings',
+        collapsed: true,
+        items: [
+          'recipes/work-with-findings',
+          'recipes/configure-finding-filters',
+          'recipes/customize-findings-columns',
+          'recipes/bulk-send-to-developers',
+          'recipes/export-findings',
+        ],
+      },
       {
         type: 'category',
         label: 'Connect Source Control',

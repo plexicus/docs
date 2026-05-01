@@ -1,0 +1,137 @@
+---
+title: "Export Findings"
+description: "Download findings as SARIF, JSON, or CSV for auditors, dashboards, and downstream systems."
+---
+
+# Export Findings \{#recipes_export-findings-1\}
+
+Three export formats. Pick by audience.
+
+<CardGroup cols={3}>
+  <Card title="SARIF" icon="material-symbols:summarize-outline">
+    For auditors and compliance tools. Industry-standard finding format. Works in GitHub code scanning and most SAST aggregators.
+  </Card>
+  <Card title="JSON" icon="material-symbols:data-object-outline">
+    For your own pipelines. SARIF-compatible structure with full Plexicus enrichment (priority, EPSS, owner). Easiest to parse.
+  </Card>
+  <Card title="CSV" icon="material-symbols:table-outline">
+    For spreadsheets and reports. Repository-centric — one row per repo with finding counts per severity.
+  </Card>
+</CardGroup>
+
+## SARIF — single finding \{#recipes_export-findings-2\}
+
+For exporting one finding (e.g. attaching to a Jira ticket or compliance email):
+
+<Steps>
+  <Step title="Open the finding">
+    Click the row in the Findings table.
+  </Step>
+  <Step title="Click 'Generate SARIF'">
+    Plexicus calls `POST /findings/{id}/report` and downloads `finding-{id}.sarif.json`.
+  </Step>
+</Steps>
+
+API equivalent:
+
+```bash
+curl -X POST "https://app.plexicus.ai/findings/finding123/report" \
+  -H "Authorization: Bearer $TOKEN" \
+  --output finding-finding123.sarif.json
+```
+
+## JSON — multiple findings \{#recipes_export-findings-3\}
+
+For programmatic export of a filtered set:
+
+<Steps>
+  <Step title="Apply the filter you want exported">
+    Saved filters work the same way as the UI. The filter scope is what gets exported.
+  </Step>
+  <Step title="Click Export → JSON">
+    Plexicus calls `POST /download_json_findings` with the active filter object. The response is a SARIF-compatible JSON file.
+  </Step>
+</Steps>
+
+API equivalent:
+
+```bash
+curl -X POST "https://app.plexicus.ai/download_json_findings" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"filters": {"status": "Enriched", "severity": ["Critical", "High"]}}' \
+  --output findings.json
+```
+
+If `filters` is omitted, Plexicus exports every finding visible to your role — be careful, this is the entire inventory.
+
+## CSV — repository roll-up \{#recipes_export-findings-4\}
+
+The CSV export is **per-repository**, not per-finding. One row per repo with severity counts:
+
+```
+repository, critical, high, medium, low, total, last_scan_date
+my-org/web-app, 3, 12, 25, 18, 58, 2026-04-30
+my-org/api, 1, 5, 8, 4, 18, 2026-04-30
+```
+
+Trigger via `POST /download_csv_repos`:
+
+```bash
+curl -X POST "https://app.plexicus.ai/download_csv_repos" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  --output repos.csv
+```
+
+For per-finding CSV, export to JSON first and convert with `jq`:
+
+```bash
+jq -r '.runs[].results[] | [.severity, .ruleId, .locations[0].physicalLocation.artifactLocation.uri] | @csv' \
+  findings.json > findings.csv
+```
+
+## What's in each export \{#recipes_export-findings-5\}
+
+| Field | SARIF (single) | JSON (bulk) | CSV (repos) |
+|---|:-:|:-:|:-:|
+| Finding ID | ✅ | ✅ | — |
+| Severity | ✅ | ✅ | aggregated |
+| Title / description | ✅ | ✅ | — |
+| File / line | ✅ | ✅ | — |
+| CWE / OWASP | ✅ | ✅ | — |
+| EPSS | — | ✅ | — |
+| Priority (Plexicus-recalc) | — | ✅ | — |
+| Status | — | ✅ | — |
+| Owner (from git blame) | — | ✅ | — |
+| Repository | ✅ | ✅ | ✅ |
+| Code snippet | — | optional (set `include_snippets=true`) | — |
+
+The optional `include_snippets` flag bloats the JSON significantly — only set it if the consumer needs the snippets.
+
+## Compliance use case — quarterly review \{#recipes_export-findings-6\}
+
+A common pattern teams adopt:
+
+<Steps>
+  <Step title="Save a compliance-PCI filter">
+    `severity=Critical,High` + `owasp=A02,A03,A07,A08`. See [Configure Finding Filters](/docs/recipes/configure-finding-filters).
+  </Step>
+  <Step title="At quarter-end, activate the filter and Export → JSON">
+    The export captures the state at that moment.
+  </Step>
+  <Step title="Diff against the previous quarter">
+    `jq` or any JSON diff tool gives you the delta of new vs. closed findings — the basis of the compliance report.
+  </Step>
+</Steps>
+
+## Related \{#recipes_export-findings-7\}
+
+<CardGroup cols={2}>
+  <Card title="Work with Findings" icon="material-symbols:bug-report-outline" href="/docs/recipes/work-with-findings">
+    Filter and triage before exporting.
+  </Card>
+  <Card title="Configure Finding Filters" icon="material-symbols:filter-alt-outline" href="/docs/recipes/configure-finding-filters">
+    Saved filters define export scope.
+  </Card>
+</CardGroup>

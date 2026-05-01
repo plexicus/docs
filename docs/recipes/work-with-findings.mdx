@@ -1,61 +1,169 @@
 ---
-title: "Findings"
-description: "Understanding the Findings Page"
+title: "Work with Findings"
+description: "Triage, filter, send, fix, suppress, export — every operational action you can take on the Findings page."
 ---
 
-The Findings page displays vulnerabilities detected in your applications. This guide explains its key features and how to use them.
+# Work with Findings \{#recipes_work-with-findings-1\}
 
-<img src="/docs/plexicus/findings/list.png" alt="Findings Page" />
+The Findings page is where most of the daily work happens. This recipe covers every action: filtering, customizing the table, triaging, sending to developers, generating reports, and exporting. For *what a Finding is*, see the [Findings Model concept](/docs/concepts/findings-model).
 
-## Subpages \{#findings_index-1}
+:::tip Prerequisite
+At least one Application has finished scanning. See [Manage Applications](/docs/recipes/manage-applications) if no findings appear.
+:::
 
-1. **App (Application)**: Shows code-related vulnerabilities
-2. **SCM**: Displays findings related to the repositories
-3. **Cloud**: Presents findings related to Cloud services
+## The three tabs — App / SCM / Cloud \{#findings_index-1\}
 
-## Finding Statuses \{#findings_index-2}
+The Findings page splits into three independent tabs. Each one queries a different endpoint, has its own filter set, and uses its own saved-filter store.
 
-- **Enriched**: Initial stage of generated findings
-- **Pending Input**: Awaiting user input for remediation
-- **Ready**: Remediation is complete
-- **PR Submitted**: Pull Request has been created after remediation
-- **Issued**: Issue has been created after remediation
-- **PR Accepted**: Generated Pull Request has been accepted
+<CardGroup cols={3}>
+  <Card title="App" icon="material-symbols:code-blocks-outline">
+    Code-level findings — SAST, SCA, secrets, IaC. Resolution path: pull request.
+  </Card>
+  <Card title="SCM" icon="material-symbols:fork-right-outline">
+    Repository-config risks — branch protection, force-push, missing reviewers, exposed deploy keys.
+  </Card>
+  <Card title="Cloud" icon="material-symbols:cloud-outline">
+    Cloud-posture risks — public buckets, IAM excess, missing encryption, drift.
+  </Card>
+</CardGroup>
 
-## Key Features \{#findings_index-3}
+Switching tabs changes the underlying API call (`/findings`, `/findings/scm`, `/findings/cloud`) and resets pagination. Saved filters do not carry across tabs.
 
-### Buttons \{#findings_index-4}
+<img src="/docs/plexicus/findings/list.png" alt="Findings page" />
 
-- **Filter**: Manage and apply filters to your findings
-- **Searchbar**: Search for specific vulnerabilities by name
-- **Upload Scan**: Upload a template scan to view results in Findings
-- **Columns to Show**: Customize visible columns in the findings table
+## View a single finding \{#findings_index-5\}
 
-### Viewing Finding Details \{#findings_index-5}
+<Steps>
+  <Step title="Click the row">
+    The detail panel slides in from the right. It shows description, affected code, OWASP/CWE mapping, EPSS score, and the suggested remediation type.
 
-<img src="/docs/plexicus/findings/detail.png" alt="Findings Page" />
+    <img src="/docs/plexicus/findings/detail.png" alt="Finding detail panel" />
+  </Step>
+  <Step title="Read the AI Summary">
+    For App findings, the top of the panel includes a Plexicus-generated explanation of *why* this finding is real (not just what the scanner said). This uses the deep-reasoning enrichment if your org has it enabled.
+  </Step>
+  <Step title="Decide an action">
+    Action buttons at the top of the panel: **Create AI Remediation** (PR or Issue), **Send to Developer**, **Mark as Mitigated**, **Toggle False Positive**. The next sections cover each.
+  </Step>
+</Steps>
 
-1. Click the "View" button on any finding
-2. Access detailed information including:
-   - AI Remediation
-   - Summary
-   - OWASP Category
-   - Other relevant data
+## Filter findings \{#findings_index-3\}
 
-## Creating Remediations \{#findings_index-6}
+Filters apply to the active tab only. Click **Filter** to open the panel.
 
-1. In the finding detail view, look for the action button
-2. For Pull Request type:
-   - Button will show "Create AI Remediation"
-3. For Issue type:
-   - Button will show "Create Issue"
+| Dimension | Values | Notes |
+|---|---|---|
+| Severity | Critical · High · Medium · Low · Informational | Multi-select |
+| Status | Enriched · Pending Input · Processing · Ready · PR Submitted · Issued · PR Accepted · PR Rejected | Multi-select |
+| Repository | one or many | Cross-repo filtering |
+| Tool | bandit, trivy, gitleaks, opengrep, … | All scanners that produced this finding |
+| Date range | from / to | Based on first-seen date |
+| OWASP Top 10 | A01–A10 | App tab only |
+| CWE | search by CWE ID | App tab only |
+| Tag | repo tags | If you've labeled repos |
+| False positive | hide / show | Default: hide |
+| Mitigated | hide / show | Default: hide |
 
-### Remediation Stages \{#findings_index-7}
+Apply filters with **Apply Filter**. The URL updates so you can share the filtered view as a link. To save the filter for re-use, see [Configure Finding Filters](/docs/recipes/configure-finding-filters).
 
-1. **Pending Input**: Awaiting user input for remediation requirements
-2. **Processing**: Remediation is being processed (occurs when no template/input is available)
-3. **Ready**: Remediation is complete and ready for review
+## Customize columns \{#findings_index-4\}
 
-## Next Steps \{#findings_index-8}
+Click **Columns to Show** to pick which fields appear in the table. Choices persist per-user via `POST /findings-columns/save`. Full recipe: [Customize Findings Columns](/docs/recipes/customize-findings-columns).
 
-After reviewing findings, you can create remediations, submit pull requests, or create issues based on the vulnerabilities detected.
+Default columns: Severity · Title · Repository · Tool · CWE · File · Status · Created.
+
+## Bulk operations \{#recipes_work-with-findings-6\}
+
+Tick the checkbox at the head of the column to select all visible findings, or tick individual rows. Bulk action bar appears at the top.
+
+<AccordionGroup>
+  <Accordion title="Bulk: Send to developers" icon="material-symbols:send-outline">
+    Sends the selected findings to one or more developers via `POST /finding-send-bulk`. Each recipient gets an email + an in-app notification, and the finding is assigned to them.
+
+    Recipients are picked from `GET /users-developer` (your team members with the Developer role). See [Bulk Send to Developers](/docs/recipes/bulk-send-to-developers).
+  </Accordion>
+  <Accordion title="Bulk: Generate AI remediations" icon="material-symbols:auto-fix">
+    Calls `POST /remediations/bulk` with the selected finding IDs. Each finding follows the standard [AI Remediation flow](/docs/concepts/ai-remediation). Toggle **Auto-create PRs** to skip the manual review step — Plexicus opens PRs for every successful patch.
+
+    Findings whose `remediation_type = issue` get an issue created instead of a PR. Failed patches stay in `Processing` and can be retried.
+  </Accordion>
+  <Accordion title="Bulk: Apply patch" icon="material-symbols:upload-file-outline">
+    For findings already in **Ready**, `POST /bulk-actions/apply-patch` opens PRs in batch. Useful when you generated remediations earlier with `auto_create=false` and want to ship them now.
+  </Accordion>
+  <Accordion title="Bulk: Export" icon="material-symbols:download-outline">
+    Exports the selected findings (or the full filter scope) as JSON or CSV. See [Export Findings](/docs/recipes/export-findings).
+  </Accordion>
+</AccordionGroup>
+
+## Single-finding actions \{#findings_index-6\}
+
+<AccordionGroup>
+  <Accordion title="Create AI Remediation" icon="material-symbols:auto-fix" defaultOpen>
+    The headline action. Two variants based on `remediation_type`:
+
+    - **Pull Request** — Plexicus generates a patch via Codex Remedium and opens a PR in your SCM. The button label is **Create AI Remediation**.
+    - **Issue** — for findings that aren't auto-fixable (design CWEs, configuration drift). Button label is **Create Issue**. Plexicus opens a tracking issue with the finding details.
+
+    What happens next is detailed in [How AI Remediation Works](/docs/concepts/ai-remediation).
+  </Accordion>
+  <Accordion title="Send to Developer" icon="material-symbols:send-outline">
+    Assigns the finding to a specific developer. Calls `POST /finding-send/{finding_id}` with one or more `developer_ids`. The developer receives an email + WebSocket notification and the finding appears in their **Assigned to me** filter.
+
+    Use this when AI remediation isn't appropriate but you want a human owner.
+  </Accordion>
+  <Accordion title="Toggle False Positive" icon="material-symbols:close-outline">
+    Calls `PUT /findings/{id}/toggle_false_positive`. Hides the finding from default views and excludes it from severity counts. **Survives the next scan** — CosmosOptimizer carries the false-positive flag forward when re-deduplicating.
+
+    Use for findings that the scanner reported but don't apply (e.g. test code that uses `eval()` intentionally).
+  </Accordion>
+  <Accordion title="Mark as Mitigated" icon="material-symbols:verified-outline">
+    Calls `POST /findings/{id}/mark-as-mitigated`. Different from false positive — this means **the finding is real but you've accepted the risk** (e.g. won't-fix legacy code, compensating control elsewhere). The finding moves to status `Mitigated` and is excluded from active counts.
+  </Accordion>
+  <Accordion title="Generate SARIF report" icon="material-symbols:summarize-outline">
+    Calls `POST /findings/{id}/report`. Returns a SARIF document for this single finding — useful for sharing with auditors or attaching to compliance tickets without exposing the rest of your inventory.
+
+    For bulk SARIF, see [Export Findings](/docs/recipes/export-findings).
+  </Accordion>
+  <Accordion title="Edit a generated patch" icon="material-symbols:edit-outline">
+    For remediations in **Ready** that you want to tweak before submitting: open the finding, click **Edit Diff**, modify the proposed change, then submit. Calls `PUT /remediations/{id}/edit`.
+  </Accordion>
+</AccordionGroup>
+
+## Triage workflow — what to actually do \{#recipes_work-with-findings-8\}
+
+A pragmatic daily routine that scales:
+
+<Steps>
+  <Step title="Filter by Critical + High, Status: Enriched">
+    These are new findings the system thinks matter most. Sort by **Priority** (default), not Severity — Plexicus's prioritization weighs runtime context.
+  </Step>
+  <Step title="For each, decide one of four buckets in <30 seconds">
+    - **Real and fixable now** → Create AI Remediation (or Send to Developer).
+    - **Real but won't fix** → Mark as Mitigated.
+    - **Not real** → Toggle False Positive.
+    - **Not sure** → Skip; come back to it tomorrow with fresh eyes.
+  </Step>
+  <Step title="Bulk-remediate the rest">
+    Select all the Medium severity findings still in Enriched, click **Generate AI remediations**, toggle **Auto-create PRs**. Review the resulting PRs in your SCM the next day.
+  </Step>
+  <Step title="Save the filter as your default triage view">
+    Click **Save Filter** to store this view. Next time you open Findings, click your saved filter to skip straight back here.
+  </Step>
+</Steps>
+
+## Related \{#findings_index-8\}
+
+<CardGroup cols={2}>
+  <Card title="Findings Model" icon="material-symbols:bug-report-outline" href="/docs/concepts/findings-model">
+    Schema, statuses, severity vs priority, the enrichment pipeline.
+  </Card>
+  <Card title="AI Remediation" icon="material-symbols:auto-fix" href="/docs/concepts/ai-remediation">
+    What happens between Create AI Remediation and the merged PR.
+  </Card>
+  <Card title="Configure Finding Filters" icon="material-symbols:filter-alt-outline" href="/docs/recipes/configure-finding-filters">
+    Save, activate, and share filter views.
+  </Card>
+  <Card title="Export Findings" icon="material-symbols:download-outline" href="/docs/recipes/export-findings">
+    SARIF / JSON / CSV exports for auditors and downstream systems.
+  </Card>
+</CardGroup>

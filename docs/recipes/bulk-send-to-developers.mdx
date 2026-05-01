@@ -1,0 +1,89 @@
+---
+title: "Bulk Send Findings to Developers"
+description: "Assign many findings to many developers in one action — without opening each finding."
+---
+
+# Bulk Send Findings to Developers \{#recipes_bulk-send-to-developers-1\}
+
+For triage at scale: select N findings, pick M developers, send. Each recipient gets one email summarizing the findings assigned to them and an in-app notification per finding. Backed by `POST /finding-send-bulk`.
+
+:::tip When to use this
+Use bulk send when you've already classified a batch of findings and just need to route them. For finer-grained assignment (one finding to one specialist), the single-send action on the finding detail panel is faster.
+:::
+
+## Send in bulk \{#recipes_bulk-send-to-developers-2\}
+
+<Steps>
+  <Step title="Filter the findings you want to send">
+    Apply a filter that narrows to the batch — e.g. `severity=Critical` + `tool=trivy`. See [Configure Finding Filters](/docs/recipes/configure-finding-filters).
+  </Step>
+  <Step title="Select the rows">
+    Tick individual rows, or tick the header checkbox to select all visible findings. The bulk action bar appears at the top of the table.
+  </Step>
+  <Step title="Click Send to developers">
+    A dialog opens listing your team's developers (sourced from `GET /users-developer` — only users with the Developer role).
+  </Step>
+  <Step title="Pick recipients">
+    Tick one or more developers. Plexicus distributes the findings round-robin if you pick more than one, unless you tick **Send all to each** to broadcast every finding to every recipient.
+  </Step>
+  <Step title="Send">
+    Plexicus calls `POST /finding-send-bulk` with `finding_ids` and `developer_ids`. Each finding gets `assigned_to` set; each developer receives:
+
+    - One email summarizing the assignment (subject: *N new findings assigned to you*)
+    - One in-app WebSocket notification per finding
+    - The findings appear in their saved **Assigned to me** filter
+  </Step>
+</Steps>
+
+## API alternative \{#recipes_bulk-send-to-developers-3\}
+
+For automation, call the endpoint directly:
+
+```bash
+curl -X POST "https://app.plexicus.ai/finding-send-bulk" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "finding_ids": ["finding1", "finding2", "finding3"],
+    "developer_ids": ["dev1", "dev2"]
+  }'
+```
+
+Returns `200` on success with a per-finding assignment map. Failed assignments (e.g. developer left the org) are reported in the response — the partial assignment is committed.
+
+## Round-robin vs broadcast \{#recipes_bulk-send-to-developers-4\}
+
+| Mode | What it does | Use when |
+|---|---|---|
+| **Round-robin** (default) | Distributes findings evenly across recipients | Spreading triage load |
+| **Broadcast** (Send all to each) | Every recipient gets every finding | Architectural-review batch |
+
+Round-robin uses a deterministic order — re-running the same bulk send won't shuffle assignments.
+
+## What recipients see \{#recipes_bulk-send-to-developers-5\}
+
+The developer's **Assigned to me** view shows:
+
+- The finding title, severity, repository, file/line.
+- A direct link to the finding detail page.
+- The action buttons: **Create AI Remediation**, **Toggle False Positive**, **Mark as Mitigated**.
+- The assigner's name and timestamp.
+
+Developers with `notification_email` enabled also receive a daily digest of newly-assigned findings — set in [Organization Settings](/docs/reference/organization-settings).
+
+## Reassigning \{#recipes_bulk-send-to-developers-6\}
+
+Re-running the bulk send action against the same finding **overwrites** the previous assignment — the previous owner sees a notification that the finding has been reassigned and disappears from their queue.
+
+To unassign without reassigning, open the finding and click **Clear assignment** on the detail panel.
+
+## Related \{#recipes_bulk-send-to-developers-7\}
+
+<CardGroup cols={2}>
+  <Card title="Work with Findings" icon="material-symbols:bug-report-outline" href="/docs/recipes/work-with-findings">
+    Single-finding actions and filtering basics.
+  </Card>
+  <Card title="AI Remediation" icon="material-symbols:auto-fix" href="/docs/concepts/ai-remediation">
+    What happens after you generate remediations — the workflow chain end-to-end.
+  </Card>
+</CardGroup>

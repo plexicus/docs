@@ -1,0 +1,108 @@
+---
+title: "Configure Finding Filters"
+description: "Save, activate, and reuse filter views across the App, SCM, and Cloud Findings tabs."
+---
+
+# Configure Finding Filters \{#recipes_configure-finding-filters-1\}
+
+Findings filters are first-class objects. You save a filter once, name it, and activate it later — across sessions, across users (if shared), and per Findings tab (App / SCM / Cloud).
+
+## Save a filter \{#recipes_configure-finding-filters-2\}
+
+<Steps>
+  <Step title="Build the filter">
+    On the Findings page, click **Filter**, choose dimensions (severity, status, repo, tool, …), and click **Apply Filter**.
+  </Step>
+  <Step title="Click Save Filter">
+    A dialog asks for a name (e.g. *Critical-untriaged*) and a description (optional). The active tab determines which endpoint the filter is saved against:
+
+    - App tab → `POST /findings-filter/default/save`
+    - SCM tab → `POST /findings-filter/scm/save`
+    - Cloud tab → `POST /findings-filter/cloud/save`
+  </Step>
+  <Step title="Confirm">
+    Plexicus stores the filter under your user account. Saved filters appear in the dropdown next to **Filter**.
+  </Step>
+</Steps>
+
+## Activate a saved filter \{#recipes_configure-finding-filters-3\}
+
+Click the saved-filter dropdown, pick the filter. Plexicus calls one of:
+
+- `POST /findings-filter/activate/{name}` (App)
+- `POST /findings-filter/scm/activate/{name}` (SCM)
+- `POST /findings-filter/cloud/activate/{name}` (Cloud)
+
+The page reloads with the filter applied. Active filter persists across sessions until you change it.
+
+## Update an existing filter \{#recipes_configure-finding-filters-4\}
+
+To modify an active filter without creating a new one, change the filter dimensions and click **Update Filter** (instead of Save). Calls:
+
+- `PUT /findings-filter/default/update-activate` (App)
+- `PUT /findings-filter/scm/update-activate` (SCM)
+- `PUT /findings-filter/cloud/update-activate` (Cloud)
+
+This updates and re-activates atomically.
+
+## Delete a filter \{#recipes_configure-finding-filters-5\}
+
+Open the saved-filter dropdown, hover over a filter, click the trash icon. Calls `DELETE /findings-filter/{tab}/delete/{name}`.
+
+Deleted filters cannot be restored — Plexicus does not soft-delete saved filters.
+
+## Inspect what's currently active \{#recipes_configure-finding-filters-6\}
+
+Plexicus exposes endpoints to read the active filter without changing it — useful when scripting against the API:
+
+| Tab | Endpoint |
+|---|---|
+| App | `GET /findings-filter/default/selected` |
+| SCM | `GET /findings-filter/scm/selected` |
+| Cloud | `GET /findings-filter/cloud/selected` |
+
+Each returns the saved-filter list plus the currently active filter object.
+
+## Filter schema cheatsheet \{#recipes_configure-finding-filters-7\}
+
+A saved filter is a JSON document with three top-level keys:
+
+```json
+{
+  "pagination": { "page": 0, "pageSize": 25 },
+  "repository_filter": { "ids": ["repo123", "repo456"] },
+  "field_selection": ["severity", "title", "file", "tool", "status"]
+}
+```
+
+Plus dimension-specific keys: `severity`, `status`, `tool`, `cwe`, `owasp`, `date_range`, `tags`, `false_positive`, `mitigated`. The full schema is in [Finding Filter Schema (Reference)](/docs/reference).
+
+## Common saved filters \{#recipes_configure-finding-filters-8\}
+
+A starter set most teams adopt:
+
+<CardGroup cols={2}>
+  <Card title="Critical-untriaged" icon="material-symbols:priority-high">
+    `severity=Critical,High` + `status=Enriched`. Daily triage queue.
+  </Card>
+  <Card title="Mine" icon="material-symbols:person-outline">
+    `assigned_to=current_user` + `status≠PR Accepted`. Personal work-in-progress.
+  </Card>
+  <Card title="Compliance-PCI" icon="material-symbols:gavel-outline">
+    `owasp=A02,A03,A07` (Crypto, Injection, Auth). Quarterly compliance review.
+  </Card>
+  <Card title="Stale" icon="material-symbols:hourglass-bottom-outline">
+    `status=PR Submitted` + `date<14d ago`. Reviewer-nag list.
+  </Card>
+</CardGroup>
+
+## Related \{#recipes_configure-finding-filters-9\}
+
+<CardGroup cols={2}>
+  <Card title="Work with Findings" icon="material-symbols:bug-report-outline" href="/docs/recipes/work-with-findings">
+    The full Findings page operational guide.
+  </Card>
+  <Card title="Customize Columns" icon="material-symbols:view-column-outline" href="/docs/recipes/customize-findings-columns">
+    Pick which fields appear in the Findings table.
+  </Card>
+</CardGroup>
