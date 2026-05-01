@@ -565,20 +565,18 @@ Open **Findings** in the left sidebar. The page is split into Repo / SCM / Cloud
 
 To bring findings into the visible list, apply a filter (the funnel icon next to the Search box) that includes statuses like `enriched` and `completed`, or drill into the repository directly from the Assets page (12.7). For sandbox installs, the empty state itself is the proof that the full pipeline (clone → SAST → SCA → enrichment) ran end-to-end without erroring.
 
-### 12.alt Connect a real SCM (production path) \{#self-hosted_local-evaluation-scm-real}
+### 12.alt Why the eval install does not need real OAuth \{#self-hosted_local-evaluation-scm-real}
 
-For production deployments, replace the Sandbox path with a real SCM OAuth integration:
+The Sandbox path documented above bypasses the OAuth flow entirely — Plexicus serves a synthetic SCM connector backed by the pre-loaded `simplest-vulnerable` repository, so the install reaches Findings without ever round-tripping through GitHub/GitLab/Bitbucket. That is fine for evaluation because the chart's defaults leave every OAuth `clientId` empty (the SPA detects the empty value and disables the **Login with GitHub** / **Connect** button rather than starting a redirect that would 404).
 
-1. Register an OAuth application at GitHub / GitLab / Bitbucket / Gitea.
-2. Populate `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` (and equivalents for the other providers) in the `plexicus-fastapi` Secret created in step 8.
-3. Restart the FastAPI deployment (`kubectl -n plexicus rollout restart deploy/fastapi`).
-4. On the Onboarding screen click **Connect SCM** instead of Go To Sandbox.
-5. Plexicus redirects to the provider's OAuth consent screen. Authorize, get redirected back, then add a real repository through the **Applications** page.
+For a production install with real repositories, you need an OAuth application registered on the provider side **with a callback URL that exactly matches what Plexicus sends** — otherwise GitHub returns `redirect_uri_mismatch` and refuses the request. The eval host (`plexicus.local`) is on `/etc/hosts`, not on public DNS, so registering an OAuth app for it would fail anyway.
 
-The browser-based OAuth redirect cannot be bypassed via API — the user must complete the authorization step in a browser. Once a SCM is connected, the same operations are available over the REST API for CI / scripting (`POST /create_repository_with_list`, `POST /request_repo_scan`, `GET /findings`).
+For step-by-step OAuth-app registration (GitHub / GitLab / Bitbucket / Google), see the production guide:
+- [Production path — register OAuth apps first](/docs/self-hosted/helm-chart#self-hosted_helm-chart-scm-real)
+- Subsections: [GitHub](/docs/self-hosted/helm-chart#self-hosted_helm-chart-scm-real-github) · [GitLab](/docs/self-hosted/helm-chart#self-hosted_helm-chart-scm-real-gitlab) · [Bitbucket](/docs/self-hosted/helm-chart#self-hosted_helm-chart-scm-real-bitbucket) · [Wire credentials into Plexicus](/docs/self-hosted/helm-chart#self-hosted_helm-chart-scm-real-wire)
 
 :::tip Automation
-Once a SCM is connected via the browser, the same operations are available over the REST API for CI / scripting use cases. See the [API reference](/docs/category/platform_api) (`POST /create_repository_with_list`, `POST /request_repo_scan`, `GET /findings`).
+Once a SCM is connected via the browser, the same operations are available over the REST API for CI / scripting use cases (`POST /create_repository_with_list`, `POST /request_repo_scan`, `GET /findings`).
 :::
 
 ## 13. Cleanup \{#self-hosted_local-evaluation-cleanup}

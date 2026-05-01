@@ -594,20 +594,127 @@ Plexicus shows the **Scanning in progress** screen while the worker pipeline (cl
 
 ![Scanning in progress with the worker pipeline running](/img/self-hosted/scm/05-scanning-in-progress.jpg)
 
-#### Production path — Connect SCM via OAuth \{#self-hosted_helm-chart-scm-real}
+#### Production path — register OAuth apps first \{#self-hosted_helm-chart-scm-real}
 
-For production deployments, click **Connect SCM** instead of Go To Sandbox. This requires real OAuth client credentials populated in the `plexicus-fastapi` Secret you created in step 5 (`GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET`, plus the equivalents for GitLab / Bitbucket — see [`docs/secrets-management.md`](#self-hosted_helm-chart-day2) inside the chart artifact for the full key catalog).
+For production deployments, **Connect SCM** uses a real OAuth 2.0 redirect flow. Each provider must have an OAuth application registered on its side, with a callback URL that exactly matches the URL Plexicus will redirect to. If the registered callback doesn't match, the provider rejects the request with `400 redirect_uri_mismatch` (GitHub) or equivalent.
 
-Connecting a SCM is a standard OAuth 2.0 redirect flow:
+Substitute `<your-domain>` (e.g. `plexicus.acme.com`) in every URL below — they all point at the SPA domain, **not** the API subdomain.
+
+| Provider | Authorization callback URL to register |
+|----------|----------------------------------------|
+| GitHub | `https://<your-domain>/api/callback/github` |
+| GitLab | `https://<your-domain>/api/callback/gitlab` |
+| Bitbucket Cloud | `https://<your-domain>/api/callback/bitbucket_cloud` |
+| Google (SSO) | `https://<your-domain>/api/callback/google` |
+
+The eval install at `https://plexicus.local` does not need OAuth apps — the Sandbox path uses a synthetic SCM connector that bypasses the real OAuth flow. OAuth registration is required only when connecting Plexicus to **real** GitHub / GitLab / Bitbucket repositories from a public hostname.
+
+##### GitHub — register an OAuth App \{#self-hosted_helm-chart-scm-real-github}
+
+For per-user OAuth (the simplest path):
+
+1. On GitHub, navigate to **Settings → Developer settings → OAuth Apps → New OAuth App** ([direct link](https://github.com/settings/developers)). For organisation-wide installs, register the app under the organisation's settings instead of your personal account.
+2. Fill the form:
+   - **Application name**: `Plexicus` (or any label your users will see on the consent screen)
+   - **Homepage URL**: `https://<your-domain>`
+   - **Authorization callback URL**: `https://<your-domain>/api/callback/github` ← exactly this path
+   - **Application description**: optional
+   - Leave **Enable Device Flow** unchecked
+3. Click **Register application**.
+4. On the resulting page, copy the **Client ID** (visible) and click **Generate a new client secret** to reveal the **Client Secret** (shown only once — copy it before navigating away).
+
+For richer integration (webhooks, branch checks, repo-level metadata), use **GitHub Apps** instead: **Settings → Developer settings → GitHub Apps → New GitHub App**. Set the same callback URL and grant the repository `Metadata: Read-only`, `Contents: Read-only`, `Pull requests: Read & Write`, `Webhooks: Read & Write`. Download the generated private-key `.pem` file and note the App ID — these go into `GH_APP_PRIVATE_KEY` and `GITHUB_APP_ID` instead of (or alongside) the OAuth client credentials.
+
+##### GitLab — register an OAuth Application \{#self-hosted_helm-chart-scm-real-gitlab}
+
+1. On GitLab, navigate to **User settings → Applications → New application** ([direct link](https://gitlab.com/-/user_settings/applications)) — or **Admin Area → Applications** for instance-wide registration on self-hosted GitLab.
+2. Fill the form:
+   - **Name**: `Plexicus`
+   - **Redirect URI**: `https://<your-domain>/api/callback/gitlab`
+   - **Confidential**: keep checked
+   - **Scopes**: `read_user`, `read_api`, `read_repository`, `read_registry` (add `api` if you want write access for PR comments / merge requests)
+3. Click **Save application**.
+4. Copy the **Application ID** (= `clientId`) and the **Secret** shown on the next page (visible only once).
+
+##### Bitbucket Cloud — register an OAuth Consumer \{#self-hosted_helm-chart-scm-real-bitbucket}
+
+1. On Bitbucket, navigate to **Workspace settings → OAuth consumers → Add consumer** ([go to Bitbucket Cloud](https://bitbucket.org/account/workspaces/) and pick the workspace).
+2. Fill the form:
+   - **Name**: `Plexicus`
+   - **Callback URL**: `https://<your-domain>/api/callback/bitbucket_cloud`
+   - **URL**: `https://<your-domain>` (homepage)
+   - **This is a private consumer**: keep checked
+   - **Permissions**: Account `Read`; Repositories `Read`; Pull requests `Read` (add `Write` for inline-comment integration)
+3. Click **Save**.
+4. Expand the new consumer entry to reveal the **Key** (= `clientId`) and **Secret** (= `clientSecret`).
+
+##### Wire the credentials into Plexicus \{#self-hosted_helm-chart-scm-real-wire}
+
+OAuth credentials split into two halves: the **client_id is public** (rendered into the SPA's Login button URL) and the **client_secret is private** (used only by the FastAPI backend and the Nuxt SSR layer to exchange the OAuth code for an access token).
+
+Public IDs go into your customer values overlay (`my-values.yaml`):
+
+```yaml
+global:
+  required:
+    oauth:
+      github:
+        clientId: "Iv1.abcdef0123456789"           # GitHub OAuth App "Client ID"
+        # appId / appPrivateKey only if you registered a GitHub App (not OAuth App):
+        # appId: 1234567
+        # appInstallationUrl: "https://github.com/apps/<your-app-slug>/installations/new"
+      gitlab:
+        clientId: "abcdef0123456789abcdef..."      # GitLab Application ID
+      bitbucket:
+        key: "abcdef0123456789abcd"                # Bitbucket Consumer Key
+      google:
+        clientId: "1234567890-abcdef.apps.googleusercontent.com"
+```
+
+Private secrets go into the `plexicus-fastapi` Kubernetes Secret you created in step 5 (re-create with the new keys, or `kubectl edit secret` to add them):
+
+```bash
+kubectl -n plexicus create secret generic plexicus-fastapi \
+  ... existing keys ... \
+  --from-literal=GITHUB_CLIENT_SECRET="<github-oauth-client-secret>" \
+  --from-literal=GITLAB_CLIENT_SECRET="<gitlab-application-secret>" \
+  --from-literal=BITBUCKET_CLIENT_SECRET="<bitbucket-consumer-secret>" \
+  --dry-run=client -o yaml | kubectl apply -f -
+```
+
+If you registered a GitHub **App** (not an OAuth App), also add the private key:
+
+```bash
+kubectl -n plexicus patch secret plexicus-fastapi \
+  --type=json -p='[{"op":"add","path":"/data/GH_APP_PRIVATE_KEY","value":"'$(base64 -w0 < ~/Downloads/your-app.private-key.pem)'"}]'
+kubectl -n plexicus patch secret plexicus-worker \
+  --type=json -p='[{"op":"add","path":"/data/GH_APP_PRIVATE_KEY","value":"'$(base64 -w0 < ~/Downloads/your-app.private-key.pem)'"}]'
+```
+
+Roll the workloads so the new env vars take effect:
+
+```bash
+helm upgrade plexicus oci://europe-west3-docker.pkg.dev/plexicus-registry/charts/plexicus \
+  --version $CHART_VERSION --namespace plexicus -f my-values.yaml
+kubectl -n plexicus rollout restart deploy/fastapi deploy/frontend deploy/worker
+```
+
+##### Now click Connect SCM \{#self-hosted_helm-chart-scm-real-connect}
+
+After the rollout completes, return to the **Connectors** page, find your provider, and click **Connect**:
 
 1. Open the **Connectors** entry in the left sidebar.
-2. Find your SCM (GitHub / GitLab / Bitbucket / Gitea) in the **SCM Integrations** panel and click **Connect**.
-3. Plexicus redirects you to the provider's authorize URL. Log in and click **Authorize Plexicus** (or the name of your registered OAuth app).
-4. The provider redirects you back to Plexicus and the connector card displays **Connected**.
+2. Find your SCM (GitHub / GitLab / Bitbucket) in the **SCM Integrations** panel and click **Connect**.
+3. Plexicus redirects to the provider's authorize URL. Log in and click **Authorize Plexicus**.
+4. The provider redirects back to `https://<your-domain>/api/callback/<provider>` and the connector card displays **Connected**.
 
-The OAuth redirect is browser-only — there is no Personal Access Token or API shortcut to skip it. Once a SCM is connected through the browser, every subsequent operation is available over the REST API for CI / scripting (`POST /create_repository_with_list`, `POST /request_repo_scan`, `GET /findings`).
+If you see `redirect_uri_mismatch` (GitHub) or `invalid_redirect_uri` (GitLab/Bitbucket) in the browser address bar after step 3, the **Authorization callback URL** registered with the provider does not match what Plexicus sent. Re-check it: the value must be exactly `https://<your-domain>/api/callback/<provider>` — same scheme (https vs http), same hostname (no `api.` prefix), no trailing slash, no path query string.
 
-After a real SCM is connected, the **Applications** page replaces the Sandbox flow:
+The OAuth redirect is browser-only — there is no Personal Access Token or API shortcut. Once a SCM is connected through the browser, every subsequent operation is available over the REST API for CI / scripting (`POST /create_repository_with_list`, `POST /request_repo_scan`, `GET /findings`).
+
+##### Add a repository and scan \{#self-hosted_helm-chart-scm-real-scan}
+
+After Connect succeeds, the **Applications** page replaces the Sandbox flow:
 
 1. Open **Applications** in the left sidebar and click **Add applications**.
 2. Pick the SCM connector you just authorized.
