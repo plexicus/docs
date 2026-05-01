@@ -507,49 +507,56 @@ A `200` with an `access_token` confirms the full chain — frontend → ingress 
 
 ## 10. Connect a SCM and run your first scan \{#self-hosted_helm-chart-scm}
 
-:::warning Browser-only OAuth — by design
-Connecting GitHub / GitLab / Bitbucket / Gitea to Plexicus uses a standard OAuth 2.0 redirect flow. The user must complete the authorization in a browser — there is no API-only or Personal Access Token shortcut to skip the redirect. The bullet below assumes you already populated the SCM OAuth client credentials (`GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` etc.) when you created `plexicus-fastapi` in step 5; without those, the OAuth flow returns 400 from the provider.
+:::warning Browser-only flow — by design
+Connecting GitHub / GitLab / Bitbucket / Gitea to Plexicus uses a standard OAuth 2.0 redirect flow. The user must complete the authorization in a browser — there is no API-only or Personal Access Token shortcut to skip the redirect. The whole sequence below happens in your browser. Make sure the SCM OAuth client credentials (`GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET`, etc.) were populated in `plexicus-fastapi` during step 5 — without them the OAuth flow returns 400 from the provider.
 :::
 
-### 10.1 Connect the SCM via the UI \{#self-hosted_helm-chart-scm-connect}
+### 10.1 Sign in to the panel \{#self-hosted_helm-chart-scm-signin}
 
-1. Sign in to `https://<your-domain>` with the admin user from step 9.
-2. Open the **Connectors** page in the left sidebar.
-3. Click your SCM (GitHub / GitLab / Bitbucket / Gitea) → **Connect**. The browser is redirected to the provider for authorization. Log in and approve.
-4. The provider redirects back to `https://api.<your-domain>/vulnerability_tool/callback/<provider>?code=…&state=…`. The callback stores the access_token + refresh_token on the user record in MongoDB.
+Open `https://<your-domain>` in your browser and sign in with the admin user you bootstrapped in step 9.
 
-### 10.2 Add a repository \{#self-hosted_helm-chart-scm-add-repo}
+{/* TODO: screenshot — login page rendered at https://<your-domain> with the email/password fields populated */}
 
-UI: **Applications** → **Add applications** → pick the SCM connector, choose the repo, set a nickname and branch, click **Create**.
+### 10.2 Connect the SCM from the Connectors page \{#self-hosted_helm-chart-scm-connect}
 
-API equivalent (assumes the SCM is already connected per step 10.1):
+1. Open the **Connectors** entry in the left sidebar.
+2. Find your SCM (GitHub / GitLab / Bitbucket / Gitea) in the SCM Integrations panel and click **Connect**.
+3. Plexicus redirects you to the provider for OAuth authorization. Log in and click **Authorize Plexicus** (or the name of your OAuth app).
+4. The provider redirects you back to Plexicus and the connector card now shows **Connected**.
 
-```bash
-curl -X POST https://api.<your-domain>/create_repository_with_list \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "source_control": "github",
-    "data": [
-      { "uri": "https://github.com/<owner>/<repo>",
-        "nickname": "First repo",
-        "branch": "main" }
-    ]
-  }'
-```
+{/* TODO: screenshot — Connectors page with the SCM card before clicking Connect */}
 
-### 10.3 Trigger a scan and read the findings \{#self-hosted_helm-chart-scm-scan}
+{/* TODO: screenshot — GitHub/GitLab/Bitbucket authorize page (consent screen) */}
 
-```bash
-curl -X POST https://api.<your-domain>/request_repo_scan \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"repository_id":"<id-from-step-10.2>","scan_type":"app"}'
+{/* TODO: screenshot — Connectors page after callback, SCM card displaying "Connected" state */}
 
-curl -H "Authorization: Bearer $TOKEN" https://api.<your-domain>/findings
-```
+### 10.3 Add a repository \{#self-hosted_helm-chart-scm-add-repo}
 
-Scan progress also surfaces in **Findings** in the UI as workers process the queue.
+1. Open the **Applications** page in the left sidebar.
+2. Click **Add applications**.
+3. Pick the SCM connector you just authorized.
+4. Choose the repository, set a nickname, pick the branch (defaults to `main`).
+5. Click **Create selected repositories**.
+
+{/* TODO: screenshot — Applications page → Add applications dialog with the connector and repo list visible */}
+
+{/* TODO: screenshot — Applications page after creation showing the new repository tile */}
+
+### 10.4 Trigger a scan and view findings \{#self-hosted_helm-chart-scm-scan}
+
+1. Open the new repository entry on the **Applications** page.
+2. Click **Run scan**. Plexicus shows a progress indicator while the worker pipeline (clone → SAST → SCA → enrichment) runs. Expect 1–5 minutes for a small repo, longer for monorepos.
+3. When the scan completes, open the **Findings** page in the left sidebar. The dashboard shows totals by severity; click any row to see the affected file, the matched rule, and the AI-generated remediation suggestion.
+
+{/* TODO: screenshot — Repository detail page mid-scan showing the progress UI */}
+
+{/* TODO: screenshot — Findings page with severity breakdown and the first finding visible */}
+
+{/* TODO: screenshot — Finding detail panel showing affected file + remediation */}
+
+:::tip Automation
+Once a SCM is connected via the browser, the same operations are available over the REST API for CI / scripting use cases. See the [API reference](/docs/category/platform_api) (`POST /create_repository_with_list`, `POST /request_repo_scan`, `GET /findings`).
+:::
 
 ---
 
