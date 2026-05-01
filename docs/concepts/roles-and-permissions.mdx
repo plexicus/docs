@@ -1,0 +1,109 @@
+---
+title: "Roles and Permissions"
+description: "What Admin, Cyberoper, Developer, and Superadmin can each do — at the API and UI level."
+---
+
+# Roles and Permissions \{#concepts_roles-and-permissions-1\}
+
+Plexicus has four roles, enforced at the API layer by middleware (`authenticated.ts`, `only-superadmin.ts`, `not-developer.ts`). Every API route gates on role; the UI just hides what the user can't reach. This page is the source of truth for *who can do what*.
+
+## The four roles \{#concepts_roles-and-permissions-2\}
+
+<CardGroup cols={2}>
+  <Card title="Admin" icon="material-symbols:admin-panel-settings-outline">
+    Owns the organization. Invites users, configures integrations, sets billing, picks the AI provider, enforces SSO/2FA. Can do everything except cross-tenant operations.
+  </Card>
+  <Card title="Cyberoper" icon="material-symbols:security">
+    Security operator. Triages findings, sends to developers, manages remediations, but cannot connect new repositories or modify org-level settings.
+  </Card>
+  <Card title="Developer" icon="material-symbols:code-blocks-outline">
+    Engineer who fixes findings assigned to them. Connects repositories they own; sees only findings on those repos or assigned to them.
+  </Card>
+  <Card title="Superadmin" icon="material-symbols:shield-person-outline">
+    Reserved for Plexicus support staff (or the self-hosted operator's break-glass account). Cross-tenant scope. Not a role you assign to your team.
+  </Card>
+</CardGroup>
+
+## What each role can do \{#concepts_roles-and-permissions-3\}
+
+| Action | Admin | Cyberoper | Developer | Superadmin |
+|---|:-:|:-:|:-:|:-:|
+| **Organization** | | | | |
+| Invite team members | ✅ | — | — | ✅ |
+| Remove team members | ✅ | — | — | ✅ |
+| Modify org-level settings (billing, SSO, AI provider) | ✅ | — | — | ✅ |
+| Set scan schedules | ✅ | — | — | ✅ |
+| Configure integrations (Jira, ServiceNow, SCM) | ✅ | — | — | ✅ |
+| Toggle deep reasoning enrichment | ✅ | — | — | ✅ |
+| **Applications & repositories** | | | | |
+| Connect new SCM | ✅ | — | ✅ | ✅ |
+| Add applications | ✅ | — | ✅ | ✅ |
+| Delete applications | ✅ | — | — | ✅ |
+| Trigger scan | ✅ | ✅ | ✅ (own repos) | ✅ |
+| Cancel running scan | ✅ | ✅ | — | ✅ |
+| **Findings** | | | | |
+| View all findings | ✅ | ✅ | — (own/assigned only) | ✅ |
+| View own/assigned findings | ✅ | ✅ | ✅ | ✅ |
+| Toggle false positive | ✅ | ✅ | ✅ (own) | ✅ |
+| Mark as mitigated | ✅ | ✅ | — | ✅ |
+| Send finding to developer | ✅ | ✅ | — | ✅ |
+| Bulk send findings | ✅ | ✅ | — | ✅ |
+| **Remediation** | | | | |
+| Create AI remediation | ✅ | ✅ | ✅ (own) | ✅ |
+| Bulk remediate | ✅ | ✅ | — | ✅ |
+| Edit remediation diff | ✅ | ✅ | ✅ (own) | ✅ |
+| Open PR / Issue | ✅ | — | ✅ (own) | ✅ |
+| **Reports** | | | | |
+| Generate SARIF | ✅ | ✅ | ✅ (own) | ✅ |
+| Export JSON / CSV | ✅ | ✅ | ✅ (own) | ✅ |
+| **Cross-tenant** | | | | |
+| Switch organizations | — | — | — | ✅ |
+| Impersonate user | — | — | — | ✅ |
+| View any client's data | — | — | — | ✅ |
+
+The "own/assigned" qualifier on Developer rows is enforced by `FindingUtils.map_filter_findings_by_role_developer(user_id, filters)` — every Developer query gets a server-side filter applied that restricts to (a) repositories they connected, plus (b) findings explicitly assigned to them.
+
+## How enforcement works \{#concepts_roles-and-permissions-4\}
+
+Every authenticated route runs through middleware:
+
+```text
+Request → check-token (validates JWT)
+       → authenticated (loads user from JWT claims)
+       → role-specific middleware:
+           - only-superadmin   (Superadmin only)
+           - not-developer     (Admin, Cyberoper, Superadmin)
+           - (none)            (any authenticated user; per-route filtering)
+       → route handler
+```
+
+If a Developer hits `POST /team` (invite member), `not-developer` middleware returns `403` before the handler runs. The UI never shows the **Invite member** button to Developers, but a curl call would still hit the same wall.
+
+## Why no "read-only" role? \{#concepts_roles-and-permissions-5\}
+
+We get asked. The Cyberoper role was designed to be the read-mostly tier — it sees everything but can't connect new sources or modify org settings. If you need a stricter read-only audit role, the recommended pattern is:
+
+1. Create a dedicated user (e.g. `auditor@yourorg.com`) with Cyberoper role.
+2. Generate an [API token](/docs/recipes/generate-api-token) under that account.
+3. Use the token from your audit pipeline.
+
+The token inherits Cyberoper permissions. There's no way to make it strictly read-only via roles alone — false-positive toggling and mark-as-mitigated are write operations on the Finding document.
+
+## Changing a user's role \{#concepts_roles-and-permissions-6\}
+
+Admins only. Organization → Team → click the user's row → change role → Save.
+
+This calls `PUT /team/{user_id}/role` and takes effect on the next API request — no logout required.
+
+**You cannot demote yourself out of Admin** if you're the only Admin. Plexicus blocks the action server-side (`409 Last admin cannot be demoted`). Promote someone else first, then demote yourself.
+
+## Related \{#concepts_roles-and-permissions-7\}
+
+<CardGroup cols={2}>
+  <Card title="Multi-tenant Security" icon="material-symbols:shield-outline" href="/docs/concepts/multi-tenant-security">
+    How role enforcement combines with tenant isolation.
+  </Card>
+  <Card title="Configure SSO" icon="material-symbols:login-outline" href="/docs/recipes/configure-sso">
+    Map IdP groups to Plexicus roles automatically.
+  </Card>
+</CardGroup>

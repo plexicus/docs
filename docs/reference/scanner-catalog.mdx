@@ -1,0 +1,161 @@
+---
+title: "Scanner Catalog"
+description: "Every tool Plexicus orchestrates — what it scans, what it produces, how to enable / disable / customize it."
+---
+
+# Scanner Catalog \{#reference_scanner-catalog-1\}
+
+Plexicus orchestrates 25+ scanners across SAST, SCA, secrets, IaC, container, and cloud-posture domains. This page is the definitive list with default config, override syntax, and links to upstream docs.
+
+Configuration entry points:
+
+- **Per-client tool list** — `POST /client/included-tools/add` / `/remove`. Adds or removes a scanner from your org's default included set.
+- **Per-tool parameters** — `POST /custom-parameters/{tool_name}` (full CRUD). Override default rule selection, severity thresholds, file patterns.
+- **Per-tool config values** — `PUT /values/{tool_name}`. Provider-specific knobs (BlackDuck server URL, Checkmarx token).
+- **Tool config YAML** (self-hosted) — `fastapi/security_tools_config.yaml`. Defines the canonical command-line, output format, parser, severity mapping for every tool.
+
+## SAST — Static Application Security Testing \{#reference_scanner-catalog-2\}
+
+Code-pattern scanners that find injection, deserialization, weak crypto, etc.
+
+| Scanner | Languages | Default? | Notes |
+|---|---|:-:|---|
+| **Opengrep** | 30+ via Semgrep rules | ✅ | Plexicus's default SAST. Fork of Semgrep. |
+| **Bandit** | Python | ✅ | Python-specific. Auto-skipped on non-Python repos. |
+| **Semgrep** | 30+ | — | Same rule grammar as Opengrep; pick one or the other |
+| **Checkmarx CxSAST** | Most languages | — | License required. Configure server URL via `/values/checkmarx`. |
+| **Fortify SCA** | Most languages | — | License required. |
+| **CodeQL** | JS/TS, Python, Java, C/C++, Go, Ruby, Swift | — | Add via `POST /client/included-tools/add` with name `codeql`. Free for OSS; paid for private. |
+
+**Override examples:**
+
+```bash
+# Add a Bandit custom rule via the parameters API
+curl -X POST "https://app.plexicus.ai/custom-parameters/bandit" \
+  -H "Authorization: Bearer $TOKEN" \
+  -d '{"rule_id": "B999", "severity": "High", "pattern": "subprocess\\.call\\(.*shell=True"}'
+
+# Disable Bandit for the org
+curl -X POST "https://app.plexicus.ai/client/included-tools/remove" \
+  -H "Authorization: Bearer $TOKEN" \
+  -d '{"tool": "bandit"}'
+```
+
+## SCA — Software Composition Analysis \{#reference_scanner-catalog-3\}
+
+Dependency-CVE scanners.
+
+| Scanner | Manifests | Default? | Notes |
+|---|---|:-:|---|
+| **Trivy SCA** | npm, pypi, maven, gradle, go.mod, cargo, bundler, composer, gem | ✅ | Plexicus default SCA. Fast, broad coverage. |
+| **OWASP Dependency-Check** | maven, gradle, npm, pypi | — | Slower than Trivy; use only if you need its NVD-only scope |
+| **Syft** | Same as Trivy | ✅ | SBOM generator (output feeds into Trivy SCA) |
+| **Grype** | Same as Syft | — | Pairs with Syft as alternative SCA path |
+| **BlackDuck** | Most | — | License required. See [Manage Applications](/docs/recipes/manage-applications#applications_index-2) for project mapping. |
+
+## Secrets — Credential Scanning \{#reference_scanner-catalog-4\}
+
+| Scanner | Coverage | Default? | Notes |
+|---|---|:-:|---|
+| **Gitleaks** | Generic + 100+ provider patterns | ✅ | Default secrets scanner. Git-history aware. |
+| **TruffleHog** | Generic + verified-secrets API checks | ✅ | More expensive but verifies secrets are still active |
+| **Trivy Secrets** | Same as Gitleaks roughly | — | Use if Gitleaks/TruffleHog already cover; saves cost |
+
+**Custom secret pattern:**
+
+```bash
+curl -X POST "https://app.plexicus.ai/custom-parameters/gitleaks" \
+  -H "Authorization: Bearer $TOKEN" \
+  -d '{"rule_id": "internal-token", "regex": "INTERNAL_[A-Z0-9]{32}", "tags": ["internal"]}'
+```
+
+## IaC — Infrastructure as Code \{#reference_scanner-catalog-5\}
+
+| Scanner | IaC types | Default? | Notes |
+|---|---|:-:|---|
+| **Checkov** | Terraform, K8s, CloudFormation, Helm, Dockerfile, ARM, Bicep | ✅ | Broadest IaC scanner |
+| **KICS** | Terraform, K8s, Ansible, Dockerfile, CloudFormation | ✅ | Pairs well with Checkov; different rule sets |
+| **TFLint** | Terraform | ✅ | Terraform-specific syntax + best-practice |
+| **Hadolint** | Dockerfile | ✅ | Dockerfile-specific lint |
+
+## Container Image Scanning \{#reference_scanner-catalog-6\}
+
+| Scanner | Layers covered | Default? | Notes |
+|---|---|:-:|---|
+| **Trivy** | OS packages, app deps, secrets, license, misconfig | ✅ | Plexicus default container scanner |
+| **Grype** | OS + app | — | Alternative to Trivy; pairs with Syft for SBOM |
+| **Checkov** | Dockerfile + image config | ✅ | Catches HEALTHCHECK, USER, etc. |
+
+For registry image scanning (image not in a repo), see `POST /create-registry-image-scan`. This requires container specs configured per `POST /container-specs`.
+
+## CSPM — Cloud Security Posture \{#reference_scanner-catalog-7\}
+
+Run by `plexalyzer/prov` against connected cloud accounts.
+
+| Scanner | Clouds | Default? | Notes |
+|---|---|:-:|---|
+| **CloudSploit** | AWS, Azure, GCP, OCI | ✅ | Plexicus default CSPM |
+| **Prowler** | AWS primarily | — | Add for deeper AWS-specific checks |
+| **CloudQuery custom rules** | AWS, Azure, GCP | — | Plexicus-curated rule set |
+
+Cloud scans are triggered via `POST /request_prov_scan { app_id, scan_type: "cloud" }`. See [Applications Lifecycle](/docs/concepts/applications-lifecycle#concepts_applications-lifecycle-5) for cloud-app specifics.
+
+## CWPP — Cloud Workload Protection \{#reference_scanner-catalog-8\}
+
+| Scanner | Coverage | Default? | Notes |
+|---|---|:-:|---|
+| **Yara** | Pattern-based malware/indicator detection | ✅ | Runs against container images and source artifacts |
+| **ClamAV** | Signature-based AV | — | Heavyweight; enable only if your compliance demands |
+| **SLSA attestation check** | Supply-chain provenance | — | Verifies build provenance for images |
+
+## CIEM — Cloud Entitlement Management \{#reference_scanner-catalog-9\}
+
+| Scanner | Coverage | Default? | Notes |
+|---|---|:-:|---|
+| **CloudSploit IAM module** | AWS IAM, Azure RBAC, GCP IAM | ✅ | Excessive permission detection |
+| **Custom CIEM rules** | Cross-account trust, role chaining | — | Curated by Plexicus rules engine |
+
+## Output normalization \{#reference_scanner-catalog-10\}
+
+Every scanner above emits a different format (JSON, SARIF, XML). The `tool-parser` service normalizes them into the unified Finding schema:
+
+```text
+Raw output → parser (per-tool) → standardizer → rule_enricher → CosmosOptimizer → MongoDB
+```
+
+The result: regardless of which scanner reported it, every finding has the same fields ([Findings Model](/docs/concepts/findings-model#concepts_findings-model-3)).
+
+## Reading the active tool list \{#reference_scanner-catalog-11\}
+
+`GET /client` returns your client document, including `included_tools`:
+
+```json
+{
+  "included_tools": ["opengrep", "bandit", "trivy", "gitleaks", "checkov", "kics", "trivy_sca", "syft"],
+  "excluded_tools": ["clamav"]
+}
+```
+
+`GET /values` returns your custom tool config values:
+
+```bash
+curl -X GET "https://app.plexicus.ai/values" \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+## Adding a tool not in this catalog \{#reference_scanner-catalog-12\}
+
+If you have a scanner Plexicus doesn't natively support (legacy Veracode, internal tooling), use the [Upload External Scan](/docs/recipes/upload-external-scan) recipe — base64 the SARIF output and POST to `/upload_scan/{repository_id}`. Plexicus's parser pipeline handles SARIF generically.
+
+For native support of a new tool: open an issue at [github.com/plexicus/docs](https://github.com/plexicus/docs) with the tool name, output format, and a sample report.
+
+## Related \{#reference_scanner-catalog-13\}
+
+<CardGroup cols={2}>
+  <Card title="Findings Model" icon="material-symbols:bug-report-outline" href="/docs/concepts/findings-model">
+    What scanner output becomes after normalization.
+  </Card>
+  <Card title="Upload External Scan" icon="material-symbols:upload-outline" href="/docs/recipes/upload-external-scan">
+    Bringing in scanners outside this catalog.
+  </Card>
+</CardGroup>

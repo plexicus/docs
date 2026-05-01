@@ -1,0 +1,164 @@
+---
+title: "Dashboards"
+description: "Every chart on the Plexicus dashboard — what it counts, how to read it, which API endpoint backs it."
+---
+
+# Dashboards \{#reference_dashboards-1\}
+
+The dashboard is read-only — it surfaces aggregated views over Findings and Applications. Every chart is backed by a public API endpoint. This page documents what each one shows.
+
+## Findings chart \{#reference_dashboards-2\}
+
+Time-series of finding totals over a date range, broken into three series.
+
+```bash
+GET /findings_chart?start_date=2026-01-01&end_date=2026-04-30&max_dates=12
+```
+
+| Series | Counts |
+|---|---|
+| Findings | All findings (active + closed) created in window |
+| Ready to remediate | Findings in `Enriched` status — awaiting triage |
+| Remediations | Findings with linked remediation in `PR Submitted` / `PR Accepted` |
+
+Plus three rolling aggregates returned alongside:
+
+- `findings_without_remediation` — current count of `Enriched` findings
+- `findings_with_ready_remediate` — current count of `Ready` findings
+- `findings_with_remediation` — current count of `PR Submitted` + `PR Accepted`
+
+**How to read:** the gap between Findings and Remediations is your unaddressed risk surface. Closing it = ramping up triage cadence and bulk remediation.
+
+## OWASP Top 10 chart \{#reference_dashboards-3\}
+
+Distribution of App findings by OWASP Top 10 category.
+
+```bash
+GET /owasp_chart
+```
+
+Returns one row per OWASP category (`A01` Broken Access Control through `A10` SSRF) with a finding count. Categories with zero findings are omitted.
+
+**How to read:** which OWASP class dominates? Heavy `A03 Injection` → push SAST scanners deeper. Heavy `A02 Cryptographic Failures` → audit secret management.
+
+## OWASP CICD chart \{#reference_dashboards-4\}
+
+Same shape as OWASP chart but scoped to CICD-related vulnerability classes (build pipeline, supply chain, IaC).
+
+```bash
+GET /owasp_cicd_chart
+```
+
+**How to read:** focuses on the OWASP Top 10 for CI/CD specifically — different from the application Top 10. Heavy `Insufficient Flow Control Mechanisms` → review your branch protection.
+
+## Supply chain chart \{#reference_dashboards-5\}
+
+Aggregated view over SCA / SBOM findings.
+
+```bash
+GET /supply_chain_chart
+```
+
+Returns severity breakdown of dependency-CVE findings, plus per-language distribution.
+
+**How to read:** transitive vs direct dependencies; you usually fix transitives by updating the direct parent.
+
+## Total findings chart \{#reference_dashboards-6\}
+
+Severity-broken summary over a date range.
+
+```bash
+GET /total_findings_chart?start_date=2026-01-01&end_date=2026-04-30
+```
+
+Returns:
+
+```json
+{
+  "total_findings": 450,
+  "vulnerabilities_aggregated": 380,
+  "vulnerabilities_prioritized": 95,
+  "low_severity_findings": 180,
+  "medium_severity_findings": 150,
+  "high_severity_findings": 50
+}
+```
+
+| Field | Meaning |
+|---|---|
+| `total_findings` | Raw count, all severities |
+| `vulnerabilities_aggregated` | After deduplication by `CosmosOptimizer` |
+| `vulnerabilities_prioritized` | Count where Plexicus's `priority` field exceeds the threshold (configurable per-org) |
+
+**How to read:** `total_findings - vulnerabilities_aggregated` is the dedup savings. `vulnerabilities_prioritized` is what your team should actually look at first.
+
+## Findings by repo chart \{#reference_dashboards-7\}
+
+Top-N repositories by open finding count.
+
+```bash
+GET /findings_by_repo_chart?max_repos=10
+```
+
+Returns one row per repo with severity breakdown.
+
+**How to read:** the consistently-top repos are your hot-spots. Either they're high-traffic surfaces (web app, payment service) or they need refactoring. Either way, start triage there.
+
+## Findings by language/severity chart \{#reference_dashboards-8\}
+
+Breakdown of findings by detected source language × severity.
+
+```bash
+GET /findings_by_language_severity?finding_type=app
+```
+
+Returns a 2D matrix: language (Python, JavaScript, Go, …) × severity (Critical / High / Medium / Low).
+
+**How to read:** which language stack carries most risk? Often correlates with team size — if 60% of your devs write Python, Python findings dominate.
+
+## Custom queries \{#reference_dashboards-9\}
+
+For arbitrary aggregations not exposed as charts, use `GET /findings` with appropriate filters and aggregate client-side. The [Finding Filter Schema](/docs/reference/finding-filter-schema) is the contract.
+
+For very large aggregations (10k+ findings), use [Export Findings → JSON](/docs/recipes/export-findings) instead — it's paginated and won't time out.
+
+## Date range semantics \{#reference_dashboards-10\}
+
+Charts that take `start_date` / `end_date`:
+
+- ISO 8601 dates, inclusive on both ends.
+- `max_dates` parameter caps the number of buckets (Plexicus chooses bucket size — daily for short ranges, weekly for medium, monthly for long).
+- Default range if omitted: last 90 days.
+
+## Reading the dashboard from the API \{#reference_dashboards-11\}
+
+A common pattern — daily summary for Slack / email:
+
+```bash
+TOKEN="..."
+DATE_FROM=$(date -d "30 days ago" +%Y-%m-%d)
+DATE_TO=$(date +%Y-%m-%d)
+
+# Total + severity breakdown
+curl -s "https://app.plexicus.ai/total_findings_chart?start_date=$DATE_FROM&end_date=$DATE_TO" \
+  -H "Authorization: Bearer $TOKEN" | jq '
+    "\(.total_findings) total, \(.high_severity_findings) High, \(.vulnerabilities_prioritized) prioritized"
+  '
+
+# OWASP top class
+curl -s "https://app.plexicus.ai/owasp_chart" \
+  -H "Authorization: Bearer $TOKEN" | jq -r '
+    .findings | sort_by(-.count) | .[0] | "\(.owasp.name): \(.count) findings"
+  '
+```
+
+## Related \{#reference_dashboards-12\}
+
+<CardGroup cols={2}>
+  <Card title="Findings Model" icon="material-symbols:bug-report-outline" href="/docs/concepts/findings-model">
+    What's actually being counted.
+  </Card>
+  <Card title="Export Findings" icon="material-symbols:download-outline" href="/docs/recipes/export-findings">
+    For aggregations larger than the dashboard surfaces.
+  </Card>
+</CardGroup>

@@ -1,0 +1,162 @@
+---
+title: "Compliance Mapping"
+description: "How Plexicus's controls map to PCI DSS, SOC 2, NIST 800-53, ISO 27001, GDPR, and HIPAA."
+---
+
+# Compliance Mapping \{#concepts_compliance-1\}
+
+Plexicus is a control *implementation* tool: it scans for vulnerabilities, prioritizes by exploitability, generates fixes, tracks remediation. Whether your organization is *compliant* depends on policy, process, and evidence — Plexicus produces the evidence and helps automate the controls.
+
+This page maps Plexicus features to the requirements of major frameworks. Use it when answering an auditor's question or when scoping a new control.
+
+## What Plexicus produces for compliance \{#concepts_compliance-2\}
+
+Six artifacts that auditors care about:
+
+<CardGroup cols={3}>
+  <Card title="Vulnerability inventory" icon="material-symbols:list-alt-outline">
+    Findings catalog with CWE, OWASP, EPSS — exportable as SARIF / JSON / CSV.
+  </Card>
+  <Card title="Triage record" icon="material-symbols:checklist-outline">
+    Per-finding history of triage actions (false positive, mitigated, sent to dev) with timestamps and actor.
+  </Card>
+  <Card title="Remediation evidence" icon="material-symbols:auto-fix">
+    Linked PR/MR with diff, reviewer, merge timestamp.
+  </Card>
+  <Card title="Access log" icon="material-symbols:lock-clock-outline">
+    HistoryUser collection — every state change with user_id, action, before/after.
+  </Card>
+  <Card title="Scan cadence" icon="material-symbols:schedule-outline">
+    `last_analysis_date` per repo demonstrates coverage frequency.
+  </Card>
+  <Card title="SBOM" icon="material-symbols:package-2-outline">
+    Per-application Software Bill of Materials via Syft / Trivy.
+  </Card>
+</CardGroup>
+
+## OWASP / CWE / CIS — the source vocabulary \{#concepts_compliance-3\}
+
+Findings are enriched with three taxonomies during the [enrichment pipeline](/docs/concepts/findings-model#concepts_findings-model-4):
+
+- **CWE (Common Weakness Enumeration)** — the technical class of bug (e.g. CWE-89 SQL Injection).
+- **OWASP Top 10** — high-level grouping for application-layer risks (A01 Broken Access Control, A03 Injection, …).
+- **CIS Controls** — implementation-level controls; mapped via custom rules in `tool-parser/rule_enricher.py`.
+
+Frameworks below reference these. Filter findings by the right CWE/OWASP set to scope evidence to a specific control.
+
+## PCI DSS 4.0 \{#concepts_compliance-4\}
+
+| Requirement | Plexicus support |
+|---|---|
+| 6.2 — Bespoke and custom software developed securely | Findings catalog with severity prioritization; PR-gated remediations |
+| 6.3 — Identify and address security vulnerabilities | Continuous scans; auto-prioritized by runtime context (CPG reachability) |
+| 6.3.1 — Vulnerability identification & risk ranking | Severity + Plexicus-recalculated `priority` field |
+| 6.3.2 — Inventory of bespoke and custom software | Applications page lists every connected repo + branch |
+| 6.3.3 — Critical security patches within 30 days | Track remediation latency: `created_at` → `pr_accepted_at` |
+| 11.3 — Vulnerability scans (internal + external) | Plexicus orchestrates SAST/SCA/secrets/IaC scanners |
+
+**Useful filters:** `severity=Critical,High` + `tool=trivy` (covers CVE-bearing dependencies); `cwe=CWE-89,CWE-79,CWE-78` (the OWASP Top 10 injection classes).
+
+## SOC 2 — Trust Services Criteria \{#concepts_compliance-5\}
+
+| Criterion | Plexicus support |
+|---|---|
+| CC6.1 — Logical and physical access controls | Roles & Permissions; SSO integration |
+| CC6.6 — Logical access provisioning | JIT provisioning via SSO group → role mapping |
+| CC6.8 — Prevention or detection of unauthorized software | SCA + secrets scanning on every push |
+| CC7.1 — Security incidents detected timely | Webhook-triggered scans on PR open/merge |
+| CC7.2 — Anomalous activity flagged | HistoryUser audit log |
+| CC8.1 — Changes managed via authorized process | PR-gated remediations; reviewer required |
+
+## NIST 800-53 (Rev 5) \{#concepts_compliance-6\}
+
+| Control | Plexicus support |
+|---|---|
+| AC-2 — Account Management | Org → Team CRUD, audit log |
+| AC-6 — Least Privilege | Roles & Permissions matrix |
+| AU-2 — Event Logging | HistoryUser collection |
+| CM-3 — Configuration Change Control | PR review required for every remediation |
+| IA-2 — Identification & Authentication | SSO, 2FA, API token rotation |
+| RA-5 — Vulnerability Monitoring & Scanning | Continuous scans, prioritization |
+| SI-2 — Flaw Remediation | AI Remediation pipeline, PR tracking |
+| SI-7 — Software, Firmware, Information Integrity | SBOM via Syft / Trivy; signed container images |
+
+## ISO 27001:2022 \{#concepts_compliance-7\}
+
+| Control | Plexicus support |
+|---|---|
+| A.5.23 — Information security for use of cloud services | CSPM scans (CloudSploit, Prowler) |
+| A.5.24 — Information security incident management | Webhook → PR + Issue path |
+| A.8.1 — User endpoint devices | Out of scope for Plexicus |
+| A.8.7 — Protection against malware | Yara, ClamAV in CWPP layer |
+| A.8.8 — Management of technical vulnerabilities | Findings catalog, prioritization, remediation |
+| A.8.9 — Configuration management | IaC scanning (TFLint, KICS, Checkov) |
+| A.8.28 — Secure coding | SAST scans, AI remediation |
+
+## GDPR — relevant articles \{#concepts_compliance-8\}
+
+GDPR is a privacy regulation, not a vulnerability framework — Plexicus's role is narrower:
+
+| Article | Plexicus support |
+|---|---|
+| Art. 25 — Data protection by design | Secret scanning prevents PII-as-credentials leaks |
+| Art. 32 — Security of processing | Vulnerability scans + remediation evidence |
+| Art. 33 — Breach notification | HistoryUser log + scan cadence supports detection-time evidence |
+| Art. 35 — DPIA support | SBOM + dependency tree informs data-flow analysis |
+
+**Geo-restriction note:** Plexicus enforces country-level registration restrictions (e.g. Spain blocks registration → contact form path) per [`fastapi/docs/geo-location-restrictions.md`](https://github.com/plexicus/platform/blob/main/fastapi/docs/geo-location-restrictions.md). This is separate from data-residency — for that, use the Azure OpenAI provider with EU region or self-host.
+
+## HIPAA — Security Rule \{#concepts_compliance-9\}
+
+| Standard | Plexicus support |
+|---|---|
+| §164.308(a)(1)(ii)(A) — Risk analysis | Findings catalog scoped to PHI-handling repos |
+| §164.308(a)(1)(ii)(B) — Risk management | AI remediation + PR tracking |
+| §164.308(a)(5)(ii)(B) — Protection from malicious software | Container scanning |
+| §164.312(b) — Audit controls | HistoryUser log |
+| §164.312(c)(1) — Integrity | PR-gated changes; SBOM as configuration baseline |
+
+For PHI-bearing systems, self-host Plexicus on infrastructure inside your HIPAA-compliant boundary, and ensure your AI provider has a BAA in place (Azure OpenAI with BAA is the standard option).
+
+## Evidence-collection checklist \{#concepts_compliance-10\}
+
+For an audit prep walkthrough:
+
+<Steps>
+  <Step title="Save the audit-scope filter">
+    [Configure a saved filter](/docs/recipes/configure-finding-filters) scoped to the systems in audit scope (by tag, repo, or OWASP category).
+  </Step>
+  <Step title="Export findings as JSON">
+    [Export Findings → JSON](/docs/recipes/export-findings) with the saved filter active. Include the timestamp.
+  </Step>
+  <Step title="Export the audit log">
+    `GET /audit-log?from={start}&to={end}&export=csv` (Admin only).
+  </Step>
+  <Step title="Diff the export against last quarter's">
+    `jq` or any JSON diff tool gives the delta — closed findings (= remediation evidence) and new findings (= ongoing risk).
+  </Step>
+  <Step title="Cross-reference SBOM">
+    Per-application SBOM downloads from the Application detail page. Auditors usually want this for §164.312(c) (Integrity) or NIST SI-7.
+  </Step>
+</Steps>
+
+## Caveats — what Plexicus is NOT \{#concepts_compliance-11\}
+
+- Not a SIEM. Plexicus tracks vulnerabilities, not security events from network/endpoint/identity logs.
+- Not a DLP. Secret scanning catches credentials in source, not data exfiltration in traffic.
+- Not a GRC platform. Plexicus produces evidence; mapping evidence to control narratives is your GRC tool's job.
+- Not a substitute for a CISO. Compliance is a policy + process question; Plexicus is one of the technical controls in that program.
+
+## Related \{#concepts_compliance-12\}
+
+<CardGroup cols={2}>
+  <Card title="Multi-tenant Security" icon="material-symbols:shield-outline" href="/docs/concepts/multi-tenant-security">
+    The threat model + data-handling guarantees.
+  </Card>
+  <Card title="Findings Model" icon="material-symbols:bug-report-outline" href="/docs/concepts/findings-model">
+    Where CWE / OWASP / EPSS get attached.
+  </Card>
+  <Card title="Export Findings" icon="material-symbols:download-outline" href="/docs/recipes/export-findings">
+    The audit-evidence export flows.
+  </Card>
+</CardGroup>

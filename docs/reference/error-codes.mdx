@@ -1,0 +1,205 @@
+---
+title: "Error Codes"
+description: "Every documented HTTP error from the Plexicus API — cause, what to do, where to look next."
+---
+
+# Error Codes \{#reference_error-codes-1\}
+
+Plexicus follows standard HTTP status codes. The body of every error response is JSON with two fields:
+
+```json
+{ "detail": "Human-readable error message", "code": "MACHINE_READABLE_CODE" }
+```
+
+This page is the catalog. If you hit an error not listed here, the `detail` field is the source of truth — open an issue if it's unclear.
+
+## Authentication errors (4xx) \{#reference_error-codes-2\}
+
+<AccordionGroup>
+  <Accordion title="401 — Invalid credentials" icon="material-symbols:lock-outline">
+    **When:** `POST /login` with wrong email or password.
+
+    **Detail:** `"Invalid credentials"`.
+
+    **Fix:** Re-enter; if forgotten, [request a password reset](/docs/recipes/configure-2fa). Five consecutive failures temporarily lock the account for 15 minutes.
+  </Accordion>
+
+  <Accordion title="401 — Token expired" icon="material-symbols:schedule-outline">
+    **When:** Any authenticated request with a JWT past its `exp`.
+
+    **Detail:** `"Token has expired"`.
+
+    **Fix:** Re-login (UI auto-redirects). For API tokens: regenerate via [Generate API Token](/docs/recipes/generate-api-token). API tokens with no `expires_at` set never expire.
+  </Accordion>
+
+  <Accordion title="401 — Invalid OTP code" icon="material-symbols:dialpad-outline">
+    **When:** `POST /verify-session` with wrong / expired TOTP code.
+
+    **Detail:** `"Invalid OTP code"`.
+
+    **Fix:** Wait for the next 30-second window and retry. Persistent failure = clock skew on the authenticator device. See [Configure 2FA](/docs/recipes/configure-2fa#recipes_configure-2fa-8).
+  </Accordion>
+
+  <Accordion title="403 — Forbidden by role" icon="material-symbols:block-outline">
+    **When:** Authenticated but role lacks permission. E.g. Developer hitting `POST /team`.
+
+    **Detail:** `"Insufficient permissions: requires {role}"`.
+
+    **Fix:** Have an Admin grant the required role, or use a different account. See [Roles and Permissions](/docs/concepts/roles-and-permissions).
+  </Accordion>
+
+  <Accordion title="403 — Restricted country" icon="material-symbols:public-off-outline">
+    **When:** `POST /register` from an IP geolocated to a restricted country (default: Spain).
+
+    **Detail:** `"Registration not allowed from this country"`.
+
+    **Fix:** Use the alternative path at `POST /contact-restricted` (a contact form). For Plexicus SaaS, this is policy. Self-hosted deployments can override the restricted set in `GeoIPService`.
+  </Accordion>
+</AccordionGroup>
+
+## Validation errors (4xx) \{#reference_error-codes-3\}
+
+<AccordionGroup>
+  <Accordion title="422 — Email format is invalid" icon="material-symbols:mail-outline">
+    **When:** Registration or invite with malformed email.
+
+    **Fix:** Send a valid RFC 5322 email address.
+  </Accordion>
+
+  <Accordion title="422 — User already registered" icon="material-symbols:person-outline">
+    **When:** `POST /register` with an email that already has an account.
+
+    **Fix:** Use `POST /login` instead, or `POST /password-reset-request` if forgotten.
+  </Accordion>
+
+  <Accordion title="422 — Token expired" icon="material-symbols:schedule-outline">
+    **When:** Email verification or invite token clicked after 72 hours.
+
+    **Fix:** Request a new verification link from the login page (`GET /resend-verification`). Invite tokens require the inviting Admin to re-invite.
+  </Accordion>
+
+  <Accordion title="422 — Incorrect old password" icon="material-symbols:password-outline">
+    **When:** `POST /user/change_password` with wrong current password.
+
+    **Fix:** Verify and retry. After 5 failures the account locks for 15 minutes.
+  </Accordion>
+</AccordionGroup>
+
+## Resource errors (4xx) \{#reference_error-codes-4\}
+
+<AccordionGroup>
+  <Accordion title="404 — Repository not found" icon="material-symbols:folder-off-outline">
+    **When:** API references a `repository_id` that doesn't exist or is in a different tenant.
+
+    **Detail:** `"Repository not found"`.
+
+    **Fix:** Check the ID in the Applications page. Note: tenant filter is applied — IDs from another client return 404, not 403.
+  </Accordion>
+
+  <Accordion title="404 — Finding not found" icon="material-symbols:bug-report-outline">
+    **When:** Querying a finding ID that's deleted, in another tenant, or never existed.
+
+    **Fix:** As above. If the finding *was* there yesterday, it may have been auto-deleted by retention policy or the application was deleted.
+  </Accordion>
+
+  <Accordion title="409 — Last admin cannot be demoted" icon="material-symbols:admin-panel-settings-outline">
+    **When:** Trying to remove or demote yourself when you are the only Admin.
+
+    **Fix:** Promote another user to Admin first, then demote yourself.
+  </Accordion>
+
+  <Accordion title="409 — Domain already bound" icon="material-symbols:link-outline">
+    **When:** `POST /bind_domain` with a domain already bound to another tenant.
+
+    **Fix:** Either use a different domain or contact support to release the existing binding (proof of ownership required).
+  </Accordion>
+</AccordionGroup>
+
+## Integration errors (4xx) \{#reference_error-codes-5\}
+
+<AccordionGroup>
+  <Accordion title="401 / 403 from SCM" icon="material-symbols:fork-right-outline">
+    **When:** SCM connector OAuth token revoked or scope insufficient.
+
+    **Detail:** `"SCM connection failed: {provider message}"`.
+
+    **Fix:** Re-authorize the connector via [Connect Source Control](/docs/recipes/connect-github). For GitHub Apps: re-install the app on the affected org.
+  </Accordion>
+
+  <Accordion title="401 from AI provider" icon="material-symbols:auto-awesome">
+    **When:** OpenAI / Azure OpenAI API key invalid.
+
+    **Detail:** `"AI provider authentication failed"`.
+
+    **Fix:** Regenerate key on the provider, update Plexicus per [Configure AI Provider](/docs/recipes/configure-ai-provider).
+  </Accordion>
+
+  <Accordion title="429 from AI provider" icon="material-symbols:speed-outline">
+    **When:** Rate-limited by OpenAI / Azure OpenAI. Common on bulk remediations.
+
+    **Detail:** `"AI provider rate-limit exceeded; retrying with backoff"`.
+
+    **Fix:** Plexicus retries with exponential backoff. If persistent, upgrade to a higher tier on the provider, or split bulk operations into smaller batches.
+  </Accordion>
+
+  <Accordion title="400 — Patch validation failed" icon="material-symbols:error-outline">
+    **When:** Codex Remedium produced a diff that doesn't apply cleanly after 3 retries.
+
+    **Detail:** `"Generated patch failed validation; falling back to issue path"`.
+
+    **Fix:** Often transient (LLM produced a malformed diff). Retry the remediation. Persistent failures often mean the finding's CWE has no patch strategy — use the Issue path instead.
+  </Accordion>
+</AccordionGroup>
+
+## Server errors (5xx) \{#reference_error-codes-6\}
+
+<AccordionGroup>
+  <Accordion title="500 — Internal server error" icon="material-symbols:bug-report-outline">
+    **When:** Unhandled exception in the FastAPI backend.
+
+    **Detail:** Generic `"An unexpected error occurred"` (specifics are logged server-side, not returned).
+
+    **Fix:** Retry; if persistent, check the worker logs (`kubectl logs -n plexicus deploy/fastapi`) for self-hosted, or contact support for SaaS.
+  </Accordion>
+
+  <Accordion title="503 — Service unavailable" icon="material-symbols:cloud-off-outline">
+    **When:** A dependent service (MongoDB, Redis, Temporal, Plexalyzer) is unreachable.
+
+    **Fix:** Self-hosted: check pod status, see [Self-Hosted Helm Chart](/docs/self-hosted/helm-chart). SaaS: status.plexicus.ai.
+  </Accordion>
+
+  <Accordion title="504 — Workflow timeout" icon="material-symbols:hourglass-disabled-outline">
+    **When:** A Temporal workflow (e.g. PullRequestWorkflow) timed out at the activity level.
+
+    **Fix:** Check the Temporal UI for the stuck activity. Common cause: the SCM provider is rate-limiting Plexicus's bot. Wait or retry.
+  </Accordion>
+</AccordionGroup>
+
+## How to read the error in CI \{#reference_error-codes-7\}
+
+A pattern that handles most cases:
+
+```bash
+RESPONSE=$(curl -s -w "\n%{http_code}" -X POST ... )
+BODY=$(echo "$RESPONSE" | head -n -1)
+STATUS=$(echo "$RESPONSE" | tail -n 1)
+
+if [ "$STATUS" -ge 400 ]; then
+  echo "Plexicus API error $STATUS:"
+  echo "$BODY" | jq -r '.detail // .message // .'
+  exit 1
+fi
+```
+
+Always `jq` the `detail` field — it's the most stable user-facing message across releases.
+
+## Related \{#reference_error-codes-8\}
+
+<CardGroup cols={2}>
+  <Card title="Roles and Permissions" icon="material-symbols:admin-panel-settings-outline" href="/docs/concepts/roles-and-permissions">
+    Why 403s happen.
+  </Card>
+  <Card title="Generate API Token" icon="material-symbols:key-outline" href="/docs/recipes/generate-api-token">
+    Token rotation to avoid 401s.
+  </Card>
+</CardGroup>

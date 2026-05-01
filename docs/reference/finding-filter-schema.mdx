@@ -1,0 +1,202 @@
+---
+title: "Finding Filter Schema"
+description: "Every dimension you can filter findings on, the accepted value space, and the JSON shape you save to disk."
+---
+
+# Finding Filter Schema \{#reference_finding-filter-schema-1\}
+
+A saved Finding filter is a JSON document that pins a query against the `/findings` (App), `/findings/scm`, or `/findings/cloud` endpoints. This page is the schema reference.
+
+For the *how-to* — saving, activating, deleting filters via the UI — see [Configure Finding Filters](/docs/recipes/configure-finding-filters).
+
+## Top-level shape \{#reference_finding-filter-schema-2\}
+
+```json
+{
+  "pagination": { "page": 0, "pageSize": 25 },
+  "sort": "desc",
+  "sort_field": "priority",
+  "repository_filter": { "ids": [], "tags": [] },
+  "field_selection": ["severity", "title", "file", "tool", "status"],
+  "severity": ["Critical", "High"],
+  "status": ["Enriched", "Pending Input"],
+  "tool": ["bandit", "trivy"],
+  "cwe": ["CWE-89", "CWE-79"],
+  "owasp": ["A01", "A03"],
+  "date_range": { "from": "2026-01-01", "to": "2026-04-30" },
+  "tags": ["frontend", "pci-scope"],
+  "false_positive": "hide",
+  "mitigated": "hide",
+  "assigned_to": "user_id_or_null"
+}
+```
+
+Every key except `pagination` is optional. Omitted keys mean *no filter on that dimension* (return everything).
+
+## Dimensions \{#reference_finding-filter-schema-3\}
+
+### `pagination` \{#reference_finding-filter-schema-4\}
+
+```json
+{ "page": 0, "pageSize": 25 }
+```
+
+`page` is zero-indexed. `pageSize` max is 100; values above clamp to 100.
+
+### `sort` + `sort_field` \{#reference_finding-filter-schema-5\}
+
+| `sort_field` | What it sorts | `sort` direction default |
+|---|---|---|
+| `priority` | Plexicus-recalculated priority | `desc` |
+| `severity` | Raw scanner severity | `desc` |
+| `created_at` | First-seen timestamp | `desc` |
+| `last_seen` | Last-scan-saw timestamp | `desc` |
+| `epss` | EPSS exploit probability | `desc` |
+
+### `repository_filter` \{#reference_finding-filter-schema-6\}
+
+```json
+{
+  "ids": ["repo123", "repo456"],
+  "tags": ["frontend", "production"]
+}
+```
+
+If both `ids` and `tags` are set, filters AND together. If both empty, returns all repositories the user can see (subject to role + tenant scoping).
+
+### `field_selection` \{#reference_finding-filter-schema-7\}
+
+Which fields to include in the response. Empty array → return defaults. Same shape as the column list in [Customize Findings Columns](/docs/recipes/customize-findings-columns#recipes_customize-findings-columns-3).
+
+Useful for trimming response size when scripting:
+
+```json
+"field_selection": ["_id", "severity", "title", "tool"]
+```
+
+### `severity` \{#reference_finding-filter-schema-8\}
+
+Multi-select. Accepted values: `Critical`, `High`, `Medium`, `Low`, `Informational`.
+
+### `status` \{#reference_finding-filter-schema-9\}
+
+Multi-select. Accepted values from the [findings lifecycle](/docs/concepts/findings-model#concepts_findings-model-5):
+
+- `Enriched`
+- `Pending Input`
+- `Processing`
+- `Ready`
+- `PR Submitted`
+- `Issued`
+- `PR Accepted`
+- `PR Rejected`
+- `Mitigated`
+
+### `tool` \{#reference_finding-filter-schema-10\}
+
+Multi-select. Lower-case tool names from the [scanner catalog](/docs/reference/scanner-catalog): `bandit`, `trivy`, `gitleaks`, `opengrep`, `checkov`, `kics`, `tflint`, `hadolint`, `trufflehog`, `syft`, `grype`, `cloudsploit`, `prowler`, `checkmarx`, `fortify`, `blackduck`, `codeql`, etc.
+
+### `cwe` \{#reference_finding-filter-schema-11\}
+
+Multi-select. Format: `CWE-89` (with prefix). App tab only — SCM and Cloud findings don't have CWE assignment.
+
+### `owasp` \{#reference_finding-filter-schema-12\}
+
+Multi-select. OWASP Top 10 2021 codes: `A01`, `A02`, …, `A10`. App tab only.
+
+### `date_range` \{#reference_finding-filter-schema-13\}
+
+```json
+{ "from": "2026-01-01", "to": "2026-04-30" }
+```
+
+ISO 8601 dates. Inclusive on both ends. Filters on `created_at` (first-seen).
+
+### `tags` \{#reference_finding-filter-schema-14\}
+
+Multi-select. Repository tags configured by Admin. Use `GET /repo_tags` to list available tags.
+
+### `false_positive` / `mitigated` \{#reference_finding-filter-schema-15\}
+
+Three values: `hide` (default), `show`, `only`.
+
+- `hide` — exclude from results.
+- `show` — include but don't single out.
+- `only` — return only matching findings.
+
+### `assigned_to` \{#reference_finding-filter-schema-16\}
+
+| Value | Meaning |
+|---|---|
+| `null` | Unassigned findings only |
+| `current_user` | Findings assigned to the calling user |
+| User `_id` (string) | Findings assigned to that specific user |
+| Array of user IDs | Findings assigned to any of those users |
+| Omitted | No filter on assignment |
+
+## Per-tab schema differences \{#reference_finding-filter-schema-17\}
+
+The schema above is for the App tab (`/findings`). The SCM and Cloud variants drop App-only dimensions:
+
+| Dimension | App | SCM | Cloud |
+|---|:-:|:-:|:-:|
+| All shared dimensions | ✅ | ✅ | ✅ |
+| `cwe` | ✅ | — | — |
+| `owasp` | ✅ | — | — |
+| `cloud_provider` | — | — | ✅ (`aws` / `azure` / `gcp` / `oci`) |
+| `cloud_region` | — | — | ✅ |
+| `resource_type` | — | — | ✅ (e.g. `s3_bucket`, `iam_role`) |
+
+## Saving a filter via API \{#reference_finding-filter-schema-18\}
+
+```bash
+curl -X POST "https://app.plexicus.ai/findings-filter/default/save" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "critical-untriaged",
+    "filter": {
+      "severity": ["Critical", "High"],
+      "status": ["Enriched"],
+      "sort_field": "priority"
+    }
+  }'
+```
+
+For SCM/Cloud variants, use `/findings-filter/scm/save` or `/findings-filter/cloud/save`.
+
+## Reading the active filter \{#reference_finding-filter-schema-19\}
+
+```bash
+curl -X GET "https://app.plexicus.ai/findings-filter/default/selected" \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+Returns:
+
+```json
+{
+  "saved_filters": [{ "name": "critical-untriaged", "filter": { ... } }],
+  "active_filter": { ... }
+}
+```
+
+## Validation \{#reference_finding-filter-schema-20\}
+
+Plexicus rejects with `422` if:
+
+- A required field has the wrong type (e.g., `severity` as string instead of array).
+- A multi-select contains a value not in the accepted set.
+- `pagination.pageSize` exceeds 100 (silently clamps; not an error, but logs a warning).
+- `date_range.to` is before `date_range.from` (`422 invalid date range`).
+
+## Related \{#reference_finding-filter-schema-21\}
+
+<CardGroup cols={2}>
+  <Card title="Configure Finding Filters" icon="material-symbols:filter-alt-outline" href="/docs/recipes/configure-finding-filters">
+    The user-facing flow for saving and activating filters.
+  </Card>
+  <Card title="Findings Model" icon="material-symbols:bug-report-outline" href="/docs/concepts/findings-model">
+    Where these dimensions come from in the underlying schema.
+  </Card>
+</CardGroup>

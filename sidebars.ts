@@ -38,6 +38,9 @@ const coreConcepts: SidebarConfig = [
       'concepts/applications-lifecycle',
       'concepts/findings-model',
       'concepts/ai-remediation',
+      'concepts/roles-and-permissions',
+      'concepts/multi-tenant-security',
+      'concepts/compliance',
     ],
   },
 ];
@@ -133,6 +136,11 @@ const reference: SidebarConfig = [
     },
     items: [
       'reference/organization-settings',
+      'reference/scanner-catalog',
+      'reference/finding-filter-schema',
+      'reference/dashboards',
+      'reference/error-codes',
+      'reference/pricing-tiers',
       {
         type: 'category',
         label: 'Self-Hosted',
