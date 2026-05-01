@@ -505,6 +505,54 @@ A `200` with an `access_token` confirms the full chain — frontend → ingress 
 
 ---
 
+## 10. Connect a SCM and run your first scan \{#self-hosted_helm-chart-scm}
+
+:::warning Browser-only OAuth — by design
+Connecting GitHub / GitLab / Bitbucket / Gitea to Plexicus uses a standard OAuth 2.0 redirect flow. The user must complete the authorization in a browser — there is no API-only or Personal Access Token shortcut to skip the redirect. The bullet below assumes you already populated the SCM OAuth client credentials (`GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` etc.) when you created `plexicus-fastapi` in step 5; without those, the OAuth flow returns 400 from the provider.
+:::
+
+### 10.1 Connect the SCM via the UI \{#self-hosted_helm-chart-scm-connect}
+
+1. Sign in to `https://<your-domain>` with the admin user from step 9.
+2. Open the **Connectors** page in the left sidebar.
+3. Click your SCM (GitHub / GitLab / Bitbucket / Gitea) → **Connect**. The browser is redirected to the provider for authorization. Log in and approve.
+4. The provider redirects back to `https://api.<your-domain>/vulnerability_tool/callback/<provider>?code=…&state=…`. The callback stores the access_token + refresh_token on the user record in MongoDB.
+
+### 10.2 Add a repository \{#self-hosted_helm-chart-scm-add-repo}
+
+UI: **Applications** → **Add applications** → pick the SCM connector, choose the repo, set a nickname and branch, click **Create**.
+
+API equivalent (assumes the SCM is already connected per step 10.1):
+
+```bash
+curl -X POST https://api.<your-domain>/create_repository_with_list \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "source_control": "github",
+    "data": [
+      { "uri": "https://github.com/<owner>/<repo>",
+        "nickname": "First repo",
+        "branch": "main" }
+    ]
+  }'
+```
+
+### 10.3 Trigger a scan and read the findings \{#self-hosted_helm-chart-scm-scan}
+
+```bash
+curl -X POST https://api.<your-domain>/request_repo_scan \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"repository_id":"<id-from-step-10.2>","scan_type":"app"}'
+
+curl -H "Authorization: Bearer $TOKEN" https://api.<your-domain>/findings
+```
+
+Scan progress also surfaces in **Findings** in the UI as workers process the queue.
+
+---
+
 ## Day 2 References \{#self-hosted_helm-chart-day2}
 
 The chart artifact bundles operator documentation under `docs/`. After running `helm pull --untar` (see step 6), the following guides are available locally:
