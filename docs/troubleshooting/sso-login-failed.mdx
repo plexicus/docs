@@ -1,0 +1,109 @@
+---
+title: "SSO Login Failed"
+description: "SAML / OIDC SSO redirects but login fails — signature errors, JIT misses, redirect loops."
+---
+
+# SSO Login Failed \{#troubleshooting_sso-login-failed-1\}
+
+When SSO login is failing, the IdP usually authenticated the user successfully but Plexicus rejected the assertion. This page covers the common rejection modes.
+
+For SSO setup itself, see [Configure SSO](/docs/recipes/configure-sso).
+
+## Diagnostic order \{#troubleshooting_sso-login-failed-2\}
+
+<Steps>
+  <Step title="Reproduce in incognito">
+    Cookies and cached IdP sessions cause weird behavior. Always test in a fresh incognito window.
+  </Step>
+  <Step title="Read the URL bar at failure">
+    SSO callback URL ends with `?error=...` or lands on a Plexicus error page. Note the exact text.
+  </Step>
+  <Step title="Capture the SAMLResponse / id_token">
+    DevTools → Network → click the IdP response → Form Data → `SAMLResponse` (SAML) or `id_token` (OIDC). Decode at [samltool.com](https://www.samltool.com/decode.php) or [jwt.io](https://jwt.io). Compare against what Plexicus expects.
+  </Step>
+</Steps>
+
+## Common rejection modes \{#troubleshooting_sso-login-failed-3\}
+
+<AccordionGroup>
+  <Accordion title="Invalid signature on SAML response" icon="material-symbols:gpp-bad-outline" defaultOpen>
+    Plexicus rejects assertions whose signature doesn't validate against the IdP's stored certificate.
+
+    **Common cause:** the IdP rotated its signing cert and Plexicus still has the old one.
+
+    **Fix:** Re-download IdP metadata XML, paste into Plexicus → SSO → Update.
+  </Accordion>
+
+  <Accordion title="Audience mismatch / Recipient mismatch" icon="material-symbols:warning-outline">
+    The IdP signed an assertion intended for a different SP. Plexicus's `Audience` (Entity ID) doesn't match what the IdP put in the `<Audience>` element.
+
+    **Fix:** Confirm the IdP's app config has Audience = exactly Plexicus's Entity ID (e.g. `https://app.plexicus.ai/saml/metadata`). No trailing slashes, no protocol typos.
+  </Accordion>
+
+  <Accordion title="Clock skew" icon="material-symbols:schedule-outline">
+    SAML assertions have `NotBefore` / `NotOnOrAfter` timestamps with ~5 min tolerance. Plexicus or the IdP clock off by >5 min → assertion rejected as expired.
+
+    **Fix:** sync NTP on both sides. On self-hosted, ensure pods have correct time:
+
+    ```bash
+    kubectl exec -n plexicus deploy/fastapi -- date -u
+    ```
+  </Accordion>
+
+  <Accordion title="User not found in Plexicus" icon="material-symbols:person-off-outline">
+    IdP authenticated successfully, but the user's email isn't in Plexicus's Users collection. JIT (just-in-time) provisioning is off.
+
+    **Fix:** Either:
+    - Have an admin pre-create the user in Plexicus → Team → Add member.
+    - Enable JIT provisioning in Plexicus → SSO → JIT Provisioning toggle.
+  </Accordion>
+
+  <Accordion title="Group claim missing → wrong role" icon="material-symbols:groups-outline">
+    User logged in but landed in the default role (Developer) when they should be Admin or Cyberoper.
+
+    **Fix:** Confirm the IdP is sending a `groups` claim and Plexicus's group→role mapping covers the user's group. See [Configure SSO § Group → Role mapping](/docs/recipes/configure-sso#recipes_configure-sso-7).
+
+    Inspect the actual claim by decoding the SAMLResponse / id_token and checking the AttributeStatement / claims block.
+  </Accordion>
+
+  <Accordion title="Loop redirect (IdP → Plexicus → IdP → Plexicus → ...)" icon="material-symbols:autorenew">
+    Either Plexicus is bouncing back to the IdP because it doesn't recognize the user, or the IdP is bouncing because it doesn't have a valid session.
+
+    **Fix:** clear cookies. If still looping after fresh incognito, check the SAMLResponse decoded — if `Issuer` doesn't match what Plexicus expects, Plexicus redirects back to "try again".
+  </Accordion>
+
+  <Accordion title="OIDC: `invalid_token`" icon="material-symbols:token-outline">
+    Discovery URL points at a different issuer than what the id_token claims. Or the JWKS endpoint serves keys that don't match the token's `kid`.
+
+    **Fix:** confirm the discovery URL works (`curl <url>/.well-known/openid-configuration`) and Plexicus's stored issuer matches.
+  </Accordion>
+</AccordionGroup>
+
+## Self-hosted: encryption key alignment \{#troubleshooting_sso-login-failed-4\}
+
+SSO depends on two env vars set consistently across all backend pods:
+
+```yaml
+SSO_RELAY_STATE_SECRET: <some-32+-char-random>
+SSO_ENCRYPTION_KEY: <some-32+-char-random>
+```
+
+If these were rotated mid-flight, in-flight SSO requests fail. Restart all backend pods after rotating.
+
+## When you've locked yourself out \{#troubleshooting_sso-login-failed-5\}
+
+If your org has **Require SSO for all users** enabled and the IdP is broken:
+
+1. **Self-hosted:** use the `BREAK_GLASS_SECRET_KEY` to log in as a recovery admin. See the [Self-Hosted helm-chart guide](/docs/self-hosted/helm-chart) section on bootstrapping the first admin.
+2. **SaaS:** contact support — they can disable SSO enforcement on your tenant temporarily.
+
+## Related \{#troubleshooting_sso-login-failed-6\}
+
+<CardGroup cols={2}>
+  <Card title="Configure SSO" icon="material-symbols:login-outline" href="/docs/recipes/configure-sso">
+    Setup walkthrough.
+  </Card>
+  <Card title="Roles and Permissions" icon="material-symbols:admin-panel-settings-outline" href="/docs/concepts/roles-and-permissions">
+    Where group claims become roles.
+  </Card>
+</CardGroup>

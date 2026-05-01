@@ -1,0 +1,133 @@
+---
+title: "Edit a Remediation Diff Before Submitting"
+description: "Tweak the AI-generated patch before it lands as a PR — manual override workflow."
+---
+
+# Edit a Remediation Diff Before Submitting \{#recipes_edit-remediation-diff-1\}
+
+The AI gets it right most of the time. When it doesn't, you don't have to start over — edit the diff in place and submit your version. Backed by `PUT /remediations/{remediation_id}/edit`.
+
+## When to edit \{#recipes_edit-remediation-diff-2\}
+
+- The fix works but uses unidiomatic style for your codebase.
+- The fix is missing a related change (e.g. update unit tests).
+- You want to add a comment explaining the change to future readers.
+- The AI proposed multiple files; you only want some of them.
+
+If the AI is fundamentally wrong about the fix, **don't edit — reject and use the Issue path instead**. Editing should be tweaks, not rewrites.
+
+## Edit from the UI \{#recipes_edit-remediation-diff-3\}
+
+<Steps>
+  <Step title="Open the finding (status: Ready)">
+    Wait for the remediation to reach `Ready` — that's when the diff is materialized.
+  </Step>
+  <Step title="Click Edit Diff">
+    A side-by-side editor opens showing the original code (left) and the proposed change (right).
+  </Step>
+  <Step title="Make your tweaks">
+    Edit the right side directly. Plexicus validates the modified diff applies cleanly to the original.
+  </Step>
+  <Step title="Save">
+    Plexicus calls `PUT /remediations/{id}/edit` with the new diff. The remediation stays in `Ready` status.
+  </Step>
+  <Step title="Click Create Pull Request">
+    The PR uses your edited version, not the AI's original.
+  </Step>
+</Steps>
+
+## Edit via API \{#recipes_edit-remediation-diff-4\}
+
+```bash
+curl -X PUT "https://app.plexicus.ai/remediations/$REMEDIATION_ID/edit" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "diff": {
+      "src/db/queries.py": [
+        {
+          "original": "query = f\"SELECT * FROM users WHERE id={user_id}\"",
+          "changes": "query = \"SELECT * FROM users WHERE id = %s\"\nparams = (user_id,)"
+        }
+      ]
+    }
+  }'
+```
+
+The `diff` shape:
+
+```json
+{
+  "<file_path>": [
+    { "original": "<exact text being replaced>", "changes": "<replacement text>" }
+  ]
+}
+```
+
+Multiple files supported: just add more keys.
+
+## Validation rules \{#recipes_edit-remediation-diff-5\}
+
+Plexicus validates the edited diff before saving. Rejection cases:
+
+| Failure | Detail |
+|---|---|
+| `original` text doesn't appear in the file | `422 Original text not found in <file>` |
+| `original` matches multiple locations | `422 Original text is ambiguous in <file>` |
+| File doesn't exist in the repo | `422 File not found: <file>` |
+| Resulting code doesn't parse (syntax check for the file's language) | `422 Invalid syntax after edit` |
+
+If you hit ambiguity, include more surrounding context in the `original` field to make it unique.
+
+## Multi-pass editing \{#recipes_edit-remediation-diff-6\}
+
+You can call `PUT /remediations/{id}/edit` multiple times before submitting the PR. Each call replaces the stored diff. The status stays `Ready` throughout.
+
+This is useful when you want to compose changes incrementally:
+
+```bash
+# Round 1 — fix the SQL injection
+curl -X PUT ".../edit" -d '{"diff": {"queries.py": [{"original": "...", "changes": "..."}]}}'
+
+# Round 2 — also update the docstring
+curl -X PUT ".../edit" -d '{"diff": {"queries.py": [{"original": "...", "changes": "..."}, {"original": "Update docstring", "changes": "..."}]}}'
+```
+
+The second call replaces the diff entirely — include all the changes you want, not just the new ones.
+
+## Re-trigger generation if you want a fresh take \{#recipes_edit-remediation-diff-7\}
+
+If the AI's first attempt is too far off:
+
+```bash
+# Discard the current remediation
+curl -X DELETE "https://app.plexicus.ai/remediations/$REMEDIATION_ID" \
+  -H "Authorization: Bearer $TOKEN"
+
+# Generate a new one (potentially with a different model if you upgraded)
+curl -X POST "https://app.plexicus.ai/remediations" \
+  -H "Authorization: Bearer $TOKEN" \
+  -d '{"finding_id": "..."}'
+```
+
+The new generation goes through the full [AI Remediation pipeline](/docs/concepts/ai-remediation) again.
+
+## Auditability \{#recipes_edit-remediation-diff-8\}
+
+Every edit is logged to the `HistoryUser` audit collection with `user_id`, `before`, `after`, and timestamp. The PR description on the SCM side includes a note that the diff was manually edited and by whom.
+
+This means:
+
+- Reviewers can tell at a glance whether the patch is pure AI or human-edited.
+- Compliance audits can trace exactly who touched what.
+
+## Related \{#recipes_edit-remediation-diff-9\}
+
+<CardGroup cols={2}>
+  <Card title="AI Remediation" icon="material-symbols:auto-fix" href="/docs/concepts/ai-remediation">
+    The pipeline this fits into.
+  </Card>
+  <Card title="Bulk Remediation" icon="material-symbols:apps-outline" href="/docs/recipes/bulk-remediation">
+    Generate diffs at scale, then edit selectively.
+  </Card>
+</CardGroup>

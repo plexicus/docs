@@ -1,0 +1,86 @@
+---
+title: "Troubleshooting"
+description: "When something is broken — start here. Five problem categories, each with concrete diagnostic steps."
+---
+
+# Troubleshooting \{#troubleshooting_index-1\}
+
+When Plexicus isn't behaving, find the closest match below and follow the linked playbook. Each page lists symptoms first, then the diagnostic procedure with the exact commands to run.
+
+If your problem doesn't match any of these, open an issue at [github.com/plexicus/docs](https://github.com/plexicus/docs) with logs and we'll add it.
+
+## By category \{#troubleshooting_index-2\}
+
+<CardGroup cols={2}>
+  <Card title="Scans" icon="material-symbols:rocket-launch-outline">
+    Stuck in Queued / Running / Enriching, never reach Completed, or Completed but no findings appear.
+  </Card>
+  <Card title="Authentication" icon="material-symbols:lock-outline">
+    SSO redirect loops, 2FA lockout, OAuth callback errors per provider.
+  </Card>
+  <Card title="Remediation" icon="material-symbols:auto-fix">
+    AI Remediation never opens a PR, patch validates but PR fails to land.
+  </Card>
+  <Card title="Webhooks" icon="material-symbols:webhook-outline">
+    Inbound events don't trigger scans; outbound webhooks pile up in retry.
+  </Card>
+  <Card title="Self-hosted" icon="material-symbols:dns-outline">
+    Helm install errors, image pull failures, Temporal connection issues. Many covered already in [Self-Hosted](/docs/self-hosted) guides.
+  </Card>
+</CardGroup>
+
+## Quick checks \{#troubleshooting_index-3\}
+
+Before diving into a specific page, run these:
+
+<Steps>
+  <Step title="Plexicus is up?">
+    SaaS: [status.plexicus.ai](https://status.plexicus.ai).
+    Self-hosted: `kubectl get pods -n plexicus` — every pod should be `Running`.
+  </Step>
+  <Step title="Your auth works?">
+    `curl -H "Authorization: Bearer $TOKEN" https://app.plexicus.ai/session` returns `200` with your user info.
+    `401` → token issue. `403` → role issue. See [Error Codes](/docs/reference/error-codes).
+  </Step>
+  <Step title="The relevant integration is connected?">
+    `curl -H "Authorization: Bearer $TOKEN" https://app.plexicus.ai/integrations/scm/check_validity` returns the connection status of every SCM.
+  </Step>
+</Steps>
+
+If those three pass, the problem is *specific* — pick the right playbook below.
+
+## Playbooks \{#troubleshooting_index-4\}
+
+<CardGroup cols={2}>
+  <Card title="Scan stuck" icon="material-symbols:hourglass-empty" href="/docs/troubleshooting/scan-stuck">
+    Diagnose Queued / Running / Enriching states that never advance.
+  </Card>
+  <Card title="OAuth callback errors" icon="material-symbols:link-off-outline" href="/docs/troubleshooting/oauth-callback-errors">
+    SCM and Google login OAuth flows broken — per-provider fixes.
+  </Card>
+  <Card title="SSO login failed" icon="material-symbols:login-outline" href="/docs/troubleshooting/sso-login-failed">
+    SAML / OIDC redirect loops, signature failures, JIT provisioning gaps.
+  </Card>
+  <Card title="2FA lockout" icon="material-symbols:lock-reset-outline" href="/docs/troubleshooting/2fa-lockout">
+    Lost authenticator, expired backup codes, admin-reset path.
+  </Card>
+  <Card title="Webhooks not arriving" icon="material-symbols:warning-outline" href="/docs/troubleshooting/webhooks-not-arriving">
+    Plexicus isn't seeing your push / PR events.
+  </Card>
+  <Card title="AI Remediation never opens a PR" icon="material-symbols:bug-report-outline" href="/docs/troubleshooting/ai-remediation-no-pr">
+    Stuck in Processing or Ready, no PR materialized.
+  </Card>
+</CardGroup>
+
+## Where to look first \{#troubleshooting_index-5\}
+
+For self-hosted deployments, four log surfaces:
+
+| Symptom | Inspect |
+|---|---|
+| API errors | `kubectl logs -n plexicus deploy/fastapi` |
+| Scan stuck | `kubectl logs -n plexicus deploy/worker -f` + Temporal UI |
+| Plexalyzer hung | `kubectl logs -n plexicus deploy/plexalyzer-code -f` |
+| Remediation hung | `kubectl logs -n plexicus deploy/codex-remedium -f` |
+
+For SaaS, your visibility is the audit log + status page; if those don't surface the issue, contact support.

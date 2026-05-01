@@ -1,0 +1,147 @@
+---
+title: "Webhooks Not Arriving"
+description: "Plexicus isn't seeing your push or PR events — diagnose by direction."
+---
+
+# Webhooks Not Arriving \{#troubleshooting_webhooks-not-arriving-1\}
+
+Two directions, two diagnostic paths:
+
+- **Inbound** (your SCM → Plexicus): Plexicus isn't triggering scans on push or PR events.
+- **Outbound** (Plexicus → your services): your receivers aren't getting the events Plexicus emits.
+
+## Inbound — SCM webhooks \{#troubleshooting_webhooks-not-arriving-2\}
+
+<Steps>
+  <Step title="Confirm the webhook is configured at the SCM side">
+    GitHub: Repository → Settings → Webhooks → Plexicus webhook should be listed with green checkmark.
+    GitLab: Project → Settings → Webhooks.
+    Bitbucket: Repository → Settings → Webhooks.
+    Gitea: Repository → Settings → Webhooks.
+  </Step>
+  <Step title="Check recent deliveries on the SCM side">
+    Each SCM has a "Recent Deliveries" panel showing the last N requests + responses. If status is `200` from Plexicus, the webhook arrived; problem is downstream. If `4xx` / `5xx`, click into the failed delivery for details.
+  </Step>
+  <Step title="If no recent deliveries: webhook isn't firing at all">
+    Common causes:
+    - Webhook is paused / disabled (toggle on the SCM page).
+    - Wrong event type subscribed (e.g. only `push` but you're testing on PR).
+    - Branch protection blocks the trigger source.
+  </Step>
+</Steps>
+
+### Inbound failure modes \{#troubleshooting_webhooks-not-arriving-3\}
+
+<AccordionGroup>
+  <Accordion title="`401 Invalid signature`" icon="material-symbols:lock-outline" defaultOpen>
+    The webhook secret in the SCM doesn't match what Plexicus stored.
+
+    **Fix:** Re-set the secret on both sides:
+    1. Generate a random string locally: `openssl rand -hex 32`.
+    2. Paste into Plexicus → Connector → \{provider\} → Webhook Secret. Save.
+    3. Paste the same value into the SCM's webhook config.
+  </Accordion>
+
+  <Accordion title="`200 OK` but no scan triggered" icon="material-symbols:warning-outline">
+    Plexicus accepted the webhook but ignored it.
+
+    Common reasons:
+    - **Branch not watched.** Plexicus only triggers on branches configured in the application's Pipeline Setup. A push to `feature/whatever` won't scan if you only watch `main`.
+    - **Event type ignored.** Plexicus reacts to `push`, `pull_request opened/synchronized/closed`, `pull_request_review_comment` is ignored.
+    - **Application deleted.** The webhook target no longer exists. Re-create the application.
+  </Accordion>
+
+  <Accordion title="`404 Not Found`" icon="material-symbols:link-off-outline">
+    Webhook URL is wrong or your Plexicus deployment is unreachable from the SCM's IP range.
+
+    **Fix:** Confirm the URL exactly matches Plexicus's expected endpoint:
+    - GitHub: `https://app.plexicus.ai/webhooks/github`
+    - GitLab: `https://app.plexicus.ai/webhooks/gitlab`
+    - Bitbucket: `https://app.plexicus.ai/webhooks/bitbucket`
+    - Gitea: `https://app.plexicus.ai/webhooks/gitea`
+
+    For self-hosted, replace the host. If your Plexicus is behind a firewall, allowlist the SCM's webhook source IP ranges (GitHub publishes them at `https://api.github.com/meta`).
+  </Accordion>
+
+  <Accordion title="Webhook fires but provider can't reach Plexicus" icon="material-symbols:cloud-off-outline">
+    Self-hosted only. The SCM is on the public internet but your Plexicus is private.
+
+    **Fix:** Either expose Plexicus's webhook endpoint via a reverse proxy with TLS, or use the alternative pull-based approach (less timely, doesn't need ingress).
+  </Accordion>
+</AccordionGroup>
+
+## Outbound — custom webhooks \{#troubleshooting_webhooks-not-arriving-4\}
+
+<Steps>
+  <Step title="Open Plexicus → Organization → Integrations → Custom Webhooks">
+    Each configured webhook shows recent delivery status.
+  </Step>
+  <Step title="Check delivery status">
+    Successful deliveries show `2xx`. Failed ones show the receiver's status code + first 200 chars of response body.
+  </Step>
+  <Step title="Replay a failed delivery">
+    Click into a delivery → **Replay**. Plexicus re-POSTs the same payload.
+  </Step>
+</Steps>
+
+### Outbound failure modes \{#troubleshooting_webhooks-not-arriving-5\}
+
+<AccordionGroup>
+  <Accordion title="Receiver returns 5xx repeatedly" icon="material-symbols:error-outline" defaultOpen>
+    Plexicus retries with exponential backoff for 24h. After 24h, the delivery is dropped.
+
+    **Fix:** Fix the receiver. Then click **Replay failed** in the webhook detail page to re-send queued events that haven't been dropped yet.
+  </Accordion>
+
+  <Accordion title="Receiver returns 401/403" icon="material-symbols:lock-outline">
+    Auth header missing or wrong. If your receiver expects `Authorization: Bearer ...`, configure that as a custom header in the webhook settings.
+
+    Plexicus signs every payload with HMAC-SHA256 in `X-Plexicus-Signature` — that's verification, not auth. You may need both.
+  </Accordion>
+
+  <Accordion title="Webhook is 'Paused' state" icon="material-symbols:pause-circle-outline">
+    Someone toggled the **Active** switch off.
+
+    **Fix:** Toggle back on.
+  </Accordion>
+
+  <Accordion title="Event type not subscribed" icon="material-symbols:filter-alt-off-outline">
+    Webhook is configured to fire only on `finding.created`, but you're expecting `remediation.pr_accepted`.
+
+    **Fix:** Edit the webhook → Events → tick the additional event types.
+  </Accordion>
+
+  <Accordion title="Receiver got the event but ignored it (idempotency)" icon="material-symbols:repeat-outline">
+    If your receiver dedupes by `X-Plexicus-Delivery` UUID and Plexicus retried the same delivery, the second call is correctly ignored. Confirm by checking the receiver's logs.
+  </Accordion>
+</AccordionGroup>
+
+## Test from the command line \{#troubleshooting_webhooks-not-arriving-6\}
+
+Send a synthetic event to your receiver to verify it accepts Plexicus-shaped payloads:
+
+```bash
+PAYLOAD='{"event": "finding.created", "finding_id": "test", "severity": "Critical"}'
+SECRET="your-webhook-secret"
+SIG="sha256=$(echo -n "$PAYLOAD" | openssl dgst -sha256 -hmac "$SECRET" | sed 's/^.* //')"
+
+curl -X POST "https://your-receiver/endpoint" \
+  -H "Content-Type: application/json" \
+  -H "X-Plexicus-Event: finding.created" \
+  -H "X-Plexicus-Delivery: test-uuid" \
+  -H "X-Plexicus-Signature: $SIG" \
+  -d "$PAYLOAD"
+```
+
+If the receiver accepts this, the problem is in Plexicus → receiver routing. If it rejects, the receiver itself is misconfigured.
+
+## Related \{#troubleshooting_webhooks-not-arriving-7\}
+
+<CardGroup cols={2}>
+  <Card title="Configure Webhooks" icon="material-symbols:webhook-outline" href="/docs/recipes/configure-webhooks">
+    Setup walkthrough.
+  </Card>
+  <Card title="Connect Source Control" icon="material-symbols:fork-right-outline" href="/docs/recipes/connect-github">
+    Where inbound webhooks get auto-configured.
+  </Card>
+</CardGroup>

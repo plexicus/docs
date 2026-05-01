@@ -1,0 +1,154 @@
+---
+title: "Scan Stuck"
+description: "Application stuck in Queued, Running, or Enriching — diagnose by lifecycle stage."
+---
+
+# Scan Stuck \{#troubleshooting_scan-stuck-1\}
+
+Pick the section matching the stuck state. For background, the [Applications Lifecycle](/docs/concepts/applications-lifecycle) explains what each state does.
+
+## Stuck in Queued \{#troubleshooting_scan-stuck-2\}
+
+**Symptom:** Application sits in Queued for >5 minutes.
+
+**Cause hierarchy** (most → least likely):
+
+<AccordionGroup>
+  <Accordion title="Worker pool saturated" icon="material-symbols:hourglass-empty" defaultOpen>
+    All worker pods are busy with other scans.
+
+    ```bash
+    kubectl get pods -n plexicus -l app=worker
+    kubectl top pods -n plexicus -l app=worker
+    ```
+
+    If every worker is at >80% CPU, scale up the deployment:
+
+    ```bash
+    kubectl scale -n plexicus deploy/worker --replicas=4
+    ```
+  </Accordion>
+
+  <Accordion title="Plexalyzer pool saturated" icon="material-symbols:hourglass-empty">
+    Workers are picking up scan requests but Plexalyzer can't accept them. Same diagnosis on the `plexalyzer-code` deployment.
+
+    ```bash
+    kubectl get pods -n plexicus -l app=plexalyzer-code
+    ```
+
+    Each Plexalyzer pod handles one scan at a time. Scale up if your workload demands more concurrency.
+  </Accordion>
+
+  <Accordion title="Wrong task queue name" icon="material-symbols:warning-outline">
+    Scan was queued on `scan` but workers are listening on a different name. Check `worker/config/queues.py` matches what the API sends.
+
+    Look at the Temporal UI for the workflow ID — its task queue is the one the API used.
+  </Accordion>
+
+  <Accordion title="Tenant concurrency limit" icon="material-symbols:speed-outline">
+    Some tiers cap how many scans a single client can run in parallel. If you have 10 applications all triggered simultaneously, the latter ones queue.
+
+    See [Pricing Tiers](/docs/reference/pricing-tiers) for tier limits.
+  </Accordion>
+</AccordionGroup>
+
+## Stuck in Running \{#troubleshooting_scan-stuck-3\}
+
+**Symptom:** Application has been Running for >30 minutes (most repos finish in 3–10 min).
+
+<AccordionGroup>
+  <Accordion title="Plexalyzer hung on a single tool" icon="material-symbols:settings-outline" defaultOpen>
+    Common offenders: Trivy SCA on a repo with thousands of dependencies, or an SBOM tool on a Java monorepo with deep Maven trees.
+
+    ```bash
+    kubectl logs -n plexicus deploy/plexalyzer-code -f
+    ```
+
+    The last log line shows which tool is currently running. If the same tool name has been logged for 15+ minutes with no progress, it's hung.
+
+    **Fix:** [Cancel the analysis](/docs/recipes/cancel-running-scan), then re-trigger with the offending tool excluded:
+
+    ```bash
+    curl -X POST "https://app.plexicus.ai/client/included-tools/remove" \
+      -H "Authorization: Bearer $TOKEN" \
+      -d '{"tool": "trivy"}'
+    ```
+  </Accordion>
+
+  <Accordion title="Repo too large" icon="material-symbols:folder-outline">
+    Repos >5GB or with >100k files often timeout the underlying Plexalyzer activity (default: 30 min).
+
+    **Fix:** Either prune the repo (binary artifacts, generated code) or raise the activity timeout in `worker/config/queues.py`.
+  </Accordion>
+
+  <Accordion title="SCM clone failing" icon="material-symbols:fork-right-outline">
+    Plexalyzer can't clone the repo. Look for `Authentication failed` or `Repository not found` early in the logs.
+
+    **Fix:** Re-authorize the SCM connector. The OAuth token may have been revoked or its scope reduced.
+  </Accordion>
+</AccordionGroup>
+
+## Stuck in Enriching \{#troubleshooting_scan-stuck-4\}
+
+**Symptom:** Application has been Enriching for >10 minutes.
+
+<AccordionGroup>
+  <Accordion title="tool-parser crashed" icon="material-symbols:error-outline" defaultOpen>
+    The parser pipeline died mid-batch.
+
+    ```bash
+    kubectl logs -n plexicus deploy/tool-parser
+    ```
+
+    Common cause: malformed scanner output (corrupted SARIF, unexpected encoding). The parser writes a partial finding count and exits.
+
+    **Fix:** Restart the deployment, then re-trigger the scan. If it recurs on the same repo, file an issue with the scanner output sample.
+  </Accordion>
+
+  <Accordion title="Enrichment stuck on EPSS lookup" icon="material-symbols:cloud-off-outline">
+    `rule_enricher` calls FIRST.org for EPSS scores. If FIRST.org is unreachable (firewall, outage), enrichment hangs.
+
+    **Fix:** Confirm `curl https://api.first.org/data/v1/epss` works from the cluster. If blocked, configure egress allowlist or set `EPSS_DISABLED=true`.
+  </Accordion>
+
+  <Accordion title="MongoDB write contention" icon="material-symbols:database-outline">
+    Many simultaneous scans completing → bulk inserts into `findings` collection contend for write locks.
+
+    ```bash
+    kubectl logs -n plexicus deploy/tool-parser | grep -i "lock\|timeout"
+    ```
+
+    **Fix:** Stagger scan triggers, or increase MongoDB replica set capacity.
+  </Accordion>
+</AccordionGroup>
+
+## Reached Completed but no findings appear \{#troubleshooting_scan-stuck-5\}
+
+<AccordionGroup>
+  <Accordion title="All findings deduplicated against previous scan" icon="material-symbols:filter-alt-outline">
+    `CosmosOptimizer` matched every new finding to an existing one and the Findings page is filtered to "new since last scan".
+
+    **Fix:** Change the date filter to **All time** on the Findings page.
+  </Accordion>
+
+  <Accordion title="Default filters hide everything" icon="material-symbols:filter-alt-off-outline">
+    Saved filter is too aggressive — e.g. `severity=Critical` only, but this scan only produced Medium findings.
+
+    **Fix:** Clear the active filter and look again. See [Configure Finding Filters](/docs/recipes/configure-finding-filters).
+  </Accordion>
+</AccordionGroup>
+
+## Cancel as a circuit breaker \{#troubleshooting_scan-stuck-6\}
+
+If the scan is unrecoverable, [cancel the analysis](/docs/recipes/cancel-running-scan) and re-trigger from a clean state. Cancelling does not delete the application or its history.
+
+## Related \{#troubleshooting_scan-stuck-7\}
+
+<CardGroup cols={2}>
+  <Card title="Applications Lifecycle" icon="material-symbols:rocket-launch-outline" href="/docs/concepts/applications-lifecycle">
+    What each state means.
+  </Card>
+  <Card title="Cancel a Running Scan" icon="material-symbols:cancel-outline" href="/docs/recipes/cancel-running-scan">
+    Recovery procedure.
+  </Card>
+</CardGroup>

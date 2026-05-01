@@ -1,0 +1,108 @@
+---
+title: "OAuth Callback Errors"
+description: "SCM or Google login OAuth flow fails on the callback step — per-provider fixes."
+---
+
+# OAuth Callback Errors \{#troubleshooting_oauth-callback-errors-1\}
+
+The OAuth flow is two-step: Plexicus redirects you to the provider, you authenticate, the provider redirects back to Plexicus's callback URL with a code. Most failures happen on the callback because something doesn't match between Plexicus's config and the OAuth app's config.
+
+## Universal first checks \{#troubleshooting_oauth-callback-errors-2\}
+
+<Steps>
+  <Step title="Read the URL bar after the failure">
+    The callback URL contains either `?code=...&state=...` (success) or `?error=...&error_description=...` (failure). The error description names the cause.
+  </Step>
+  <Step title="Open the browser DevTools network tab">
+    Replay the flow with DevTools open. The redirect chain shows exactly which URL was rejected.
+  </Step>
+  <Step title="Check Plexicus's audit log">
+    Authenticated already? Look at `GET /audit-log?action=oauth_callback`. Failed callbacks log with the error class.
+  </Step>
+</Steps>
+
+## Per-provider \{#troubleshooting_oauth-callback-errors-3\}
+
+<AccordionGroup>
+  <Accordion title="GitHub: redirect_uri_mismatch" icon="material-symbols:logo-github" defaultOpen>
+    GitHub strict-matches the registered callback URL. Even a trailing slash mismatch fails.
+
+    **Check:** GitHub OAuth App → Authorization callback URL. It must be exactly `https://app.plexicus.ai/api/callback/github` (or your self-hosted equivalent — find it on Plexicus → Connector → GitHub → Callback URL).
+  </Accordion>
+
+  <Accordion title="GitHub: incorrect_client_credentials" icon="material-symbols:logo-github">
+    Client ID or Client Secret in Plexicus doesn't match what GitHub has.
+
+    **Fix:** Regenerate the secret on GitHub (OAuth App → Generate a new client secret), copy into Plexicus immediately.
+  </Accordion>
+
+  <Accordion title="GitHub App: app_not_installed" icon="material-symbols:logo-github">
+    Plexicus is using OAuth, but the user has only installed the Plexicus GitHub App. Or vice versa — the user installed the App but Plexicus tried OAuth.
+
+    **Fix:** Reconcile: in Plexicus → Connector → GitHub, pick whichever is installed (Token tab for OAuth, Installation ID tab for the App).
+  </Accordion>
+
+  <Accordion title="GitLab: invalid_redirect_uri" icon="material-symbols:logo-gitlab">
+    Same root cause as GitHub. GitLab applications page → check Redirect URI exactly matches `https://app.plexicus.ai/api/callback/gitlab`.
+  </Accordion>
+
+  <Accordion title="GitLab: insufficient_scope" icon="material-symbols:logo-gitlab">
+    The OAuth app was created without `api`, `read_user`, or `read_repository` scopes.
+
+    **Fix:** GitLab → User Settings → Applications → edit your app → tick all three scopes → save. Then re-authorize from Plexicus.
+  </Accordion>
+
+  <Accordion title="Bitbucket: invalid_grant" icon="material-symbols:fork-right-outline">
+    Bitbucket OAuth keys expire after 14 days of inactivity. The first attempt to use a stale key fails with `invalid_grant`.
+
+    **Fix:** Re-authorize from Plexicus. Bitbucket issues new keys and the next call works.
+  </Accordion>
+
+  <Accordion title="Google: redirect_uri_mismatch" icon="material-symbols:google">
+    For Google login (not for SCM): the OAuth client's authorized redirect URI doesn't include Plexicus's callback.
+
+    **Fix:** Google Cloud Console → APIs & Services → Credentials → your OAuth Client → Authorized redirect URIs → add the Plexicus callback.
+  </Accordion>
+
+  <Accordion title="Generic: state mismatch" icon="material-symbols:warning-outline">
+    The `state` parameter Plexicus generated isn't what came back. Common causes:
+    - User opened the OAuth flow in tab A, then started a new flow in tab B; tab A's callback fires with tab B's state.
+    - Browser cookies cleared between redirect and callback (incognito + privacy modes).
+
+    **Fix:** Close all Plexicus tabs, restart the OAuth flow in a single tab.
+  </Accordion>
+</AccordionGroup>
+
+## Self-hosted: callback URL must match deployment \{#troubleshooting_oauth-callback-errors-4\}
+
+The default callback URL examples in this doc reference `app.plexicus.ai`. On self-hosted deployments, replace with your actual hostname (e.g. `plexicus.your-org.com`).
+
+Critical env vars that drive callback URLs:
+
+| Env var | Purpose |
+|---|---|
+| `BACKEND_HOST_URL` | Where Plexicus's backend lives — used to build callback URLs |
+| `GITHUB_REDIRECT_URI` | The exact path appended to `BACKEND_HOST_URL` for GitHub callback |
+| `GITLAB_REDIRECT_URI` | Same for GitLab |
+| `BITBUCKET_REDIRECT_URI` | Same for Bitbucket |
+| `GITEA_REDIRECT_URI` | Same for Gitea |
+
+Mismatch between these and what the OAuth provider has registered → callback fails. See [Self-Hosted Configuration](/docs/self-hosted/configuration).
+
+## Recovery if you locked yourself out \{#troubleshooting_oauth-callback-errors-5\}
+
+If your only login method is OAuth and the OAuth callback is broken:
+
+- **SaaS:** request password reset → log in with email/password → fix the OAuth config from the UI.
+- **Self-hosted:** use the break-glass admin flow (see [Self-Hosted Configuration](/docs/self-hosted/configuration#self-hosted_helm-chart-7)).
+
+## Related \{#troubleshooting_oauth-callback-errors-6\}
+
+<CardGroup cols={2}>
+  <Card title="Connect Source Control" icon="material-symbols:fork-right-outline" href="/docs/recipes/connect-github">
+    The OAuth setup recipes that failed.
+  </Card>
+  <Card title="Configure SSO" icon="material-symbols:login-outline" href="/docs/recipes/configure-sso">
+    For broken SAML/OIDC flows specifically.
+  </Card>
+</CardGroup>

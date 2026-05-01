@@ -1,0 +1,140 @@
+---
+title: "AI Remediation Never Opens a PR"
+description: "Stuck in Processing or Ready, no pull request shows up — diagnostic playbook."
+---
+
+# AI Remediation Never Opens a PR \{#troubleshooting_ai-remediation-no-pr-1\}
+
+The [AI Remediation pipeline](/docs/concepts/ai-remediation) is 9 steps. A PR not landing means one of those 9 failed silently. Walk the chain.
+
+## Diagnostic walk \{#troubleshooting_ai-remediation-no-pr-2\}
+
+<Steps>
+  <Step title="What's the finding's current status?">
+    Open the finding. Status determines which step you're stuck on:
+    - **Pending Input** → step 2 (waiting on user)
+    - **Processing** → step 3-6 (LLM / validation)
+    - **Ready** → step 7 (PR creation pending or failed)
+    - **PR Submitted** → done; check the SCM
+  </Step>
+  <Step title="Open the Temporal UI (self-hosted)">
+    `kubectl port-forward -n plexicus svc/temporal-ui 8080:8080`, then [localhost:8080](http://localhost:8080).
+
+    Find the workflow ID from the finding's detail page. Click into it. The activity timeline shows where it's hung.
+  </Step>
+  <Step title="Tail the relevant pod logs">
+    Match the symptom to the right log surface (table below).
+  </Step>
+</Steps>
+
+| Symptom | Inspect |
+|---|---|
+| Stuck Pending Input | finding detail page; UI input form should be visible |
+| Stuck Processing > 5 min | `kubectl logs -n plexicus deploy/codex-remedium -f` |
+| Stuck Ready, no PR | `kubectl logs -n plexicus deploy/worker -f` (PullRequestWorkflow) |
+| PR opened but finding still Processing | worker logs at the post-PR step |
+
+## Failure modes \{#troubleshooting_ai-remediation-no-pr-3\}
+
+<AccordionGroup>
+  <Accordion title="Pending Input — workflow waiting on user" icon="material-symbols:edit-outline" defaultOpen>
+    Some remediations need a user decision (e.g. "pin dep to 1.2.4 vs remove dep entirely"). Workflow paused on a Temporal signal.
+
+    **Fix:** Open the finding detail page; submit the input via the form. This calls `PUT /remediations/{id}/edit` and resumes the workflow.
+
+    If the input form isn't shown, the UI is bugged or stale — refresh; if still missing, signal Temporal manually:
+
+    ```bash
+    temporal workflow signal --workflow-id <wf-id> --name UserInput --input '{"choice": "pin"}'
+    ```
+  </Accordion>
+
+  <Accordion title="Processing — Codex Remedium hung" icon="material-symbols:settings-outline">
+    Long ones (deep transitive dependency rewrites) can take 90+ seconds. >5 min usually means hung.
+
+    **Fix:** Check codex-remedium logs:
+
+    ```bash
+    kubectl logs -n plexicus deploy/codex-remedium -f
+    ```
+
+    Common causes:
+    - **Rate-limited LLM** — `429` from OpenAI / Azure. Plexicus retries with backoff but won't bypass quota. Upgrade tier or wait.
+    - **Expired API key** — `401`. See [Configure AI Provider](/docs/recipes/configure-ai-provider).
+    - **LLM produced unparseable diff 3 times** — workflow gives up, status flips to `failed`. Use the Issue path instead, or upgrade to a more capable model (gpt-4o vs gpt-4o-mini).
+  </Accordion>
+
+  <Accordion title="Ready — PR creation failed" icon="material-symbols:upload-outline">
+    Codex Remedium produced a validated diff, but `PullRequestWorkflow` failed to land it.
+
+    **Fix:** Check worker logs:
+
+    ```bash
+    kubectl logs -n plexicus deploy/worker -f | grep -i "PullRequestWorkflow\|pull_request"
+    ```
+
+    Common causes:
+    - **Branch protection on the SCM** blocks Plexicus's bot from creating PRs.
+    - **Token scope insufficient** — OAuth connector lacks `repo` write scope.
+    - **Branch already exists** with the same name from a previous attempt.
+    - **Diff doesn't apply** at the current HEAD (race with another commit).
+  </Accordion>
+
+  <Accordion title="PR opened but finding still Processing" icon="material-symbols:sync-problem-outline">
+    PR exists in the SCM but Plexicus didn't update its own state.
+
+    **Fix:** Temporal disconnected between steps 7 and 8. Workflow may complete on retry. If it doesn't, manually sync:
+
+    ```bash
+    curl -X PUT "https://app.plexicus.ai/findings/$FINDING_ID/sync" \
+      -H "Authorization: Bearer $TOKEN"
+    ```
+
+    Then close the duplicate branch in your SCM if multiple were created.
+  </Accordion>
+
+  <Accordion title="PR opens, gets merged, finding stays open" icon="material-symbols:link-off-outline">
+    `MergedPullRequestWorkflow` should close the finding when the PR merges. If it doesn't:
+
+    - **Webhook not arriving** — your SCM isn't telling Plexicus the PR merged. See [Webhooks Not Arriving](/docs/troubleshooting/webhooks-not-arriving).
+    - **PR not linked to finding** — the PR description must contain the Plexicus finding URL for the workflow to find it. If you manually created a PR (not via Plexicus), Plexicus won't know it's the remediation.
+  </Accordion>
+
+  <Accordion title="Patch validates but breaks tests" icon="material-symbols:bug-report-outline">
+    Codex Remedium validates that a diff *applies*, not that it passes your tests. CI is your safety net.
+
+    **Fix:** Review and reject the PR — finding moves to `PR Rejected` and is eligible for a new remediation attempt. For repeat failures on the same finding class, use the Issue path or escalate to a developer manually.
+  </Accordion>
+</AccordionGroup>
+
+## Recover from a half-failed remediation \{#troubleshooting_ai-remediation-no-pr-4\}
+
+If you're stuck and want a clean restart:
+
+<Steps>
+  <Step title="Reset the remediation status">
+    ```bash
+    curl -X DELETE "https://app.plexicus.ai/remediations/$REMEDIATION_ID" \
+      -H "Authorization: Bearer $TOKEN"
+    ```
+
+    The finding goes back to `Enriched`.
+  </Step>
+  <Step title="Close any orphaned branches in the SCM">
+    Delete the `plexicus-remediation-*` branch manually.
+  </Step>
+  <Step title="Re-trigger the remediation">
+    Click **Create AI Remediation** on the finding. New workflow ID, fresh state.
+  </Step>
+</Steps>
+
+## Related \{#troubleshooting_ai-remediation-no-pr-5\}
+
+<CardGroup cols={2}>
+  <Card title="AI Remediation" icon="material-symbols:auto-fix" href="/docs/concepts/ai-remediation">
+    The full pipeline this troubleshoots.
+  </Card>
+  <Card title="Configure AI Provider" icon="material-symbols:open-in-new" href="/docs/recipes/configure-ai-provider">
+    Fix LLM-side issues.
+  </Card>
+</CardGroup>

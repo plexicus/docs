@@ -1,0 +1,143 @@
+---
+title: "Register and Verify a Custom Domain"
+description: "Bind your own domain (e.g. plexicus.your-org.com) to your Plexicus tenant — DNS verification + binding."
+---
+
+# Register and Verify a Custom Domain \{#recipes_register-domain-1\}
+
+A custom domain lets your team access Plexicus at a hostname you control instead of `app.plexicus.ai`. Backed by `POST /domains` (register) → `POST /domains/verify` (DNS challenge) → `POST /bind_domain` (route to your tenant).
+
+:::note Tier required
+Custom domain binding is a Pro / Enterprise feature on SaaS. Self-hosted deployments use whatever hostname you configured at install time — see [Self-Hosted Helm Chart](/docs/self-hosted/helm-chart).
+:::
+
+## Register the domain \{#recipes_register-domain-2\}
+
+<Steps>
+  <Step title="Open Organization → Domains → Add Domain">
+    Enter the domain you want to use (e.g. `plexicus.your-org.com`).
+  </Step>
+  <Step title="Plexicus generates a verification token">
+    Plexicus calls `POST /domains` and returns:
+    - `verification_token` — a string like `plexicus-verify=abcdef123456`
+    - `target_cname` — the hostname your DNS should point to (e.g. `tenants.plexicus.ai`)
+  </Step>
+</Steps>
+
+API equivalent:
+
+```bash
+curl -X POST "https://app.plexicus.ai/domains" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"domain": "plexicus.your-org.com"}'
+```
+
+## Add DNS records \{#recipes_register-domain-3\}
+
+Two records on your DNS provider:
+
+| Record | Name | Value |
+|---|---|---|
+| TXT | `_plexicus-verify.plexicus.your-org.com` | `plexicus-verify=abcdef123456` |
+| CNAME | `plexicus.your-org.com` | `tenants.plexicus.ai` |
+
+Wait for propagation (typically ~5 minutes; up to 1 hour for slow registrars).
+
+## Verify ownership \{#recipes_register-domain-4\}
+
+<Steps>
+  <Step title="In Plexicus, click Verify">
+    Plexicus calls `POST /domains/verify`, which performs a TXT record lookup against `_plexicus-verify.your-domain` and confirms it matches the issued token.
+  </Step>
+  <Step title="If verification fails: wait + retry">
+    DNS can take up to an hour. Use `dig TXT _plexicus-verify.plexicus.your-org.com` from your terminal to confirm the record is live before retrying.
+  </Step>
+</Steps>
+
+API equivalent:
+
+```bash
+curl -X POST "https://app.plexicus.ai/domains/verify" \
+  -H "Authorization: Bearer $TOKEN" \
+  -d '{"domain": "plexicus.your-org.com"}'
+```
+
+Once verified, the domain is owned by your tenant. No other tenant can claim it.
+
+## Bind the domain \{#recipes_register-domain-5\}
+
+Verification proves ownership; binding routes traffic.
+
+```bash
+curl -X POST "https://app.plexicus.ai/bind_domain" \
+  -H "Authorization: Bearer $TOKEN" \
+  -d '{"domain": "plexicus.your-org.com"}'
+```
+
+After binding:
+
+- `https://plexicus.your-org.com` serves your tenant's UI.
+- TLS certificates are auto-provisioned by Plexicus (Let's Encrypt).
+- The default `https://app.plexicus.ai` continues to work as a fallback.
+
+## Listing domains \{#recipes_register-domain-6\}
+
+```bash
+curl -X GET "https://app.plexicus.ai/domains" \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+Returns:
+
+```json
+{
+  "domains": [
+    {
+      "domain": "plexicus.your-org.com",
+      "verified": true,
+      "bound": true,
+      "verified_at": "2026-04-15T10:23:11Z",
+      "tls_status": "active"
+    }
+  ]
+}
+```
+
+## Updating SCM callbacks \{#recipes_register-domain-7\}
+
+After binding a custom domain, your SCM OAuth apps still point at `app.plexicus.ai`. Either:
+
+1. **Leave them alone** — OAuth callbacks via `app.plexicus.ai` continue to work; the bound domain is for the UI.
+2. **Update SCM apps** — register additional callback URLs at the new domain. Required if you want users to never see `plexicus.ai` in the URL bar during OAuth.
+
+For SCM-specific update steps, see [OAuth Callback Errors](/docs/troubleshooting/oauth-callback-errors).
+
+## Common errors \{#recipes_register-domain-8\}
+
+<AccordionGroup>
+  <Accordion title="`409 Domain already bound`" icon="material-symbols:warning-outline">
+    Another tenant has already claimed this domain. If you own it but lost access to the original tenant, contact support with proof of DNS control.
+  </Accordion>
+  <Accordion title="`422 Domain verification failed`" icon="material-symbols:link-off-outline">
+    TXT record missing or wrong value. Use `dig +short TXT _plexicus-verify.your-domain` to confirm exactly what's published.
+  </Accordion>
+  <Accordion title="TLS certificate stuck pending" icon="material-symbols:lock-outline">
+    Let's Encrypt's HTTP-01 challenge requires the CNAME to be reachable. If you have CDN/WAF in front, ensure it doesn't block `/.well-known/acme-challenge/*`.
+  </Accordion>
+</AccordionGroup>
+
+## Removing a domain \{#recipes_register-domain-9\}
+
+Organization → Domains → click the domain → **Remove**. Calls `DELETE /domains/{domain}`. Removes verification + binding. The domain is then available for any tenant to register fresh.
+
+## Related \{#recipes_register-domain-10\}
+
+<CardGroup cols={2}>
+  <Card title="Pricing Tiers" icon="material-symbols:price-check-outline" href="/docs/reference/pricing-tiers">
+    Custom domain availability per tier.
+  </Card>
+  <Card title="Self-Hosted: Helm Chart" icon="material-symbols:dns-outline" href="/docs/self-hosted/helm-chart">
+    Domain config for self-hosted deployments.
+  </Card>
+</CardGroup>

@@ -1,0 +1,132 @@
+---
+title: "2FA Lockout"
+description: "Lost the authenticator app, expired backup codes, can't log in — recovery paths in priority order."
+---
+
+# 2FA Lockout \{#troubleshooting_2fa-lockout-1\}
+
+You enabled 2FA, then lost the authenticator. Three recovery paths, in order of friction.
+
+## Path 1 — Use a backup code \{#troubleshooting_2fa-lockout-2\}
+
+When you enrolled 2FA, Plexicus showed eight one-time backup codes and asked you to save them. Try those first.
+
+<Steps>
+  <Step title="At the OTP prompt, click 'Use a backup code'">
+    The form switches from 6-digit OTP to longer backup-code format.
+  </Step>
+  <Step title="Enter one code">
+    Each code is one-time. Successful login consumes the code.
+  </Step>
+  <Step title="Generate new backup codes immediately">
+    Once logged in, go to Account → Authentication → **Generate new backup codes**. Store them. The new set replaces all remaining unused codes.
+  </Step>
+</Steps>
+
+If you don't have backup codes saved → next path.
+
+## Path 2 — Re-add the secret to a new authenticator \{#troubleshooting_2fa-lockout-3\}
+
+When you enrolled, Plexicus showed both the QR code AND the secret string in plain text. If you saved the secret somewhere (password manager), you can re-create the TOTP entry.
+
+<Steps>
+  <Step title="In a new authenticator app, add an account manually">
+    Most apps have an "Enter setup key" option for this. Provide:
+    - **Account name:** something memorable (e.g. *Plexicus*)
+    - **Key:** the saved secret string
+    - **Type:** TOTP (time-based)
+    - **Algorithm:** SHA-1 (default)
+    - **Digits:** 6
+    - **Period:** 30 seconds
+  </Step>
+  <Step title="Verify the new authenticator produces correct codes">
+    The codes should match the OTPs Plexicus expects (same secret = same codes).
+  </Step>
+  <Step title="Log in normally">
+    Use the OTP from the new app.
+  </Step>
+</Steps>
+
+If you didn't save the secret → next path.
+
+## Path 3 — Admin reset \{#troubleshooting_2fa-lockout-4\}
+
+Have another Admin in your org reset 2FA for you.
+
+<Steps>
+  <Step title="Admin opens Organization → Team">
+    Finds your row, clicks **Reset 2FA**.
+  </Step>
+  <Step title="Plexicus calls POST /user/remove-2fa for the user">
+    Your 2FA enrollment is cleared. You can now log in with email/password alone.
+  </Step>
+  <Step title="Re-enroll 2FA after login">
+    Account → Authentication → Enable two-factor authentication. Set it up on a new device. Save the backup codes properly this time.
+  </Step>
+</Steps>
+
+## Path 4 — You're the only Admin \{#troubleshooting_2fa-lockout-5\}
+
+If no other Admin exists, you can't use Path 3. Two sub-paths:
+
+### Self-hosted
+
+Use the `BREAK_GLASS_SECRET_KEY` provisioned during install. Submit a special header on the login endpoint that bypasses 2FA for one session, log in, then either reset your own 2FA or promote a backup admin.
+
+```bash
+curl -X POST "https://plexicus.your-domain.com/login" \
+  -H "X-Break-Glass: $BREAK_GLASS_SECRET_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"email": "you@yourorg.com", "password": "your-password"}'
+```
+
+The break-glass key bypasses 2FA but **not** SSO enforcement. If both are on, you'll need to disable SSO enforcement first (also via break-glass).
+
+The break-glass header is logged to the audit trail with high prominence — it's not a stealth path. See [Self-Hosted helm-chart](/docs/self-hosted/helm-chart) for setup.
+
+### SaaS
+
+Contact [support@plexicus.ai](mailto:support@plexicus.ai) with proof of identity. Support staff can reset 2FA after verifying you control the email on the account. Expect ~1 business day turnaround.
+
+## Why TOTP codes don't work even though they look right \{#troubleshooting_2fa-lockout-6\}
+
+If you have your authenticator and it's producing codes but they're rejected:
+
+<AccordionGroup>
+  <Accordion title="Phone clock is wrong" icon="material-symbols:schedule-outline">
+    TOTP is time-based. Phone clock off by >30 seconds breaks codes.
+
+    **Fix:** Enable automatic time sync on the phone. iOS: Settings → General → Date & Time → Set Automatically.
+  </Accordion>
+  <Accordion title="You restored the authenticator from a backup" icon="material-symbols:restore-outline">
+    Some authenticator backups (Google Authenticator's older backups) save the *displayed code* state, not the secret. Codes after restore are wrong.
+
+    **Fix:** Re-enroll from scratch (Path 3 → admin reset → re-enroll).
+  </Accordion>
+  <Accordion title="Account locked after 5 failures" icon="material-symbols:lock-outline">
+    Plexicus locks the account for 15 minutes after 5 OTP failures.
+
+    **Fix:** Wait 15 min. Don't keep trying — you'll extend the lock.
+  </Accordion>
+</AccordionGroup>
+
+## Prevention checklist \{#troubleshooting_2fa-lockout-7\}
+
+For next time:
+
+- [ ] Save backup codes in a password manager.
+- [ ] Save the secret string too — separate location from the QR.
+- [ ] Set up 2FA on at least two devices (phone + tablet, or phone + 1Password).
+- [ ] Make sure your org has at least 2 Admins.
+- [ ] On self-hosted, document where `BREAK_GLASS_SECRET_KEY` is stored.
+
+## Related \{#troubleshooting_2fa-lockout-8\}
+
+<CardGroup cols={2}>
+  <Card title="Configure 2FA" icon="material-symbols:lock-outline" href="/docs/recipes/configure-2fa">
+    The setup recipe — re-read after recovering.
+  </Card>
+  <Card title="Configure SSO" icon="material-symbols:login-outline" href="/docs/recipes/configure-sso">
+    Enterprise alternative to per-user 2FA.
+  </Card>
+</CardGroup>

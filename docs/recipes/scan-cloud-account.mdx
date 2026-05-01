@@ -1,0 +1,144 @@
+---
+title: "Scan a Cloud Account"
+description: "Run CSPM / CWPP / CIEM checks against AWS, Azure, GCP, or OCI — connect, scan, review."
+---
+
+# Scan a Cloud Account \{#recipes_scan-cloud-account-1\}
+
+Cloud scans run `plexalyzer/prov` against your connected cloud accounts to detect misconfigurations (CSPM), runtime risks (CWPP), and excessive permissions (CIEM). Findings flow into the same Findings page under the **Cloud** tab.
+
+This recipe covers the scan trigger and review flow. For initial cloud-account connection, see the per-cloud connector recipe ([AWS](/docs/recipes/connect-aws), [Azure](/docs/recipes/connect-azure), [GCP](/docs/recipes/connect-gcp), [OCI](/docs/recipes/connect-oci)).
+
+## Trigger a cloud scan \{#recipes_scan-cloud-account-2\}
+
+<Steps>
+  <Step title="Open the cloud Application">
+    Applications page → your cloud-backed application (created during connector setup).
+  </Step>
+  <Step title="Click Scan now">
+    Plexicus calls `POST /request_prov_scan` with the application ID and `scan_type: "cloud"`.
+  </Step>
+  <Step title="Wait through the lifecycle">
+    Cloud scans walk the same Queued → Running → Enriching → Completed states as code scans. Larger accounts (1000+ resources) often spend longer in Running than even a big monorepo would.
+  </Step>
+</Steps>
+
+API equivalent:
+
+```bash
+curl -X POST "https://app.plexicus.ai/request_prov_scan" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"scan_type": "cloud", "app_id": "64a1b2c3d4e5f6789012345"}'
+```
+
+For a fresh, ad-hoc cloud scan that creates a new scan record without re-running enumeration:
+
+```bash
+curl -X POST "https://app.plexicus.ai/create-cloud-scan" \
+  -H "Authorization: Bearer $TOKEN" \
+  -d '{"app_id": "...", "regions": ["us-east-1", "eu-west-1"]}'
+```
+
+## What gets scanned \{#recipes_scan-cloud-account-3\}
+
+Plexalyzer runs CSPM/CWPP/CIEM tools against the cloud account's read-only role. Default tool set:
+
+| Pillar | Default tools |
+|---|---|
+| CSPM | CloudSploit (default), Prowler (optional add) |
+| CWPP | Yara, ClamAV (opt-in) |
+| CIEM | CloudSploit IAM module, custom CIEM rules |
+
+Scope is controlled by the IAM role you provisioned during connector setup — Plexicus only sees what the role permits.
+
+## Review cloud findings \{#recipes_scan-cloud-account-4\}
+
+Cloud findings live on a separate tab from App findings:
+
+```bash
+curl -X GET "https://app.plexicus.ai/findings/cloud" \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+Cloud-specific filter dimensions (in addition to standard ones):
+
+| Dimension | Values |
+|---|---|
+| `cloud_provider` | `aws`, `azure`, `gcp`, `oci` |
+| `cloud_region` | e.g. `us-east-1`, `eu-west-3` |
+| `resource_type` | e.g. `s3_bucket`, `iam_role`, `vpc`, `compute_instance` |
+
+See [Finding Filter Schema](/docs/reference/finding-filter-schema#reference_finding-filter-schema-17) for the full Cloud-tab schema.
+
+## Triage flow for cloud findings \{#recipes_scan-cloud-account-5\}
+
+Different from code findings:
+
+<AccordionGroup>
+  <Accordion title="Cloud findings rarely auto-remediate" icon="material-symbols:auto-fix-off-outline" defaultOpen>
+    Most cloud-posture issues need infrastructure-as-code changes (Terraform, CloudFormation, Azure Bicep), which Plexicus can suggest but not auto-apply via PR — there's no single source repo to PR against.
+
+    **Pattern:** Use the Issue path. Plexicus opens an issue in your IaC repo with the proposed Terraform / CFN snippet.
+  </Accordion>
+
+  <Accordion title="Some are runtime-only" icon="material-symbols:speed-outline">
+    e.g. *Public S3 bucket* — fixable via console or `aws s3api put-public-access-block`. Plexicus's remediation here is a step-by-step doc, not a code patch.
+  </Accordion>
+
+  <Accordion title="CIEM findings are sticky" icon="material-symbols:key-outline">
+    Excessive permissions accumulate over time. Each rescan finds the same set unless you act. Mark mitigated only after the IAM change is rolled out.
+  </Accordion>
+</AccordionGroup>
+
+## Schedule recurring cloud scans \{#recipes_scan-cloud-account-6\}
+
+Same mechanism as code scans — `analysis-scheduler` triggers cloud scans on the configured interval per application. Configure in Application → Pipeline Setup → set scan frequency.
+
+For ad-hoc, run from CI:
+
+```yaml
+- name: Trigger nightly cloud scan
+  run: |
+    curl -X POST "https://app.plexicus.ai/request_prov_scan" \
+      -H "Authorization: Bearer $PLEXICUS_TOKEN" \
+      -d '{"scan_type": "cloud", "app_id": "$CLOUD_APP_ID"}'
+```
+
+## Multi-account / multi-region \{#recipes_scan-cloud-account-7\}
+
+Each cloud account = one Application. To scan multiple AWS accounts:
+
+1. Connect each account separately ([AWS connector](/docs/recipes/connect-aws)).
+2. Each ends up as a distinct Application.
+3. Trigger scans independently or schedule them.
+
+For multi-region within one account, use the `regions` parameter on `POST /create-cloud-scan` to scope the scan. Default is all regions the IAM role has access to.
+
+## Common errors \{#recipes_scan-cloud-account-8\}
+
+<AccordionGroup>
+  <Accordion title="`AccessDenied` from cloud provider" icon="material-symbols:block-outline">
+    The IAM role lacks permissions for some scanned resources. Re-check the role attached during connector setup — typically you want `SecurityAudit` + `ViewOnlyAccess` (AWS) or equivalent.
+  </Accordion>
+  <Accordion title="Scan timed out — too many resources" icon="material-symbols:timer-off-outline">
+    AWS accounts with 10k+ resources can hit Plexalyzer's activity timeout. Mitigation: scope the scan with the `regions` parameter, or split the account into multiple Applications by service group.
+  </Accordion>
+  <Accordion title="`InvalidClientTokenId`" icon="material-symbols:key-off-outline">
+    The IAM role's trust relationship rotated or expired. Re-establish the connector via [AWS connector recipe](/docs/recipes/connect-aws).
+  </Accordion>
+</AccordionGroup>
+
+## Related \{#recipes_scan-cloud-account-9\}
+
+<CardGroup cols={2}>
+  <Card title="Connect AWS" icon="material-symbols:cloud-outline" href="/docs/recipes/connect-aws">
+    Initial connection setup.
+  </Card>
+  <Card title="Findings Model" icon="material-symbols:bug-report-outline" href="/docs/concepts/findings-model">
+    What App / SCM / Cloud findings have in common.
+  </Card>
+  <Card title="Applications Lifecycle" icon="material-symbols:rocket-launch-outline" href="/docs/concepts/applications-lifecycle">
+    Cloud scans use the same lifecycle.
+  </Card>
+</CardGroup>

@@ -1,0 +1,96 @@
+---
+title: "Cancel a Running Scan"
+description: "Abort a stuck or unwanted scan without deleting the application."
+---
+
+# Cancel a Running Scan \{#recipes_cancel-running-scan-1\}
+
+Sometimes a scan needs to die: it's hung on a misbehaving tool, you triggered it by mistake, or you want to free up worker capacity. Cancelling preserves the application and its history — just stops the in-flight scan.
+
+## Cancel from the UI \{#recipes_cancel-running-scan-2\}
+
+<Steps>
+  <Step title="Open the Application">
+    Applications page → click the row.
+  </Step>
+  <Step title="Click Cancel scan">
+    Visible only when the application is in `Queued` or `Running` state.
+  </Step>
+  <Step title="Confirm">
+    Plexicus calls `POST /cancel_analysis` with the active `task_id`. The application status flips to `Cancelled` within a few seconds.
+  </Step>
+</Steps>
+
+## Cancel via API \{#recipes_cancel-running-scan-3\}
+
+```bash
+# Get the active task_id (returned by the original /request_repo_scan)
+TASK_ID="scan-task-uuid-12345"
+
+curl -X POST "https://app.plexicus.ai/cancel_analysis" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d "{\"task_id\": \"$TASK_ID\"}"
+```
+
+Returns `200` if the scan was cancellable, `404` if the task_id is unknown (already completed or never existed), `409` if the task is in a non-cancellable state (e.g. mid-Enriching with partial findings already written).
+
+## Where the task_id comes from \{#recipes_cancel-running-scan-4\}
+
+`POST /request_repo_scan` returns:
+
+```json
+{
+  "status_code": 202,
+  "message": "Code scan request accepted",
+  "task_id": "scan-task-uuid-12345"
+}
+```
+
+If you didn't capture the task_id at trigger time, you can retrieve it from the application's recent scan history:
+
+```bash
+curl -X GET "https://app.plexicus.ai/repositories/$REPOSITORY_ID/scans" \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+The latest scan's `task_id` field is what you need.
+
+## What cancellation does \{#recipes_cancel-running-scan-5\}
+
+| Lifecycle stage at cancel | Effect |
+|---|---|
+| Queued | Removed from the queue immediately. No partial state. |
+| Running | Plexalyzer receives `POST /cancel_analysis`, kills the active scanners, returns. |
+| Enriching | The Temporal workflow is stopped. Findings already written stay in MongoDB; partially-enriched findings get a `partial=true` flag. |
+
+Cancellation is **best-effort during Enriching**. If `tool-parser` already committed a batch of findings, those persist. They're flagged so you can re-scan and overwrite cleanly.
+
+## Common reasons to cancel \{#recipes_cancel-running-scan-6\}
+
+<AccordionGroup>
+  <Accordion title="Scan hung on a tool" icon="material-symbols:warning-outline">
+    Trivy SCA against a Maven monorepo can take >30 min. Cancel, exclude the tool via [Customize Scanners](/docs/recipes/customize-scanners), re-trigger.
+  </Accordion>
+  <Accordion title="Wrong branch triggered" icon="material-symbols:fork-right-outline">
+    Webhook fired on a feature branch you didn't mean to scan. Cancel, fix the watched branches in Pipeline Setup.
+  </Accordion>
+  <Accordion title="Free up worker capacity" icon="material-symbols:speed-outline">
+    Other scans are queued behind this one. Cancel low-priority scans to let critical ones through.
+  </Accordion>
+</AccordionGroup>
+
+## Re-trigger after cancel \{#recipes_cancel-running-scan-7\}
+
+A cancelled application can be re-scanned exactly like a completed one — click **Scan now** on the application page, or call `POST /request_repo_scan` again. The new scan is independent of the cancelled one.
+
+## Related \{#recipes_cancel-running-scan-8\}
+
+<CardGroup cols={2}>
+  <Card title="Applications Lifecycle" icon="material-symbols:rocket-launch-outline" href="/docs/concepts/applications-lifecycle">
+    What state cancellation interrupts.
+  </Card>
+  <Card title="Customize Scanners" icon="material-symbols:tune-outline" href="/docs/recipes/customize-scanners">
+    Exclude misbehaving tools to prevent the next hang.
+  </Card>
+</CardGroup>

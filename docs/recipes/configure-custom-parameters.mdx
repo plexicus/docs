@@ -1,0 +1,189 @@
+---
+title: "Configure Custom Tool Parameters"
+description: "Add custom rules, severity overrides, or file patterns per scanner."
+---
+
+# Configure Custom Tool Parameters \{#recipes_configure-custom-parameters-1\}
+
+Each scanner has knobs — custom Bandit rules, Gitleaks regex patterns, Trivy severity thresholds. Plexicus exposes these via the Custom Parameters API so you don't need to fork the scanner config.
+
+This is per-scanner customization. For toggling whole scanners on/off, see [Customize Scanners](/docs/recipes/customize-scanners).
+
+## See current parameters \{#recipes_configure-custom-parameters-2\}
+
+```bash
+# Across all tools
+curl -X GET "https://app.plexicus.ai/custom-parameters" \
+  -H "Authorization: Bearer $TOKEN"
+
+# For one tool
+curl -X GET "https://app.plexicus.ai/custom-parameters/bandit" \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+## Add a parameter \{#recipes_configure-custom-parameters-3\}
+
+The shape is tool-specific. Example: a custom Bandit rule:
+
+```bash
+curl -X POST "https://app.plexicus.ai/custom-parameters/bandit" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "rule_id": "B999",
+    "title": "subprocess.call with shell=True",
+    "severity": "High",
+    "pattern": "subprocess\\.call\\(.*shell=True",
+    "description": "Avoid shell=True; use shlex.split() and a list of args"
+  }'
+```
+
+Returns the parameter's `_id`, which you'll use to update or delete later.
+
+## Update a parameter \{#recipes_configure-custom-parameters-4\}
+
+```bash
+curl -X PUT "https://app.plexicus.ai/custom-parameters/bandit/$PARAM_ID" \
+  -H "Authorization: Bearer $TOKEN" \
+  -d '{"severity": "Critical"}'
+```
+
+Partial updates supported — only fields you send are changed.
+
+## Delete a parameter \{#recipes_configure-custom-parameters-5\}
+
+```bash
+curl -X DELETE "https://app.plexicus.ai/custom-parameters/bandit/$PARAM_ID" \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+Findings produced by the deleted rule remain in MongoDB but won't be regenerated on next scan.
+
+## Tool config values (separate API) \{#recipes_configure-custom-parameters-6\}
+
+Some tools need structural configuration (server URL, license key, project ID) — separate from rule parameters. Use the tool config values API:
+
+```bash
+# Set Checkmarx connection details
+curl -X PUT "https://app.plexicus.ai/values/checkmarx" \
+  -H "Authorization: Bearer $TOKEN" \
+  -d '{
+    "server_url": "https://cx.your-org.com",
+    "username": "plexicus",
+    "token": "...",
+    "default_team": "/CxServer/SP/AppSec"
+  }'
+
+# Read current values for one tool (secrets are returned masked)
+curl -X GET "https://app.plexicus.ai/values/checkmarx" \
+  -H "Authorization: Bearer $TOKEN"
+
+# Read all tool config values
+curl -X GET "https://app.plexicus.ai/values" \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+## Common parameter patterns by tool \{#recipes_configure-custom-parameters-7\}
+
+<AccordionGroup>
+  <Accordion title="Bandit — custom Python anti-pattern" icon="material-symbols:python-outline" defaultOpen>
+    ```json
+    {
+      "rule_id": "B-INTERNAL-001",
+      "title": "Hardcoded internal token format",
+      "pattern": "INTERNAL_[A-Z0-9]{32}",
+      "severity": "Critical"
+    }
+    ```
+  </Accordion>
+
+  <Accordion title="Gitleaks — custom secret pattern" icon="material-symbols:key-outline">
+    ```json
+    {
+      "rule_id": "internal-api-key",
+      "regex": "ourcompany_[a-z0-9]{32}",
+      "tags": ["internal", "secret"],
+      "description": "Internal company API key format"
+    }
+    ```
+  </Accordion>
+
+  <Accordion title="Trivy — severity threshold" icon="material-symbols:tune-outline">
+    Skip low-severity Trivy findings to reduce noise:
+
+    ```json
+    {
+      "key": "min_severity",
+      "value": "MEDIUM"
+    }
+    ```
+  </Accordion>
+
+  <Accordion title="Checkov — disable a check class" icon="material-symbols:tune-outline">
+    Disable specific Checkov checks org-wide:
+
+    ```json
+    {
+      "key": "skip_check",
+      "value": "CKV_K8S_29"
+    }
+    ```
+  </Accordion>
+
+  <Accordion title="Opengrep — registry-style rule" icon="material-symbols:rule-outline">
+    Add a Semgrep-format rule:
+
+    ```yaml
+    rules:
+      - id: detect-eval
+        languages: [python]
+        message: avoid eval()
+        severity: ERROR
+        patterns:
+          - pattern: eval(...)
+    ```
+
+    Submit via:
+
+    ```bash
+    curl -X POST "https://app.plexicus.ai/custom-parameters/opengrep" \
+      -d '{"rule_yaml": "rules:\n  - id: detect-eval\n    ..."}'
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Validation \{#recipes_configure-custom-parameters-8\}
+
+Plexicus validates the parameter against the target tool's schema before saving:
+
+- `400` if the parameter shape is invalid (missing required field, wrong type).
+- `400` if the regex doesn't compile (Gitleaks).
+- `400` if the YAML doesn't parse (Opengrep / Checkov).
+- `409` if `rule_id` collides with an existing parameter for the same tool.
+
+The error detail names the offending field.
+
+## Test before saving \{#recipes_configure-custom-parameters-9\}
+
+For pattern-based rules, test against a sample file in your local environment first:
+
+```bash
+# Bandit
+echo 'subprocess.call("ls", shell=True)' | bandit - -f json
+
+# Gitleaks
+echo 'ourcompany_abc123...' | gitleaks detect --no-banner --redact -f /dev/stdin
+```
+
+If the local tool catches it, the same pattern in Plexicus's parameter API will too.
+
+## Related \{#recipes_configure-custom-parameters-10\}
+
+<CardGroup cols={2}>
+  <Card title="Customize Scanners" icon="material-symbols:tune-outline" href="/docs/recipes/customize-scanners">
+    Toggle whole scanners on/off.
+  </Card>
+  <Card title="Scanner Catalog" icon="material-symbols:list-alt-outline" href="/docs/reference/scanner-catalog">
+    Per-tool config knobs.
+  </Card>
+</CardGroup>

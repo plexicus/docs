@@ -1,0 +1,124 @@
+---
+title: "Customize which Scanners Run"
+description: "Add or remove scanners from your org's default included set."
+---
+
+# Customize which Scanners Run \{#recipes_customize-scanners-1\}
+
+By default, Plexicus runs a sensible set of scanners (Opengrep, Bandit, Trivy, Gitleaks, Checkov, KICS, …) on every code scan. Sometimes you need to override:
+
+- **Remove** a scanner that's noisy or hangs (Trivy SCA on a giant Maven monorepo).
+- **Add** a licensed scanner (Checkmarx, Fortify) that isn't on by default.
+- **Disable** all secrets scanners temporarily during a credential rotation.
+
+This recipe is **org-level**. For per-repository overrides see [Configure Custom Parameters](/docs/recipes/configure-custom-parameters).
+
+## See your current included set \{#recipes_customize-scanners-2\}
+
+```bash
+curl -X GET "https://app.plexicus.ai/client" \
+  -H "Authorization: Bearer $TOKEN" | jq '.included_tools, .excluded_tools'
+```
+
+Returns:
+
+```json
+[
+  "opengrep",
+  "bandit",
+  "trivy",
+  "trivy_sca",
+  "gitleaks",
+  "trufflehog",
+  "checkov",
+  "kics",
+  "tflint",
+  "hadolint",
+  "syft"
+]
+[]
+```
+
+The full catalog is at [Scanner Catalog](/docs/reference/scanner-catalog).
+
+## Remove a scanner \{#recipes_customize-scanners-3\}
+
+```bash
+curl -X POST "https://app.plexicus.ai/client/included-tools/remove" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"tool": "trivy_sca"}'
+```
+
+Effect: the next scan won't run Trivy SCA. Existing findings from earlier Trivy runs are preserved (status doesn't change just because the tool was removed).
+
+## Add a scanner \{#recipes_customize-scanners-4\}
+
+```bash
+curl -X POST "https://app.plexicus.ai/client/included-tools/add" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"tool": "codeql"}'
+```
+
+For licensed scanners (Checkmarx, BlackDuck, Fortify), adding the tool isn't enough — you also need to provide credentials via tool config values:
+
+```bash
+curl -X PUT "https://app.plexicus.ai/values/checkmarx" \
+  -H "Authorization: Bearer $TOKEN" \
+  -d '{"server_url": "https://cx.your-org.com", "username": "plexicus", "token": "..."}'
+```
+
+Plexicus stores these encrypted at rest. See [Multi-tenant Security](/docs/concepts/multi-tenant-security#concepts_multi-tenant-security-3).
+
+## Common patterns \{#recipes_customize-scanners-5\}
+
+<CardGroup cols={2}>
+  <Card title="Heavy SCA monorepos" icon="material-symbols:speed-outline">
+    Remove Trivy SCA, replace with a single dependency-graph scan via Syft + Grype combo. Faster on Maven/Gradle deep trees.
+  </Card>
+  <Card title="Compliance-only scope" icon="material-symbols:gavel-outline">
+    Remove all SAST tools except Opengrep with a curated rule set. Reduces noise during PCI scoping.
+  </Card>
+  <Card title="Container-heavy shop" icon="material-symbols:package-2-outline">
+    Add Grype, keep Trivy. Two scanners for the same purpose catches different CVEs.
+  </Card>
+  <Card title="Migrating from Snyk" icon="material-symbols:swap-horiz-outline">
+    Remove Trivy SCA, configure BlackDuck or Snyk import, run side-by-side for a quarter, then deprecate.
+  </Card>
+</CardGroup>
+
+## Resetting to default \{#recipes_customize-scanners-6\}
+
+There's no "factory reset" endpoint. To get back to defaults, list every tool currently in `included_tools` that wasn't in the original default, remove it, and add back any default that was previously removed. The default list is documented in [Scanner Catalog](/docs/reference/scanner-catalog).
+
+## Tool selection per-scan (advanced) \{#recipes_customize-scanners-7\}
+
+The included_tools list is the *default* set. You can override per-scan when calling Plexalyzer directly:
+
+```bash
+curl -X POST "http://plexalyzer:8007/analyze" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "token": "$PLEXALYZER_TOKEN",
+    "args_data": {
+      "source_control": "github",
+      "url": "https://github.com/org/repo",
+      "branch": "main",
+      "included_tools": ["opengrep", "bandit"]
+    }
+  }'
+```
+
+This bypasses the org-level configuration for that single scan. Useful for testing or for one-off scoped scans (e.g. "secrets-only sweep before a key rotation").
+
+## Related \{#recipes_customize-scanners-8\}
+
+<CardGroup cols={2}>
+  <Card title="Scanner Catalog" icon="material-symbols:list-alt-outline" href="/docs/reference/scanner-catalog">
+    Every available tool with default flags.
+  </Card>
+  <Card title="Configure Custom Parameters" icon="material-symbols:tune-outline" href="/docs/recipes/configure-custom-parameters">
+    Per-tool parameter overrides (rules, thresholds, file patterns).
+  </Card>
+</CardGroup>

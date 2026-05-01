@@ -68,9 +68,23 @@ const recipes: SidebarConfig = [
           'recipes/configure-finding-filters',
           'recipes/customize-findings-columns',
           'recipes/bulk-send-to-developers',
+          'recipes/bulk-remediation',
+          'recipes/edit-remediation-diff',
           'recipes/export-findings',
         ],
       },
+      {
+        type: 'category',
+        label: 'Scanning',
+        collapsed: true,
+        items: [
+          'recipes/customize-scanners',
+          'recipes/configure-custom-parameters',
+          'recipes/cancel-running-scan',
+          'recipes/scan-cloud-account',
+        ],
+      },
+      'recipes/register-domain',
       {
         type: 'category',
         label: 'CI/CD & Automation',
@@ -173,16 +187,14 @@ const troubleshooting: SidebarConfig = [
     type: 'category',
     label: 'Troubleshooting',
     collapsed: true,
-    link: {
-      type: 'generated-index',
-      title: 'Troubleshooting',
-      description:
-        'Problem-solving guides: error codes, recovery procedures, and known-bad states. Filled out incrementally; if you hit something not covered here, open an issue at github.com/plexicus/docs.',
-      slug: '/troubleshooting',
-    },
+    link: { type: 'doc', id: 'troubleshooting/index' },
     items: [
-      // Troubleshooting pages land in PR #4. The category renders an
-      // auto-generated index page until then.
+      'troubleshooting/scan-stuck',
+      'troubleshooting/oauth-callback-errors',
+      'troubleshooting/sso-login-failed',
+      'troubleshooting/2fa-lockout',
+      'troubleshooting/webhooks-not-arriving',
+      'troubleshooting/ai-remediation-no-pr',
     ],
   },
 ];

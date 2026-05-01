@@ -1,0 +1,136 @@
+---
+title: "Bulk Remediation"
+description: "Generate AI remediations for many findings at once — review queue or auto-create PRs."
+---
+
+# Bulk Remediation \{#recipes_bulk-remediation-1\}
+
+When you have a backlog of similar findings (a CVE in a shared dependency, a CWE class repeated across files), bulk remediation runs the AI fix pipeline against all of them in parallel. Backed by `POST /remediations/bulk`.
+
+## Bulk from the UI \{#recipes_bulk-remediation-2\}
+
+<Steps>
+  <Step title="Filter to the batch you want">
+    Apply a filter that selects related findings — e.g. `tool=trivy` + `severity=Critical,High`. See [Configure Finding Filters](/docs/recipes/configure-finding-filters).
+  </Step>
+  <Step title="Select the rows">
+    Tick individual rows or the header checkbox to select all visible findings.
+  </Step>
+  <Step title="Click Generate AI Remediations">
+    A dialog confirms the count. Toggle **Auto-create PRs**:
+    - **Off (default)** — each remediation goes to `Ready` for manual review.
+    - **On** — Plexicus auto-opens a PR for every successful patch (saves clicks; less control).
+  </Step>
+  <Step title="Confirm">
+    Plexicus calls `POST /remediations/bulk` with the finding IDs. Each finding moves to `Processing`.
+  </Step>
+</Steps>
+
+## Bulk via API \{#recipes_bulk-remediation-3\}
+
+```bash
+curl -X POST "https://app.plexicus.ai/remediations/bulk" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "finding_ids": ["finding1", "finding2", "finding3"],
+    "auto_create": false
+  }'
+```
+
+| Param | Required | Effect |
+|---|:-:|---|
+| `finding_ids` | ✅ | Array of finding IDs to remediate |
+| `auto_create` | — | If `true`, open PRs immediately on success. Default `false`. |
+
+Returns `202 Accepted` with a `job_id` you can track.
+
+## Track the job \{#recipes_bulk-remediation-4\}
+
+Each finding moves through the [standard AI Remediation pipeline](/docs/concepts/ai-remediation) independently. Their statuses don't move in lockstep — fast ones may reach `Ready` in 30 seconds, slow ones may take 5 minutes.
+
+To track progress:
+
+```bash
+# Per-finding (poll each one)
+curl -X GET "https://app.plexicus.ai/remediations?finding_id=finding1" \
+  -H "Authorization: Bearer $TOKEN" | jq '.result.processing_status'
+
+# Or filter the Findings page by status
+curl -X GET "https://app.plexicus.ai/findings?status=Processing,Ready,PR%20Submitted" \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+## Apply patches in bulk (Ready → PR) \{#recipes_bulk-remediation-5\}
+
+If you ran bulk with `auto_create=false` and now want to ship every successful patch:
+
+```bash
+curl -X POST "https://app.plexicus.ai/bulk-actions/apply-patch" \
+  -H "Authorization: Bearer $TOKEN" \
+  -d '{
+    "remediation_ids": ["rem1", "rem2", "rem3"]
+  }'
+```
+
+This opens PRs for all `Ready` remediations in the list. Findings without a `Ready` remediation are skipped.
+
+## What gets bundled into PRs \{#recipes_bulk-remediation-6\}
+
+By default, **one PR per finding**. This is intentional — reviewers can accept/reject independently.
+
+To bundle multiple related findings into one PR (e.g. all CVE-2025-XXXXX occurrences across files), set `bundle=true` on the bulk request:
+
+```bash
+curl -X POST "https://app.plexicus.ai/remediations/bulk" \
+  -d '{"finding_ids": [...], "auto_create": true, "bundle": true}'
+```
+
+Caveat: bundled PRs are harder to bisect if one fix breaks CI. Use bundling only when the findings are clearly the same root cause.
+
+## Throughput and rate limits \{#recipes_bulk-remediation-7\}
+
+- Codex Remedium runs 4 remediations in parallel per pod by default. Scaling `codex-remedium` deployment increases concurrency.
+- Your LLM provider's rate limit is the hard ceiling — see [Configure AI Provider](/docs/recipes/configure-ai-provider).
+- Bulk runs of 100+ findings can take 10–30 minutes wall time depending on LLM and patch complexity.
+
+## Failure handling \{#recipes_bulk-remediation-8\}
+
+Findings that fail in the pipeline (LLM error, patch validation 3-strikes, PR creation rejected by SCM) move to `failed` status. They don't block the rest of the batch.
+
+To retry just the failed ones:
+
+```bash
+# Get the failed finding IDs
+FAILED=$(curl -s "https://app.plexicus.ai/findings?status=failed" \
+  -H "Authorization: Bearer $TOKEN" | jq -r '.data[]._id' | jq -Rs 'split("\n")[:-1]')
+
+# Re-run bulk on just those
+curl -X POST "https://app.plexicus.ai/remediations/bulk" \
+  -d "{\"finding_ids\": $FAILED, \"auto_create\": false}"
+```
+
+## Common patterns \{#recipes_bulk-remediation-9\}
+
+<CardGroup cols={2}>
+  <Card title="Quarterly cleanup" icon="material-symbols:event-outline">
+    Filter to `severity=Medium` + `status=Enriched` + `created_at < 90d ago`. Bulk remediate with `auto_create=true`. Lets the team focus on Critical/High in real time while bulk handles the long tail.
+  </Card>
+  <Card title="CVE storm" icon="material-symbols:bolt-outline">
+    A new CVE drops, your SCA finds it in 30 repos. Filter by `cve=CVE-2025-XXXXX`, bulk with `bundle=true`. One PR per repo, all opened simultaneously.
+  </Card>
+  <Card title="Dependency upgrade" icon="material-symbols:upgrade-outline">
+    Filter by `tool=trivy_sca` + `severity=High`. Bulk generate with `auto_create=false`. Review the diffs (often dep version bumps) before shipping.
+  </Card>
+</CardGroup>
+
+## Related \{#recipes_bulk-remediation-10\}
+
+<CardGroup cols={2}>
+  <Card title="AI Remediation" icon="material-symbols:auto-fix" href="/docs/concepts/ai-remediation">
+    The per-finding pipeline.
+  </Card>
+  <Card title="Edit Remediation Diff" icon="material-symbols:edit-outline" href="/docs/recipes/edit-remediation-diff">
+    Tweak diffs before submitting.
+  </Card>
+</CardGroup>
