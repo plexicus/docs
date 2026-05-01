@@ -1,0 +1,121 @@
+---
+title: "Auto-provision a Workflow PR"
+description: "Have Plexicus open the CI workflow file as a pull request — no copy-pasting YAML."
+---
+
+# Auto-provision a Workflow PR \{#recipes_auto-provision-workflow-1\}
+
+Instead of pasting the scan workflow into your repo manually, ask Plexicus to open a PR with the workflow file pre-populated. Backed by `POST /repositories/{repository_id}/create_workflow_pr`.
+
+:::note GitHub-only today
+The auto-provisioned workflow is currently shipped for GitHub. GitLab and Bitbucket parity is on the roadmap. For other SCMs, see the manual integration in [Trigger a Scan from CI](/docs/recipes/trigger-scan-from-ci).
+:::
+
+## Trigger the workflow PR \{#recipes_auto-provision-workflow-2\}
+
+<Steps>
+  <Step title="Open Applications">
+    Pick the application whose repository you want to wire up.
+  </Step>
+  <Step title="Click Set up CI workflow">
+    The button appears in the application's detail page (under Pipeline Setup). Plexicus calls `POST /repositories/{id}/create_workflow_pr`.
+  </Step>
+  <Step title="Review the resulting PR">
+    Plexicus opens a PR titled `Add Plexicus security workflow` against the application's default branch. The PR adds a single file: `.github/workflows/plexicus-scan.yml`.
+  </Step>
+  <Step title="Merge the PR">
+    Once merged, every push to the watched branches and every PR will trigger a Plexicus scan automatically.
+  </Step>
+</Steps>
+
+## What the workflow does \{#recipes_auto-provision-workflow-3\}
+
+The auto-provisioned `plexicus-scan.yml` is a thin wrapper around `POST /request_repo_scan` — same pattern as the manual recipe, but pre-configured with your repository ID and a token reference:
+
+```yaml
+name: Plexicus security scan
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger scan
+        env:
+          PLEXICUS_TOKEN: \{\{ '${{ secrets.PLEXICUS_TOKEN }}' \}\}
+        run: |
+          curl -X POST "https://app.plexicus.ai/request_repo_scan" \
+            -H "Authorization: Bearer $PLEXICUS_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d '{"repository_id": "<your-repo-id>", "scan_type": "app"}'
+```
+
+You still need to create the `PLEXICUS_TOKEN` repository secret yourself — Plexicus cannot do that for you (write access to GitHub's secret manager isn't part of the OAuth scope).
+
+## Customizing the workflow \{#recipes_auto-provision-workflow-4\}
+
+The auto-provisioned workflow is a starting point. Common customizations after the initial PR merges:
+
+<AccordionGroup>
+  <Accordion title="Add a polling step to block PRs on findings" icon="material-symbols:block-outline">
+    See Pattern 3 in [Trigger a Scan from CI](/docs/recipes/trigger-scan-from-ci#recipes_trigger-scan-from-ci-4) for the polling logic.
+  </Accordion>
+  <Accordion title="Restrict to specific branches" icon="material-symbols:fork-right-outline">
+    Edit the `on:` block:
+
+    ```yaml
+    on:
+      push:
+        branches: [main, release/*]
+      pull_request:
+        branches: [main]
+    ```
+  </Accordion>
+  <Accordion title="Skip the scan with a commit-message tag" icon="material-symbols:filter-alt-off-outline">
+    Add a conditional:
+
+    ```yaml
+    jobs:
+      scan:
+        if: \{\{ "${{ !contains(github.event.head_commit.message, '[skip-plexicus]') }}" \}\}
+        runs-on: ubuntu-latest
+    ```
+  </Accordion>
+  <Accordion title="Run multiple scan types" icon="material-symbols:apps-outline">
+    Trigger both code and cloud scans:
+
+    ```yaml
+    - run: curl -X POST ".../request_repo_scan"  -d '{"scan_type": "app"}'
+    - run: curl -X POST ".../request_prov_scan" -d '{"scan_type": "cloud", "app_id": "..."}'
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Re-provisioning \{#recipes_auto-provision-workflow-5\}
+
+If you delete the workflow file or want a fresh copy with newer Plexicus defaults, re-click **Set up CI workflow**. Plexicus opens a *new* PR — it does not overwrite an existing file. Close the old PR if it's still open.
+
+## What if the PR isn't created? \{#recipes_auto-provision-workflow-6\}
+
+Common failure modes:
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| `403` from Plexicus API | Your SCM connector is OAuth-only and lacks `workflow` scope | Re-authorize the GitHub connector with the `workflow` scope (or use a Plexicus GitHub App install with that permission) |
+| PR created but missing the workflow file | Branch protection blocks bot-authored writes to `.github/workflows/*` | Allow Plexicus's bot user to push to that path |
+| `404` repository not found | The application's `repository_id` no longer matches a live repo | Re-create the application from the Applications page |
+
+## Related \{#recipes_auto-provision-workflow-7\}
+
+<CardGroup cols={2}>
+  <Card title="Trigger a Scan from CI" icon="material-symbols:rocket-launch-outline" href="/docs/recipes/trigger-scan-from-ci">
+    Manual integration patterns for non-GitHub SCMs.
+  </Card>
+  <Card title="Generate API Token" icon="material-symbols:key-outline" href="/docs/recipes/generate-api-token">
+    The token referenced by the workflow.
+  </Card>
+</CardGroup>

@@ -1,0 +1,111 @@
+---
+title: "Upload an External Scan"
+description: "Import findings from a scanner Plexicus doesn't run natively — Checkmarx, Fortify, Veracode, or any SARIF-emitting tool."
+---
+
+# Upload an External Scan \{#recipes_upload-external-scan-1\}
+
+If your team runs a scanner that Plexicus doesn't orchestrate (Checkmarx, Fortify, Veracode, Snyk, custom rules), you can still get its output into Plexicus and benefit from the unified findings model: enrichment, deduplication, AI remediation, ticketing.
+
+Backed by `POST /upload_scan/{repository_id}`.
+
+## Supported formats \{#recipes_upload-external-scan-2\}
+
+| Format | Extension | Source |
+|---|---|---|
+| SARIF 2.1.0 | `.sarif` / `.json` | Most modern scanners |
+| Checkmarx XML | `.xml` | Checkmarx CxSAST |
+| Fortify FPR | `.fpr` | Fortify SCA |
+| Trivy JSON | `.json` | Trivy CLI runs |
+
+If your scanner emits SARIF, use that — it's the most resilient format.
+
+## Upload via the UI \{#recipes_upload-external-scan-3\}
+
+<Steps>
+  <Step title="Run your external scanner">
+    Produce the report file (e.g. `cx-results.xml` from Checkmarx).
+  </Step>
+  <Step title="Open the Findings page → Upload Scan">
+    The button is at the top of the Findings page. Pick the application (`repository_id`) and the source tool from the dropdown.
+  </Step>
+  <Step title="Drop the file">
+    The UI base64-encodes the file in the browser before sending — for very large reports (>20MB), use the API instead (next section).
+  </Step>
+  <Step title="Wait for processing">
+    Plexicus pipes the file through `tool-parser` (parser → standardizer → enricher → optimizer → MongoDB), the same pipeline as native scans. Findings appear under the application after a few seconds to a few minutes depending on report size.
+  </Step>
+</Steps>
+
+## Upload via API \{#recipes_upload-external-scan-4\}
+
+For large reports or scripted import:
+
+```bash
+# Base64-encode the report
+ENCODED=$(base64 -w 0 < cx-results.xml)
+
+# Upload
+curl -X POST "https://app.plexicus.ai/upload_scan/$REPOSITORY_ID" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d "{\"tool\": \"checkmarx\", \"ext\": \"xml\", \"file\": \"$ENCODED\"}"
+```
+
+Required fields:
+
+- `tool` — case-insensitive scanner name. Accepted: `checkmarx`, `fortify`, `veracode`, `snyk`, `trivy`, `sarif` (generic).
+- `ext` — file extension without the dot (`xml`, `json`, `fpr`, `sarif`).
+- `file` — base64-encoded file content.
+
+Response is `202` with a `task_id` you can poll, or `400` if the format is unrecognized.
+
+## What happens to the findings \{#recipes_upload-external-scan-5\}
+
+Once uploaded, external findings are **identical to native ones** in the data model:
+
+- They get a `tool` field set to the source scanner.
+- They flow through the same enrichment pipeline (CWE / OWASP / EPSS attached).
+- They deduplicate against previous scans (`CosmosOptimizer` matches by file + line + rule).
+- They are eligible for AI remediation if the CWE has a known patch strategy.
+- They appear on the same Findings page, filterable by `tool=checkmarx`.
+
+The only difference: re-running the external scanner is **your responsibility** — Plexicus won't re-trigger it. Schedule the upload from your CI:
+
+```yaml
+- name: Run Checkmarx
+  run: ./run-checkmarx.sh > cx-results.xml
+
+- name: Upload to Plexicus
+  env:
+    PLEXICUS_TOKEN: \{\{ '${{ secrets.PLEXICUS_TOKEN }}' \}\}
+    REPOSITORY_ID: \{\{ '${{ vars.PLEXICUS_REPOSITORY_ID }}' \}\}
+  run: |
+    ENCODED=$(base64 -w 0 < cx-results.xml)
+    curl -X POST "https://app.plexicus.ai/upload_scan/$REPOSITORY_ID" \
+      -H "Authorization: Bearer $PLEXICUS_TOKEN" \
+      -H "Content-Type: application/json" \
+      -d "{\"tool\": \"checkmarx\", \"ext\": \"xml\", \"file\": \"$ENCODED\"}"
+```
+
+## Limits and caveats \{#recipes_upload-external-scan-6\}
+
+| Limit | Default |
+|---|---|
+| Max file size | 50 MB (compressed via base64) |
+| Max findings per upload | 50,000 |
+| Rate limit | 10 uploads / hour / repository |
+| Retention | Same as native findings |
+
+If your report exceeds these, split by directory or scanner config. Filing a single 200k-finding report is almost always a sign that you need to tune the scanner, not stretch the limit.
+
+## Related \{#recipes_upload-external-scan-7\}
+
+<CardGroup cols={2}>
+  <Card title="Findings Model" icon="material-symbols:bug-report-outline" href="/docs/concepts/findings-model">
+    What happens after the upload — the enrichment pipeline.
+  </Card>
+  <Card title="Trigger a Scan from CI" icon="material-symbols:rocket-launch-outline" href="/docs/recipes/trigger-scan-from-ci">
+    For Plexicus-native scanners (no upload step needed).
+  </Card>
+</CardGroup>

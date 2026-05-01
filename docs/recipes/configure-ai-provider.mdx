@@ -1,0 +1,153 @@
+---
+title: "Configure your AI Provider"
+description: "Wire OpenAI, Azure OpenAI, or DeepSeek into Plexicus — and verify the connection works before remediations are blocked."
+---
+
+# Configure your AI Provider \{#recipes_configure-ai-provider-1\}
+
+The AI Remediation pipeline depends on a configured LLM. Plexicus supports OpenAI, Azure OpenAI, and DeepSeek via LiteLLM. This recipe wires the credentials, picks the model, and verifies the connection.
+
+:::note Self-hosted vs SaaS
+On the Plexicus SaaS, AI is pre-configured — you don't need to do this unless your org wants to use *your own* LLM contract instead of Plexicus's pooled one. On a self-hosted deployment, this configuration is required before AI Remediation works.
+:::
+
+## Pick a provider \{#recipes_configure-ai-provider-2\}
+
+<CardGroup cols={3}>
+  <Card title="OpenAI (direct)" icon="material-symbols:open-in-new">
+    Standard OpenAI API. Cheapest path; works for most teams.
+  </Card>
+  <Card title="Azure OpenAI" icon="material-symbols:cloud-outline">
+    Enterprise Azure tenant with content-safety logs. Required if you have data-residency or audit-trail rules.
+  </Card>
+  <Card title="DeepSeek" icon="material-symbols:auto-awesome">
+    DeepSeek-Chat via LiteLLM. Lowest cost, China-region option.
+  </Card>
+</CardGroup>
+
+The choice is **per-tenant** — different organizations on the same self-hosted deployment can point at different providers.
+
+## Wire OpenAI (direct) \{#recipes_configure-ai-provider-3\}
+
+<Steps>
+  <Step title="Create an API key in OpenAI">
+    [platform.openai.com → API Keys → Create new secret key](https://platform.openai.com/api-keys). Name it *Plexicus production*. Copy immediately.
+  </Step>
+  <Step title="Open Plexicus → Organization → AI Provider">
+    Set:
+    - **Provider:** OpenAI
+    - **API Key:** the value you just copied
+    - **Model:** `gpt-4o` (recommended) or `gpt-4o-mini` (faster, cheaper, less accurate on complex CWEs)
+    - **Base URL:** leave blank (defaults to `https://api.openai.com/v1`)
+  </Step>
+  <Step title="Click Save, then Test Connection">
+    See the next section.
+  </Step>
+</Steps>
+
+## Wire Azure OpenAI \{#recipes_configure-ai-provider-4\}
+
+<Steps>
+  <Step title="Deploy a model in Azure AI Studio">
+    Create a deployment of `gpt-4o` (or your preferred model) in your Azure subscription. Copy the **endpoint URL**, **API key**, and **deployment name**.
+  </Step>
+  <Step title="Open Plexicus → Organization → Azure OpenAI">
+    Set:
+    - **API Key**
+    - **API Version** — e.g. `2024-08-01-preview` (use the version listed in the Azure portal)
+    - **Deployment Name** — the deployment you created
+    - **Base URL** — your Azure endpoint, e.g. `https://your-resource.openai.azure.com`
+  </Step>
+  <Step title="Click Save, then Test Connection">
+    Below.
+  </Step>
+</Steps>
+
+## Wire DeepSeek \{#recipes_configure-ai-provider-5\}
+
+<Steps>
+  <Step title="Create an API key at DeepSeek">
+    [platform.deepseek.com → API Keys](https://platform.deepseek.com/api_keys).
+  </Step>
+  <Step title="Configure Plexicus">
+    Set:
+    - **Provider:** OpenAI (DeepSeek is OpenAI-compatible)
+    - **API Key:** your DeepSeek key
+    - **Model:** `deepseek-chat`
+    - **Base URL:** `https://api.deepseek.com/v1`
+  </Step>
+</Steps>
+
+## Test the connection \{#recipes_configure-ai-provider-6\}
+
+After saving, click **Test Connection** in the AI Provider panel. Plexicus calls `POST /openai/test_connection` (and `POST /openai/remediator_connection` for the remediator-specific path) and reports the result.
+
+API equivalents — useful in deployment scripts:
+
+```bash
+# Generic AI provider test
+curl -X POST "https://app.plexicus.ai/openai/test_connection" \
+  -H "Authorization: Bearer $TOKEN"
+
+# Remediator-specific test
+curl -X POST "https://app.plexicus.ai/openai/remediator_connection" \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+A successful test returns `200` with `{"connected": true, "model": "gpt-4o", "latency_ms": 312}`.
+
+## Common errors \{#recipes_configure-ai-provider-7\}
+
+<AccordionGroup>
+  <Accordion title="`401 Unauthorized` from provider" icon="material-symbols:lock-outline">
+    The API key is invalid, revoked, or scoped wrong (Azure: doesn't include the deployment, DeepSeek: wrong project).
+
+    **Fix:** Regenerate the key on the provider's portal and update Plexicus.
+  </Accordion>
+  <Accordion title="`404` from provider" icon="material-symbols:link-off-outline">
+    Wrong base URL or wrong deployment name (Azure).
+
+    **Fix:** Confirm the endpoint URL matches the resource exactly. Azure endpoints look like `https://your-resource.openai.azure.com` (no trailing path).
+  </Accordion>
+  <Accordion title="Test passes but remediations fail" icon="material-symbols:error-outline">
+    The generic test only checks chat-completion. Remediator-specific test (`/openai/remediator_connection`) verifies the model actually accepts the patch-generation prompt — some smaller models (gpt-4o-mini) work for chat but produce unparseable diffs.
+
+    **Fix:** Run the remediator test explicitly. If it fails, upgrade to `gpt-4o` or equivalent.
+  </Accordion>
+  <Accordion title="Rate-limited" icon="material-symbols:speed-outline">
+    Bulk remediations can burst-consume quota. OpenAI's default tier-1 limit is 30,000 TPM — easy to hit on 50-finding bulk runs.
+
+    **Fix:** Move to OpenAI tier 2 (or Azure with provisioned throughput). Plexicus retries with exponential backoff but won't bypass the limit.
+  </Accordion>
+</AccordionGroup>
+
+## Reading the active config \{#recipes_configure-ai-provider-8\}
+
+`GET /client/openai` returns the current configuration without secrets:
+
+```bash
+curl -X GET "https://app.plexicus.ai/client/openai" \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+```json
+{
+  "provider": "openai",
+  "model": "gpt-4o",
+  "base_url": "https://api.openai.com/v1",
+  "api_key_set": true,
+  "last_test_at": "2026-04-30T10:23:11Z",
+  "last_test_status": "ok"
+}
+```
+
+## Related \{#recipes_configure-ai-provider-9\}
+
+<CardGroup cols={2}>
+  <Card title="AI Remediation" icon="material-symbols:auto-fix" href="/docs/concepts/ai-remediation">
+    What the LLM is doing during a remediation.
+  </Card>
+  <Card title="Self-Hosted Configuration" icon="material-symbols:dns-outline" href="/docs/self-hosted/configuration">
+    Where these settings live in the helm values for self-hosted.
+  </Card>
+</CardGroup>

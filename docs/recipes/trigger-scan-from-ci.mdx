@@ -1,0 +1,170 @@
+---
+title: "Trigger a Scan from CI"
+description: "Run Plexicus scans on every push or PR — from GitHub Actions, GitLab CI, or Bitbucket Pipelines."
+---
+
+# Trigger a Scan from CI \{#recipes_trigger-scan-from-ci-1\}
+
+The cleanest way to keep findings fresh is to scan on every push to a watched branch. This recipe shows three patterns: a CI workflow that calls Plexicus's scan API, a webhook-triggered scan (no CI changes needed), and the auto-provisioned workflow PR.
+
+:::tip Prerequisite
+You need an [API token](/docs/recipes/generate-api-token) and the application's `repository_id` from the Applications page.
+:::
+
+## Pattern 1 — Call the scan API from CI \{#recipes_trigger-scan-from-ci-2\}
+
+The simplest pattern: your existing CI runs, then it calls Plexicus's `POST /request_repo_scan` to trigger a scan against the just-pushed branch.
+
+<Tabs>
+  <TabItem value="github" label="GitHub Actions" default>
+
+```yaml
+# .github/workflows/plexicus-scan.yml
+name: Plexicus security scan
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Plexicus scan
+        env:
+          PLEXICUS_TOKEN: \{\{ '${{ secrets.PLEXICUS_TOKEN }}' \}\}
+          REPOSITORY_ID: \{\{ '${{ vars.PLEXICUS_REPOSITORY_ID }}' \}\}
+        run: |
+          curl -X POST "https://app.plexicus.ai/request_repo_scan" \
+            -H "Authorization: Bearer $PLEXICUS_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d "{\"repository_id\": \"$REPOSITORY_ID\", \"scan_type\": \"app\"}"
+```
+
+Set `PLEXICUS_TOKEN` as a repository secret and `PLEXICUS_REPOSITORY_ID` as a repository variable.
+
+  </TabItem>
+  <TabItem value="gitlab" label="GitLab CI">
+
+```yaml
+# .gitlab-ci.yml
+plexicus-scan:
+  stage: test
+  image: curlimages/curl:latest
+  script:
+    - |
+      curl -X POST "https://app.plexicus.ai/request_repo_scan" \
+        -H "Authorization: Bearer $PLEXICUS_TOKEN" \
+        -H "Content-Type: application/json" \
+        -d "{\"repository_id\": \"$PLEXICUS_REPOSITORY_ID\", \"scan_type\": \"app\"}"
+  only:
+    - main
+    - develop
+    - merge_requests
+```
+
+Set `PLEXICUS_TOKEN` as a masked CI/CD variable; `PLEXICUS_REPOSITORY_ID` as a regular variable.
+
+  </TabItem>
+  <TabItem value="bitbucket" label="Bitbucket Pipelines">
+
+```yaml
+# bitbucket-pipelines.yml
+pipelines:
+  default:
+    - step:
+        name: Plexicus scan
+        image: curlimages/curl:latest
+        script:
+          - |
+            curl -X POST "https://app.plexicus.ai/request_repo_scan" \
+              -H "Authorization: Bearer $PLEXICUS_TOKEN" \
+              -H "Content-Type: application/json" \
+              -d "{\"repository_id\": \"$PLEXICUS_REPOSITORY_ID\", \"scan_type\": \"app\"}"
+```
+
+Set `PLEXICUS_TOKEN` and `PLEXICUS_REPOSITORY_ID` as repository or workspace variables.
+
+  </TabItem>
+</Tabs>
+
+The API responds with `202 Accepted`; the scan runs asynchronously. To make CI *block* on completion, see Pattern 3.
+
+## Pattern 2 — Webhook-triggered scan (no CI changes) \{#recipes_trigger-scan-from-ci-3\}
+
+If your SCM connector is configured properly (per the [SCM connect recipes](/docs/recipes/connect-github)), Plexicus already receives push and PR webhooks and triggers scans automatically. **No CI integration required.**
+
+This is the recommended path for most teams — it requires zero pipeline maintenance.
+
+The trade-off: Plexicus runs scans *outside* your CI, so failed findings don't block the PR by default. To gate on findings, see Pattern 3.
+
+## Pattern 3 — Block PRs on scan results \{#recipes_trigger-scan-from-ci-4\}
+
+A two-step CI job: trigger the scan, then poll for completion + read the result.
+
+<Tabs>
+  <TabItem value="github" label="GitHub Actions" default>
+
+```yaml
+- name: Trigger and wait for Plexicus scan
+  env:
+    PLEXICUS_TOKEN: \{\{ '${{ secrets.PLEXICUS_TOKEN }}' \}\}
+    REPOSITORY_ID: \{\{ '${{ vars.PLEXICUS_REPOSITORY_ID }}' \}\}
+  run: |
+    # Trigger the scan
+    curl -X POST "https://app.plexicus.ai/request_repo_scan" \
+      -H "Authorization: Bearer $PLEXICUS_TOKEN" \
+      -H "Content-Type: application/json" \
+      -d "{\"repository_id\": \"$REPOSITORY_ID\", \"scan_type\": \"app\"}"
+
+    # Poll application status until completed (max ~10min)
+    for i in $(seq 1 60); do
+      STATUS=$(curl -s "https://app.plexicus.ai/repositories/$REPOSITORY_ID" \
+        -H "Authorization: Bearer $PLEXICUS_TOKEN" \
+        | jq -r '.status')
+      if [ "$STATUS" = "Completed" ]; then break; fi
+      sleep 10
+    done
+
+    # Fail if any Critical or High findings introduced this run
+    NEW_CRIT=$(curl -s "https://app.plexicus.ai/findings?finding_type=app&severity=Critical,High&pagination_pageSize=1" \
+      -H "Authorization: Bearer $PLEXICUS_TOKEN" \
+      | jq '.meta.total')
+    if [ "$NEW_CRIT" -gt 0 ]; then
+      echo "Plexicus found $NEW_CRIT Critical/High findings — blocking PR"
+      exit 1
+    fi
+```
+
+  </TabItem>
+</Tabs>
+
+This pattern is heavier — for fast pipelines, prefer Pattern 2 with [auto-provisioned workflows](/docs/recipes/auto-provision-workflow) and use the SCM's native PR-comment integration.
+
+## Cancel a running scan \{#recipes_trigger-scan-from-ci-5\}
+
+If a scan is stuck or you want to abort:
+
+```bash
+curl -X POST "https://app.plexicus.ai/cancel_analysis" \
+  -H "Authorization: Bearer $PLEXICUS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"task_id": "scan-task-uuid-12345"}'
+```
+
+The `task_id` is returned in the original `POST /request_repo_scan` response.
+
+## Related \{#recipes_trigger-scan-from-ci-6\}
+
+<CardGroup cols={2}>
+  <Card title="Generate API Token" icon="material-symbols:key-outline" href="/docs/recipes/generate-api-token">
+    Required for any of these patterns.
+  </Card>
+  <Card title="Auto-provision a Workflow PR" icon="material-symbols:integration-instructions-outline" href="/docs/recipes/auto-provision-workflow">
+    Have Plexicus open the workflow file for you.
+  </Card>
+  <Card title="Applications Lifecycle" icon="material-symbols:rocket-launch-outline" href="/docs/concepts/applications-lifecycle">
+    What happens after the scan request lands.
+  </Card>
+</CardGroup>

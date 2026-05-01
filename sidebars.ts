@@ -70,6 +70,18 @@ const recipes: SidebarConfig = [
       },
       {
         type: 'category',
+        label: 'CI/CD & Automation',
+        collapsed: true,
+        items: [
+          'recipes/generate-api-token',
+          'recipes/trigger-scan-from-ci',
+          'recipes/auto-provision-workflow',
+          'recipes/configure-ai-provider',
+          'recipes/upload-external-scan',
+        ],
+      },
+      {
+        type: 'category',
         label: 'Connect Source Control',
         collapsed: true,
         items: [
