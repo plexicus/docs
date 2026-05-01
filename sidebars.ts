@@ -32,17 +32,12 @@ const coreConcepts: SidebarConfig = [
     type: 'category',
     label: 'Core Concepts',
     collapsed: false,
-    link: {
-      type: 'generated-index',
-      title: 'Core Concepts',
-      description:
-        'Explanation-oriented documentation: how Plexicus works under the hood. AI remediation pipeline, findings model, applications lifecycle, and platform architecture. Filled out incrementally — see the roadmap on docs.plexicus.ai/blog.',
-      slug: '/concepts',
-    },
+    link: { type: 'doc', id: 'concepts/index' },
     items: [
-      // Concept pages land in PR #2: ai-remediation, findings-model,
-      // applications-lifecycle, architecture. The category renders an
-      // auto-generated index page until then.
+      'concepts/architecture',
+      'concepts/applications-lifecycle',
+      'concepts/findings-model',
+      'concepts/ai-remediation',
     ],
   },
 ];
