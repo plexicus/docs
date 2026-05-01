@@ -1,5 +1,6 @@
 ---
-title: "Self-Hosted Installation (Helm)"
+title: "Self-Hosted Installation"
+sidebar_label: "Self-Hosted Installation"
 description: "Deploy Plexicus on your own Kubernetes cluster using the official Helm chart from Google Artifact Registry"
 ---
 
@@ -15,19 +16,38 @@ Plexicus can be deployed on any Kubernetes cluster using the official Helm chart
 
 ## Prerequisites \{#self-hosted_helm-chart-2}
 
-Before you begin, make sure the following tools are installed and configured:
+### Where you run these commands
+
+Every command in this guide runs from your **operator workstation** — the machine that already has `kubectl` and `helm` configured to talk to the target Kubernetes cluster (laptop, jump host, or dedicated CI runner). No commands run on the cluster nodes themselves.
+
+Pick a working directory and stay there for the whole install. The chart artifact, your values overlay, and the GAR service-account key all land in the same place:
+
+```bash
+mkdir -p ~/plexicus-deploy
+cd ~/plexicus-deploy
+```
+
+The rest of this guide assumes the current directory is `~/plexicus-deploy`. When a command refers to `sa-key.json`, `my-values.yaml`, or `plexicus/`, it means files inside that directory.
+
+### CLI tooling on the operator workstation
 
 | Requirement | Minimum version | Notes |
 |-------------|----------------|-------|
-| Kubernetes | v1.25 | Any CNCF-conformant distribution |
+| Kubernetes (cluster) | v1.25 | Any CNCF-conformant distribution |
 | Helm | v3.8 | OCI registry support is required |
-| kubectl | — | Must be configured to target your cluster |
-| Ingress controller | — | Traefik is the default; nginx also works |
-| cert-manager | v1.x | Recommended for automatic TLS provisioning |
+| kubectl | — | Must be configured to target your cluster (`kubectl config current-context` should show the right context) |
+| `git` | any recent | Required only for the [ArgoCD / GitOps path](#self-hosted_helm-chart-18) |
+| `openssl` | any recent | Used to generate random secret values |
+| Ingress controller (cluster) | — | Traefik is the default; nginx also works |
+| cert-manager (cluster) | v1.x | Recommended for automatic TLS provisioning |
 
 :::tip
 Run `helm version` to confirm your Helm version. If it is below 3.8, upgrade it before continuing — earlier versions cannot pull OCI charts.
 :::
+
+### Public DNS, before you start
+
+The chart provisions two externally-reachable Ingress resources: `plexicus.<your-domain>` (the SPA) and `api.plexicus.<your-domain>` (the FastAPI backend). Configure both A records to point at your ingress controller's external IP **before** step 4 (cert-manager) — otherwise Let's Encrypt's HTTP-01 challenge will fail and your TLS certificates will never be issued.
 
 ---
 
@@ -41,10 +61,10 @@ Send an email to **engineering@plexicus.ai** with the following information:
 - The **target environment** (e.g., staging, production)
 - The **Kubernetes provider** you are using (e.g., GKE, EKS, AKS, on-premises)
 
-You will receive a JSON key file (`sa-key.json`). This file authenticates both Helm (to pull the chart) and Kubernetes (to pull the container images at runtime).
+You will receive a JSON key file (`sa-key.json`). Save it to your working directory (`~/plexicus-deploy/sa-key.json`) — every subsequent command in this guide assumes that path. This file authenticates both Helm (to pull the chart) and Kubernetes (to pull the container images at runtime).
 
 :::warning
-`sa-key.json` is equivalent to a password. Never commit it to version control, share it over unencrypted channels, or store it in plain text on shared systems.
+`sa-key.json` is equivalent to a password. Never commit it to version control, share it over unencrypted channels, or store it in plain text on shared systems. Add `sa-key.json` to your shell's `~/.gitignore_global` if you ever plan to `git init` inside this directory.
 :::
 
 ---
@@ -387,7 +407,7 @@ frontend:
 
 ---
 
-## 7. Install the Chart \{#self-hosted_helm-chart-15}
+## 8. Install the Chart \{#self-hosted_helm-chart-15}
 
 ```bash
 helm install plexicus \
@@ -401,7 +421,7 @@ The installation takes a few minutes while all pods and dependencies initialize.
 
 ---
 
-## 8. Verify the Installation \{#self-hosted_helm-chart-16}
+## 9. Verify the Installation \{#self-hosted_helm-chart-16}
 
 ```bash
 # All pods should reach Running or Completed status
@@ -445,14 +465,14 @@ curl -s -o /dev/null -w "TLS verify=%{ssl_verify_result}\n" https://<your-domain
 
 ---
 
-## 9. Bootstrap the First Admin User \{#self-hosted_helm-chart-bootstrap}
+## 10. Bootstrap the First Admin User \{#self-hosted_helm-chart-bootstrap}
 
 The chart ships with an empty database. Plexicus does **not** seed an initial admin during install — every account is created through the registration API. The default registration flow expects email verification via SMTP; on a brand-new install the very first admin therefore has to be either:
 
 - **(Recommended for production)** registered through the regular UI flow once `SMTP_*` credentials are wired into `plexicus-fastapi` (the user clicks the verification link in the welcome email), or
 - **(Bootstrap-only shortcut)** registered via the API and then flagged `is_verified: true` directly on the `Users` MongoDB collection — useful for environments where SMTP is intentionally not configured (air-gapped, internal-only, or staging).
 
-### 9.1 Register the user via the API \{#self-hosted_helm-chart-bootstrap-register}
+### 10.1 Register the user via the API \{#self-hosted_helm-chart-bootstrap-register}
 
 The schema validator requires at least one uppercase letter, one lowercase letter, one digit, and one special character:
 
@@ -470,9 +490,9 @@ curl -s -X POST -H "Content-Type: application/json" \
 # {"success":true,"message":"User successfully registered. Please check your email for verification link."}
 ```
 
-If SMTP is wired up, the user clicks the link in the welcome email and is done. Skip to step 9.3.
+If SMTP is wired up, the user clicks the link in the welcome email and is done. Skip to step 10.3.
 
-### 9.2 (Bootstrap shortcut) Manually verify the user in MongoDB \{#self-hosted_helm-chart-bootstrap-verify}
+### 10.2 (Bootstrap shortcut) Manually verify the user in MongoDB \{#self-hosted_helm-chart-bootstrap-verify}
 
 :::warning Use only when SMTP is intentionally absent
 This shortcut writes directly to MongoDB. In production, prefer wiring real SMTP credentials and using the verification email. Use the shortcut only for the very first admin in eval / staging / air-gapped clusters.
@@ -492,7 +512,7 @@ kubectl -n plexicus exec deploy/mongodb -- mongosh \
 # { acknowledged: true, matchedCount: 1, modifiedCount: 1 }
 ```
 
-### 9.3 Log in \{#self-hosted_helm-chart-bootstrap-login}
+### 10.3 Log in \{#self-hosted_helm-chart-bootstrap-login}
 
 ```bash
 curl -s -X POST -H "Content-Type: application/json" \
@@ -505,19 +525,19 @@ A `200` with an `access_token` confirms the full chain — frontend → ingress 
 
 ---
 
-## 10. Connect a SCM and run your first scan \{#self-hosted_helm-chart-scm}
+## 11. Connect a SCM and run your first scan \{#self-hosted_helm-chart-scm}
 
 :::warning Browser-only flow — by design
 Connecting GitHub / GitLab / Bitbucket / Gitea to Plexicus uses a standard OAuth 2.0 redirect flow. The user must complete the authorization in a browser — there is no API-only or Personal Access Token shortcut to skip the redirect. The whole sequence below happens in your browser. Make sure the SCM OAuth client credentials (`GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET`, etc.) were populated in `plexicus-fastapi` during step 5 — without them the OAuth flow returns 400 from the provider.
 :::
 
-### 10.1 Sign in to the panel \{#self-hosted_helm-chart-scm-signin}
+### 11.1 Sign in to the panel \{#self-hosted_helm-chart-scm-signin}
 
-Open `https://<your-domain>` in your browser and sign in with the admin user you bootstrapped in step 9.
+Open `https://<your-domain>` in your browser and sign in with the admin user you bootstrapped in step 10.
 
 {/* TODO: screenshot — login page rendered at https://<your-domain> with the email/password fields populated */}
 
-### 10.2 Connect the SCM from the Connectors page \{#self-hosted_helm-chart-scm-connect}
+### 11.2 Connect the SCM from the Connectors page \{#self-hosted_helm-chart-scm-connect}
 
 1. Open the **Connectors** entry in the left sidebar.
 2. Find your SCM (GitHub / GitLab / Bitbucket / Gitea) in the SCM Integrations panel and click **Connect**.
@@ -530,7 +550,7 @@ Open `https://<your-domain>` in your browser and sign in with the admin user you
 
 {/* TODO: screenshot — Connectors page after callback, SCM card displaying "Connected" state */}
 
-### 10.3 Add a repository \{#self-hosted_helm-chart-scm-add-repo}
+### 11.3 Add a repository \{#self-hosted_helm-chart-scm-add-repo}
 
 1. Open the **Applications** page in the left sidebar.
 2. Click **Add applications**.
@@ -542,7 +562,7 @@ Open `https://<your-domain>` in your browser and sign in with the admin user you
 
 {/* TODO: screenshot — Applications page after creation showing the new repository tile */}
 
-### 10.4 Trigger a scan and view findings \{#self-hosted_helm-chart-scm-scan}
+### 11.4 Trigger a scan and view findings \{#self-hosted_helm-chart-scm-scan}
 
 1. Open the new repository entry on the **Applications** page.
 2. Click **Run scan**. Plexicus shows a progress indicator while the worker pipeline (clone → SAST → SCA → enrichment) runs. Expect 1–5 minutes for a small repo, longer for monorepos.
@@ -562,7 +582,7 @@ Once a SCM is connected via the browser, the same operations are available over 
 
 ## Day 2 References \{#self-hosted_helm-chart-day2}
 
-The chart artifact bundles operator documentation under `docs/`. After running `helm pull --untar` (see step 6), the following guides are available locally:
+The chart artifact bundles operator documentation under `docs/`. After running `helm pull --untar` (see step 7), the following guides are available locally:
 
 ```bash
 ls plexicus/docs/
@@ -580,7 +600,7 @@ These ship with the chart and stay in sync with the version you installed. For e
 
 ---
 
-## 9. Upgrading \{#self-hosted_helm-chart-17}
+## 12. Upgrading \{#self-hosted_helm-chart-17}
 
 Contact **engineering@plexicus.ai** to obtain the latest chart version, then run:
 
@@ -612,8 +632,151 @@ The procedure below was validated end-to-end on `demo.plexicus.com` (k3s + ArgoC
 :::
 
 <Steps>
+  <Step title="Create the GitOps repository">
+    ArgoCD pulls Application manifests from a Git repository — that is the heart of the GitOps model. Even when the chart itself lives in OCI (and is referenced by `repoURL` in the umbrella Application), the Application manifest, AppProject, prereq Applications, and any environment-specific overlay still live in Git so that every change is auditable, peer-reviewable, and revertable.
+
+    If you already have a GitOps repo, skip this step and adapt the layout to match. If not, create one now.
+
+    **Recommended layout** for an evaluator who is starting from scratch:
+
+    ```
+    plexicus-gitops/
+    ├── README.md                       # Operator notes for the team
+    ├── projects/
+    │   └── plexicus-appproject.yaml    # Restricts which sources/destinations are allowed
+    ├── apps/
+    │   ├── plexicus-app.yaml           # Umbrella Plexicus Application (sync-wave 5)
+    │   └── prereqs/
+    │       ├── mongodb-app.yaml        # All five prereqs (sync-wave 0)
+    │       ├── redis-app.yaml
+    │       ├── minio-app.yaml
+    │       ├── temporal-postgresql-app.yaml
+    │       └── temporal-app.yaml
+    ├── values/
+    │   └── plexicus-prod.yaml          # Environment-specific overlay (NO secrets)
+    └── secrets/
+        └── README.md                   # Pointer to your secrets backend (do NOT commit raw Secret YAML)
+    ```
+
+    Initialize the repo from your operator workstation:
+
+    ```bash
+    cd ~/plexicus-deploy
+    mkdir -p plexicus-gitops/{projects,apps/prereqs,values,secrets}
+    cd plexicus-gitops
+    git init -b main
+
+    cat > .gitignore <<'EOF'
+    # Never commit raw credentials — the OCI repo Secret in step 2
+    # contains the GAR service-account JSON.
+    repo-gar.yaml
+    sa-key.json
+    *.key
+    *.pem
+    EOF
+
+    git add .gitignore
+    git commit -m "chore: bootstrap plexicus GitOps repo"
+    ```
+
+    Push to a private remote (GitHub, GitLab, Bitbucket, Gitea, or your internal Git host). Use **HTTPS with a personal-access token** or **SSH** — ArgoCD will use the same credentials when it pulls.
+
+    ```bash
+    git remote add origin git@github.com:<your-org>/plexicus-gitops.git
+    git push -u origin main
+    ```
+
+    **Register the repo with ArgoCD.** Apply a `Secret` in the `argocd` namespace labelled `argocd.argoproj.io/secret-type: repository`. Pick the auth flavor that matches your remote.
+
+    For SSH (recommended for production):
+
+    ```yaml
+    apiVersion: v1
+    kind: Secret
+    metadata:
+      name: plexicus-gitops-repo
+      namespace: argocd
+      labels:
+        argocd.argoproj.io/secret-type: repository
+    type: Opaque
+    stringData:
+      type: git
+      url: git@github.com:<your-org>/plexicus-gitops.git
+      sshPrivateKey: |
+        -----BEGIN OPENSSH PRIVATE KEY-----
+        <paste the deploy key here>
+        -----END OPENSSH PRIVATE KEY-----
+    ```
+
+    For HTTPS with a personal-access token:
+
+    ```yaml
+    apiVersion: v1
+    kind: Secret
+    metadata:
+      name: plexicus-gitops-repo
+      namespace: argocd
+      labels:
+        argocd.argoproj.io/secret-type: repository
+    type: Opaque
+    stringData:
+      type: git
+      url: https://github.com/<your-org>/plexicus-gitops.git
+      username: <bot-user>
+      password: <github-pat>     # use a fine-grained PAT scoped to this repo only
+    ```
+
+    Apply the chosen variant:
+
+    ```bash
+    kubectl apply -f plexicus-gitops-repo.yaml
+    ```
+
+    **AppProject — restrict allowed sources.** Save the following as `projects/plexicus-appproject.yaml` inside the GitOps repo. The `sourceRepos` list **must** include both your GitOps Git URL and the Plexicus OCI registry — ArgoCD rejects any Application that references a source not on this list.
+
+    ```yaml
+    apiVersion: argoproj.io/v1alpha1
+    kind: AppProject
+    metadata:
+      name: plexicus
+      namespace: argocd
+    spec:
+      description: Plexicus platform deployment
+      sourceRepos:
+        - https://github.com/<your-org>/plexicus-gitops.git
+        - europe-west3-docker.pkg.dev/plexicus-registry/charts
+        - https://charts.bitnami.com/bitnami
+        - https://go.temporal.io/helm-charts
+      destinations:
+        - namespace: plexicus
+          server: https://kubernetes.default.svc
+        - namespace: argocd
+          server: https://kubernetes.default.svc
+      clusterResourceWhitelist:
+        - group: ""
+          kind: Namespace
+        - group: cert-manager.io
+          kind: ClusterIssuer
+      namespaceResourceWhitelist:
+        - group: "*"
+          kind: "*"
+    ```
+
+    For an evaluator-style throwaway environment you can skip the whitelist tightening and just use `sourceRepos: ["*"]` plus `destinations: [{namespace: "*", server: "*"}]`, but **do not** ship that to production.
+
+    **Secrets handling — never commit raw Secret YAML.** The `plexicus-fastapi`, `plexicus-worker`, etc. Secrets contain database passwords, OAuth client secrets, and API keys. Pick one of:
+
+    - **[Sealed Secrets](https://github.com/bitnami-labs/sealed-secrets)** (`bitnami-labs/sealed-secrets`) — encrypt with a public key tied to the cluster, commit the `SealedSecret` ciphertext, controller decrypts in-cluster. Simplest for a single cluster.
+    - **[External Secrets Operator](https://external-secrets.io/)** (ESO) — `ExternalSecret` CRD pulls from Vault, AWS Secrets Manager, GCP Secret Manager, etc. Best when you already operate a secrets backend.
+    - **[SOPS](https://github.com/getsops/sops)** with `argocd-vault-plugin` or `helm-secrets` — encrypt with age/PGP/KMS, commit the ciphertext, decrypt at sync time.
+
+    Whichever you pick, the **plaintext Secret YAML never goes into Git**. Bootstrap the eight Plexicus Secrets out-of-band (as in step 5 of the Helm-CLI path above), or write `SealedSecret` / `ExternalSecret` manifests under `secrets/` and let ArgoCD reconcile them in sync-wave -1 (before everything else).
+
+    For the rest of this walk-through, every Application manifest you create lives under `apps/` and is committed and pushed before being applied.
+  </Step>
+
   <Step title="Configure the OCI repository secret">
-    Create a file named `repo-gar.yaml` with the following content, replacing `<CONTENTS OF sa-key.json>` with the literal text of your service account JSON key:
+    The Plexicus chart itself lives in OCI, not in your GitOps repo, so ArgoCD also needs credentials for the GAR. Create a file named `repo-gar.yaml` with the following content, replacing `<CONTENTS OF sa-key.json>` with the literal text of your service account JSON key:
 
     ```yaml
     apiVersion: v1
@@ -650,12 +813,28 @@ The procedure below was validated end-to-end on `demo.plexicus.com` (k3s + ArgoC
 
     Create one Application per prereq, each annotated with `argocd.argoproj.io/sync-wave: "0"`. The umbrella Application below carries `sync-wave: "5"` so ArgoCD waits for the prereqs to reach `Healthy` before it syncs.
 
-    A reference manifest set is available at `argocd/prereqs/applicationset-prereqs.yaml` inside the chart artifact (extract via `helm pull --untar`). Apply all five at once:
+    A reference manifest set is available at `argocd/prereqs/applicationset-prereqs.yaml` inside the chart artifact (extract via `helm pull --untar` from `~/plexicus-deploy`). Copy it into your GitOps repo, commit, push, then apply:
 
     ```bash
+    cd ~/plexicus-deploy
     helm pull oci://europe-west3-docker.pkg.dev/plexicus-registry/charts/plexicus \
       --version $CHART_VERSION --untar
-    kubectl apply -f plexicus/argocd/prereqs/applicationset-prereqs.yaml
+
+    # Copy the reference manifests into the GitOps repo (under apps/prereqs/)
+    cp plexicus/argocd/prereqs/applicationset-prereqs.yaml \
+       plexicus-gitops/apps/prereqs/applicationset-prereqs.yaml
+
+    cd plexicus-gitops
+    # Edit apps/prereqs/applicationset-prereqs.yaml: replace every <TO-FILL>
+    # password with a SealedSecret/ExternalSecret reference (see step 1 secrets handling).
+
+    git add apps/prereqs/applicationset-prereqs.yaml
+    git commit -m "feat(argocd): add prereq Applications (mongo/redis/minio/postgres/temporal)"
+    git push
+
+    # Apply the manifest — ArgoCD reads it from the cluster and starts syncing
+    # from your GitOps repo's main branch.
+    kubectl apply -f apps/prereqs/applicationset-prereqs.yaml
     ```
 
     :::note Bitnami licensing change (August 2025)
@@ -666,7 +845,7 @@ The procedure below was validated end-to-end on `demo.plexicus.com` (k3s + ArgoC
   </Step>
 
   <Step title="Create the umbrella ArgoCD Application">
-    Save the following manifest as `application.yaml`, adjusting the domain, version, and values to match your environment:
+    Save the following manifest as `apps/plexicus-app.yaml` inside your GitOps repo, adjusting the domain, version, and values to match your environment. Reference the AppProject you defined in step 1 (`spec.project: plexicus`) so the source-repo allow-list applies.
 
     ```yaml
     apiVersion: argoproj.io/v1alpha1
@@ -678,7 +857,7 @@ The procedure below was validated end-to-end on `demo.plexicus.com` (k3s + ArgoC
         # Defer until the five prerequisite Applications (sync-wave 0/1) are Healthy
         argocd.argoproj.io/sync-wave: "5"
     spec:
-      project: default
+      project: plexicus
       source:
         repoURL: europe-west3-docker.pkg.dev/plexicus-registry/charts
         chart: plexicus
@@ -726,11 +905,23 @@ The procedure below was validated end-to-end on `demo.plexicus.com` (k3s + ArgoC
     ArgoCD ≤ 2.12 does not support semver ranges for OCI sources. Always pin `targetRevision` to an exact version string (e.g. `"1.1.0"`). Contact **[engineering@plexicus.ai](mailto:engineering@plexicus.ai)** for the current version.
     :::
 
-    Apply the manifest:
+    Commit the umbrella Application (and the AppProject from step 1 if you haven't yet) to the GitOps repo, then apply it to the cluster:
 
     ```bash
-    kubectl apply -f application.yaml
+    cd ~/plexicus-deploy/plexicus-gitops
+    git add projects/plexicus-appproject.yaml apps/plexicus-app.yaml
+    git commit -m "feat(argocd): add plexicus AppProject + umbrella Application"
+    git push
+
+    # Bootstrap: tell ArgoCD about the AppProject and the umbrella Application.
+    # From here on, every change you push to apps/ or values/ is reconciled automatically.
+    kubectl apply -f projects/plexicus-appproject.yaml
+    kubectl apply -f apps/plexicus-app.yaml
     ```
+
+    :::tip App-of-Apps pattern
+    For a fully self-contained GitOps loop, define a single "root" Application that points at `apps/` in your GitOps repo and uses the [App-of-Apps pattern](https://argo-cd.readthedocs.io/en/stable/operator-manual/cluster-bootstrapping/) to install all the prereq + umbrella Applications. Then the only `kubectl apply` you ever run is the root manifest — every subsequent change goes through `git push`.
+    :::
   </Step>
 
   <Step title="Verify the sync">

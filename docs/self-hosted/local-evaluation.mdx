@@ -1,5 +1,6 @@
 ---
-title: "Evaluator Installation (Ubuntu + k3s)"
+title: "Evaluator Installation"
+sidebar_label: "Evaluator Installation"
 description: "Stand up Plexicus on a single Ubuntu 24.04 server with k3s and self-signed TLS for evaluation, demos, and proof-of-value testing"
 ---
 
@@ -29,11 +30,20 @@ Self-signed certificates produce browser warnings and cannot be used by webhook 
 
 If you do not have a server yet, any cloud VM (Hetzner, DigitalOcean, AWS Lightsail, GCP small instance, …) running stock Ubuntu 24.04 will do. The numbers above are the ones the procedure was actually validated against — **4 vCPU / 7.6 GiB RAM / 150 GB disk** completed Tier A + Tier B with comfortable headroom.
 
+### Where you run each command
+
+Two machines are involved:
+
+- **Your laptop** — only used in step 5 (DNS via `/etc/hosts`) and step 12 (browser-based UI flow). The `/etc/hosts` edit needs `sudo` (or admin rights on Windows). On macOS/Linux: `sudo nano /etc/hosts`. On Windows: open Notepad as Administrator and edit `C:\Windows\System32\drivers\etc\hosts`.
+- **The Ubuntu server**, accessed over SSH as `root` (or any user with passwordless `sudo`). Steps 1–11, 13, and the troubleshooting commands all run on the server. The recipe assumes the server's home directory is `/root/` — files like `keys.json` and `values-evaluator.yaml` live there.
+
+Open one SSH tab and keep it open for the whole install. A second tab is helpful for `kubectl get pods --watch` while the install runs.
+
 ---
 
 ## 1. Install k3s \{#self-hosted_local-evaluation-k3s}
 
-SSH into the server as `root` (or any user with passwordless `sudo`). The single-line installer below pins all the choices that matter for an evaluation install:
+From your laptop, SSH into the server as `root` (`ssh root@<server-ip>`). If you only have a non-root user, prefix every server command in this guide with `sudo` and adjust paths like `/root/...` to `/home/<your-user>/...` or run a `sudo -i` first to drop into root's environment. The single-line installer below pins all the choices that matter for an evaluation install:
 
 - `--disable=traefik` — k3s ships traefik as the default ingress controller; we disable it because the chart and its docs assume **ingress-nginx** as the customer-supplied ingress.
 - `--write-kubeconfig-mode=644` — makes `/etc/rancher/k3s/k3s.yaml` readable so subsequent `helm` and `kubectl` calls can read it without `sudo`.
@@ -114,17 +124,34 @@ EOF
 
 The chart provisions two ingress resources: `plexicus.local` (the frontend SPA) and `api.plexicus.local` (the FastAPI backend). Each evaluator's laptop needs to resolve those names to the server's public IP.
 
-The simplest path: add a one-line entry to `/etc/hosts` on each evaluator's machine (replace `<server-ip>` with the actual IP):
+The simplest path: add a one-line entry to `/etc/hosts` on each evaluator's **laptop** (not on the server). Editing `/etc/hosts` requires admin rights:
+
+- **macOS / Linux**: `sudo nano /etc/hosts` (or your editor of choice with `sudo`)
+- **Windows**: open Notepad as Administrator and edit `C:\Windows\System32\drivers\etc\hosts`
+
+Append a single line, replacing `<server-ip>` with the actual server public IP:
 
 ```
 <server-ip>  plexicus.local api.plexicus.local
 ```
 
+Save and verify resolution: `ping plexicus.local` should answer from `<server-ip>`.
+
 If you prefer real DNS, configure A records `plexicus.<your-domain>` and `api.plexicus.<your-domain>` and override `global.domain` in the values file in step 9. The procedure is otherwise identical.
 
 ## 6. Create the Plexicus namespace and image-pull secret \{#self-hosted_local-evaluation-pullsecret}
 
-Copy the service-account key Plexicus gave you to the server (or paste it inline) and create the registry pull secret:
+First, copy the service-account JSON key Plexicus gave you onto the server. Run this **on your laptop** (not on the server):
+
+```bash
+# Replace <server-ip> with your server's public IP and adjust the local path
+# to wherever you saved the key file Plexicus emailed you.
+scp ~/Downloads/keys.json root@<server-ip>:/root/keys.json
+```
+
+If your server uses a non-default SSH key, add `-i ~/.ssh/your-key`. Confirm on the server: `ls -l /root/keys.json` should show the file with mode `600` or similar. If permissions are too open: `chmod 600 /root/keys.json`.
+
+Back on the **server** SSH session, create the namespace and the registry pull secret:
 
 ```bash
 kubectl create namespace plexicus
