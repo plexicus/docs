@@ -143,13 +143,17 @@ Create one secret per service using the key catalog below:
 
 | Secret name | Required keys |
 |-------------|--------------|
-| `plexicus-worker` | `DATABASE_PASSWORD`, `REDIS_PASSWORD`, `SECRET_KEY`, `PLEXALYZER_SECRET_KEY`, `GH_APP_PRIVATE_KEY`, `MINIO_ROOT_PASSWORD`, `PLEXALYZER_TOKEN` |
+| `plexicus-worker` | `DATABASE_PASSWORD`, `REDIS_PASSWORD`, `SECRET_KEY`, `PLEXALYZER_SECRET_KEY`, `GH_APP_PRIVATE_KEY`, `MINIO_ROOT_PASSWORD`, `PLEXALYZER_TOKEN`, `OPENAI_API_KEY` |
 | `plexicus-frontend` | `NUXT_SECRET_KEY` |
 | `plexicus-analysis-scheduler` | `DATABASE_PASSWORD`, `OPENAI_API_KEY` |
-| `plexicus-codex-remedium` | `DATABASE_PASSWORD`, `REDIS_PASSWORD`, `PLEXALYZER_SECRET_KEY` |
+| `plexicus-codex-remedium` | `DATABASE_PASSWORD`, `REDIS_PASSWORD`, `PLEXALYZER_SECRET_KEY`, `OPENAI_API_KEY` |
 | `plexicus-exporter` | `DATABASE_PASSWORD`, `OPENAI_API_KEY` |
 | `plexicus-plexalyzer-code` | `PLEXALYZER_SECRET_KEY`, `OPENAI_API_KEY` |
 | `plexicus-plexalyzer-prov` | `PLEXALYZER_SECRET_KEY`, `OPENAI_API_KEY` |
+
+:::tip OPENAI_API_KEY across services
+Every service that performs AI-piloted enrichment (`worker`, `codex-remedium`, `analysis-scheduler`, `exporter`, `plexalyzer-code`, `plexalyzer-prov`) reads the **same** `OPENAI_API_KEY` from its respective Secret. Use the same key value across all of them. The key can be a regular OpenAI API key, an Azure OpenAI endpoint key, or a DeepSeek key (set the matching `global.required.ai.openAiBaseUrlSwe` to the provider's URL).
+:::
 
 Example for `worker`:
 
@@ -371,6 +375,25 @@ plexalyzer-prov:
   existingSecret: plexicus-plexalyzer-prov
 ```
 
+### Cloudflare Turnstile (production) \{#self-hosted_helm-chart-turnstile}
+
+Plexicus' login form is gated by Cloudflare Turnstile. The chart defaults to Cloudflare's documented "always passes" test tokens (`1x00000000000000000000AA` / `1x0000000000000000000000000000000AA`) so that fresh installs reach the login form without further configuration. **For any production deployment you must replace both with real keys** generated at [dash.cloudflare.com → Turnstile](https://dash.cloudflare.com/?to=/:account/turnstile) — leaving the test tokens in place effectively disables bot protection.
+
+```yaml
+global:
+  required:
+    turnstile:
+      siteKey: "0x4AAAAAAA…YOUR-SITEKEY"            # public — rendered into the login page
+      secretKey: "0x4AAAAAAA…YOUR-SERVER-SECRET"    # private — server-side validation
+      successToken: "XXXX.DUMMY.TOKEN.XXXX"          # used only for end-to-end test fixtures
+```
+
+Both `siteKey` and `secretKey` are required for the Nuxt frontend to render the Turnstile widget AND to verify tokens server-side at `/api/_turnstile/validate`. Mismatched or empty values surface as either skeleton-loader inputs that never resolve (sitekey wrong) or `Turnstile validation failed, Please try again` after submitting the form (secret wrong).
+
+### CORS allow-list \{#self-hosted_helm-chart-cors}
+
+The chart's `fastapi.envs.CORS_ORIGINS` defaults to `<scheme>://<domain>,<scheme>://api.<domain>` so the SPA at the same domain plus the api subdomain works out of the box. Override `fastapi.envs.CORS_ORIGINS` in your customer overlay only if you front the SPA on additional hostnames (multi-tenant, branded subdomains, embedded iframe). An empty `CORS_ORIGINS` makes every cross-origin request return `400 Disallowed CORS origin`.
+
 ### Ingress hostnames \{#self-hosted_helm-chart-14}
 
 Only `fastapi` and `frontend` are externally reachable — all other services are cluster-internal. Provide just the hosts and TLS block; the ingress class and cert-manager annotation are injected globally:
@@ -527,56 +550,82 @@ A `200` with an `access_token` confirms the full chain — frontend → ingress 
 
 ## 11. Connect a SCM and run your first scan \{#self-hosted_helm-chart-scm}
 
-:::warning Browser-only flow — by design
-Connecting GitHub / GitLab / Bitbucket / Gitea to Plexicus uses a standard OAuth 2.0 redirect flow. The user must complete the authorization in a browser — there is no API-only or Personal Access Token shortcut to skip the redirect. The whole sequence below happens in your browser. Make sure the SCM OAuth client credentials (`GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET`, etc.) were populated in `plexicus-fastapi` during step 5 — without them the OAuth flow returns 400 from the provider.
-:::
+The first run-through has two paths: a **Sandbox** option that uses Plexicus' pre-configured vulnerable repository (no OAuth required, useful for verifying the install end-to-end before integrating with your real Git host) and a **Production / Connect SCM** option that wires the platform to GitHub / GitLab / Bitbucket / Gitea via OAuth.
+
+The screenshots below were captured against a working install at `https://demo.plexicus.com`. Substitute your own hostname.
 
 ### 11.1 Sign in to the panel \{#self-hosted_helm-chart-scm-signin}
 
 Open `https://<your-domain>` in your browser and sign in with the admin user you bootstrapped in step 10.
 
-{/* TODO: screenshot — login page rendered at https://<your-domain> with the email/password fields populated */}
+![Plexicus login page](/img/self-hosted/scm/01-login.jpg)
 
-### 11.2 Connect the SCM from the Connectors page \{#self-hosted_helm-chart-scm-connect}
+### 11.2 Accept the Beta Agreement \{#self-hosted_helm-chart-scm-tos}
+
+The first time any user logs in, a modal asks them to read and accept the Plexicus Beta Agreement. Scroll the modal to the bottom — the **Continue** button is disabled until the inner scrollbar reaches the bottom — then click **Continue**.
+
+![Plexicus Beta Agreement modal — must scroll to bottom](/img/self-hosted/scm/02-tos-modal.jpg)
+
+### 11.3 Pick your onboarding path \{#self-hosted_helm-chart-scm-choose-path}
+
+Onboarding offers two cards: **Connect SCM** (production — real OAuth redirect) or **Go To Sandbox** (eval — pre-configured vulnerable repo, no OAuth).
+
+![Onboarding screen offering Connect SCM or Go To Sandbox](/img/self-hosted/scm/02-onboarding-choose-path.jpg)
+
+#### Sandbox path (recommended for the first scan) \{#self-hosted_helm-chart-scm-sandbox}
+
+Click **Go To Sandbox**. Plexicus presents a catalogue of pre-configured repositories — `simplest-vulnerable` is the canonical demo target. Click the card to select it.
+
+![Sandbox repository selection screen](/img/self-hosted/scm/03-sandbox-select-repo.jpg)
+
+The branch dropdown defaults to `main`. Confirm and click **Continue**.
+
+![Sandbox repo selected, Continue enabled](/img/self-hosted/scm/04-sandbox-repo-selected.jpg)
+
+Plexicus shows the **Scanning in progress** screen while the worker pipeline (clone → SAST → SCA → enrichment) runs. The sandbox scan typically completes in 2 minutes; real-world repos take 1–5 minutes for a small project, longer for monorepos.
+
+![Scanning in progress with the worker pipeline running](/img/self-hosted/scm/05-scanning-in-progress.jpg)
+
+#### Production path — Connect SCM via OAuth \{#self-hosted_helm-chart-scm-real}
+
+For production deployments, click **Connect SCM** instead of Go To Sandbox. This requires real OAuth client credentials populated in the `plexicus-fastapi` Secret you created in step 5 (`GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET`, plus the equivalents for GitLab / Bitbucket — see [`docs/secrets-management.md`](#self-hosted_helm-chart-day2) inside the chart artifact for the full key catalog).
+
+Connecting a SCM is a standard OAuth 2.0 redirect flow:
 
 1. Open the **Connectors** entry in the left sidebar.
-2. Find your SCM (GitHub / GitLab / Bitbucket / Gitea) in the SCM Integrations panel and click **Connect**.
-3. Plexicus redirects you to the provider for OAuth authorization. Log in and click **Authorize Plexicus** (or the name of your OAuth app).
-4. The provider redirects you back to Plexicus and the connector card now shows **Connected**.
+2. Find your SCM (GitHub / GitLab / Bitbucket / Gitea) in the **SCM Integrations** panel and click **Connect**.
+3. Plexicus redirects you to the provider's authorize URL. Log in and click **Authorize Plexicus** (or the name of your registered OAuth app).
+4. The provider redirects you back to Plexicus and the connector card displays **Connected**.
 
-{/* TODO: screenshot — Connectors page with the SCM card before clicking Connect */}
+The OAuth redirect is browser-only — there is no Personal Access Token or API shortcut to skip it. Once a SCM is connected through the browser, every subsequent operation is available over the REST API for CI / scripting (`POST /create_repository_with_list`, `POST /request_repo_scan`, `GET /findings`).
 
-{/* TODO: screenshot — GitHub/GitLab/Bitbucket authorize page (consent screen) */}
+After a real SCM is connected, the **Applications** page replaces the Sandbox flow:
 
-{/* TODO: screenshot — Connectors page after callback, SCM card displaying "Connected" state */}
+1. Open **Applications** in the left sidebar and click **Add applications**.
+2. Pick the SCM connector you just authorized.
+3. Choose a repository, set a nickname, pick the branch (defaults to `main`).
+4. Click **Create selected repositories**.
+5. Open the new repository entry and click **Run scan**.
 
-### 11.3 Add a repository \{#self-hosted_helm-chart-scm-add-repo}
+### 11.4 Land on the Dashboard \{#self-hosted_helm-chart-scm-dashboard}
 
-1. Open the **Applications** page in the left sidebar.
-2. Click **Add applications**.
-3. Pick the SCM connector you just authorized.
-4. Choose the repository, set a nickname, pick the branch (defaults to `main`).
-5. Click **Create selected repositories**.
+After the scan completes Plexicus drops you on the **Dashboard**, which summarises platform value (saved cost, returned engineering time, comparison vs industry baseline) and surfaces the **Findings Report** panel ready to populate as more scans accumulate.
 
-{/* TODO: screenshot — Applications page → Add applications dialog with the connector and repo list visible */}
+![Plexicus Dashboard after first scan](/img/self-hosted/scm/06-dashboard.jpg)
 
-{/* TODO: screenshot — Applications page after creation showing the new repository tile */}
+### 11.5 Review the repository in Assets \{#self-hosted_helm-chart-scm-assets}
 
-### 11.4 Trigger a scan and view findings \{#self-hosted_helm-chart-scm-scan}
+Open **Assets** in the left sidebar. Each connected repository appears with a `TOOLS` badge showing the scanner state — `enriching` while the AI piloting service annotates findings, then transitioning to the final scanned state. The `FINDINGS`, `PIPELINE`, `PRIORITY`, and `TAGS` columns populate as enrichment completes.
 
-1. Open the new repository entry on the **Applications** page.
-2. Click **Run scan**. Plexicus shows a progress indicator while the worker pipeline (clone → SAST → SCA → enrichment) runs. Expect 1–5 minutes for a small repo, longer for monorepos.
-3. When the scan completes, open the **Findings** page in the left sidebar. The dashboard shows totals by severity; click any row to see the affected file, the matched rule, and the AI-generated remediation suggestion.
+![Assets list with simplest-vulnerable repository post-scan](/img/self-hosted/scm/06-assets-repo-list.jpg)
 
-{/* TODO: screenshot — Repository detail page mid-scan showing the progress UI */}
+### 11.6 Open the Findings page \{#self-hosted_helm-chart-scm-findings}
 
-{/* TODO: screenshot — Findings page with severity breakdown and the first finding visible */}
+Open **Findings** in the left sidebar. The page splits into Repo / SCM / Cloud / Registry tabs (Repo is the default). On a brand-new install, the default view often shows the **"Zero findings remaining"** empty state — the SAST scanner produced findings, the AI enriched them, and they sit in the `enriched` / `completed` state until you act on them.
 
-{/* TODO: screenshot — Finding detail panel showing affected file + remediation */}
+![Findings page empty state on a new install](/img/self-hosted/scm/07-findings-empty.jpg)
 
-:::tip Automation
-Once a SCM is connected via the browser, the same operations are available over the REST API for CI / scripting use cases. See the [API reference](/docs/category/platform_api) (`POST /create_repository_with_list`, `POST /request_repo_scan`, `GET /findings`).
-:::
+Click the funnel icon next to the search box and include statuses like `enriched` and `completed` to make every finding visible, or open the repository tile from Assets (11.5) and drill in for a per-repo view. From there each finding shows the affected file, the matched rule, and the AI-generated remediation patch.
 
 ---
 

@@ -292,7 +292,8 @@ kubectl -n plexicus create secret generic plexicus-worker \
   --from-literal=GH_APP_PRIVATE_KEY="" \
   --from-literal=MINIO_ROOT_PASSWORD="$MINIO_PASS" \
   --from-literal=PLEXALYZER_TOKEN="$PLEXALYZER_SECRET" \
-  --from-literal=AZURE_RESOURCE_PASSWORD=""
+  --from-literal=AZURE_RESOURCE_PASSWORD="" \
+  --from-literal=OPENAI_API_KEY="<your-openai-or-deepseek-or-azure-openai-key>"
 
 kubectl -n plexicus create secret generic plexicus-frontend \
   --from-literal=NUXT_SECRET_KEY="$NUXT_SECRET"
@@ -353,6 +354,16 @@ global:
       rootPassword: "<the-minio-password-from-step-7>"
     postgresql:
       password: "<the-temporal-pg-password-from-step-7>"
+
+    # Cloudflare Turnstile bot protection.
+    # The chart defaults to Cloudflare's documented "always passes" test
+    # tokens, so the eval install reaches the login form without you having
+    # to register a real Turnstile site. PRODUCTION DEPLOYMENTS MUST OVERRIDE
+    # both siteKey and secretKey with real values from dash.cloudflare.com,
+    # otherwise the bot-protection layer is effectively disabled.
+    turnstile:
+      siteKey: "1x00000000000000000000AA"               # eval default — replace in prod
+      secretKey: "1x0000000000000000000000000000000AA"  # eval default — replace in prod
 
 fastapi:
   existingSecret: plexicus-fastapi
@@ -493,58 +504,79 @@ curl -k -s -X POST \
 
 A `200` with an `access_token` confirms the full chain — frontend → ingress → fastapi → MongoDB authentication — is healthy. From here, open `https://plexicus.local` in a browser (accept the self-signed certificate warning) and sign in with the credentials you just registered.
 
-## 12. Connect a SCM and run your first scan \{#self-hosted_local-evaluation-scm}
+## 12. First scan — sandbox path (no OAuth required) \{#self-hosted_local-evaluation-scm}
 
-:::warning Browser-only flow — by design
-Connecting GitHub / GitLab / Bitbucket / Gitea to Plexicus uses a standard OAuth 2.0 redirect flow. The user must complete the authorization in a browser — there is no API-only or Personal Access Token shortcut to skip the redirect. The whole sequence below happens in your browser.
-:::
+For a first walk-through, the **Sandbox** onboarding flow is the fastest way to see Plexicus end-to-end: it uses a pre-configured vulnerable repository (`simplest-vulnerable`) and a synthetic SCM connector, so you do not need to register an OAuth app at GitHub / GitLab / Bitbucket. The full flow takes about 3–5 minutes (1 minute clicking through, 2–4 minutes waiting for the scan).
+
+For the production path with real GitHub / GitLab / Bitbucket OAuth, see [§12.alt — Connect a real SCM](#self-hosted_local-evaluation-scm-real) below.
 
 ### 12.1 Sign in to the panel \{#self-hosted_local-evaluation-scm-signin}
 
-Open `https://plexicus.local` in your browser. You will see the certificate-warning page (because the install uses a self-signed issuer). Accept the warning — on Chrome type `thisisunsafe` directly on the page; on Firefox / Safari click **Advanced → Proceed**.
+Open `https://plexicus.local` in your browser. You will see the certificate-warning page (the install uses a self-signed issuer). Accept the warning — on Chrome type `thisisunsafe` directly on the page; on Firefox / Safari click **Advanced → Proceed**.
 
-Sign in with the admin email and password you just bootstrapped in step 11.
+Sign in with the admin email and password you bootstrapped in step 11.
 
-{/* TODO: screenshot — login page rendered at https://plexicus.local with the cert-warning bypassed and the email/password fields populated */}
+![Plexicus login page with email/password form rendered](/img/self-hosted/scm/01-login.jpg)
 
-### 12.2 Connect GitHub from the Connectors page \{#self-hosted_local-evaluation-scm-github}
+### 12.2 Accept the Beta Agreement \{#self-hosted_local-evaluation-scm-tos}
 
-1. Open the **Connectors** entry in the left sidebar.
-2. Find **GitHub** in the SCM Integrations panel and click **Connect**.
-3. Plexicus redirects you to `github.com/login/oauth/authorize?…`. Log in to GitHub and click **Authorize Plexicus** (or the name of your GitHub OAuth app).
-4. GitHub redirects you back to Plexicus and the connector card now shows **Connected**.
+The first time you log in, a modal asks you to read and accept the Plexicus Beta Agreement. Scroll the modal to the bottom, then click **Continue** (the button is disabled until the scrollbar reaches the bottom).
 
-{/* TODO: screenshot — Connectors page with the GitHub card before clicking Connect */}
+![Plexicus Beta Agreement modal — scroll to the bottom to enable Continue](/img/self-hosted/scm/02-tos-modal.jpg)
 
-{/* TODO: screenshot — GitHub authorize page (the consent screen the user lands on after clicking Connect) */}
+### 12.3 Choose your onboarding path \{#self-hosted_local-evaluation-scm-choose-path}
 
-{/* TODO: screenshot — Connectors page after callback, GitHub card displaying "Connected" state */}
+Onboarding offers two paths: **Connect SCM** (production — real OAuth) or **Go To Sandbox** (eval — synthetic repo, instant scan). Click **Go To Sandbox**.
 
-The same flow works for **GitLab**, **Bitbucket**, and **Gitea** — pick the provider whose OAuth client credentials you supplied in step 8 (`plexicus-fastapi` Secret).
+![Onboarding screen offering Connect SCM or Go To Sandbox](/img/self-hosted/scm/02-onboarding-choose-path.jpg)
 
-### 12.3 Add a repository \{#self-hosted_local-evaluation-scm-add-repo}
+### 12.4 Select the sandbox repository \{#self-hosted_local-evaluation-scm-select-repo}
 
-1. Open the **Applications** page in the left sidebar.
-2. Click **Add applications**.
-3. Pick the SCM connector you just authorized (e.g. **GitHub**).
-4. Choose one of your repositories from the list, set a nickname, pick the branch to scan (defaults to `main`).
-5. Click **Create selected repositories**.
+The sandbox catalogue lists a single pre-configured target — `simplest-vulnerable` — with two branches available. Click the card to select it.
 
-{/* TODO: screenshot — Applications page → Add applications dialog with the GitHub connector and repo list visible */}
+![Sandbox repository selection screen with simplest-vulnerable listed](/img/self-hosted/scm/03-sandbox-select-repo.jpg)
 
-{/* TODO: screenshot — Applications page after creation showing the new repository tile */}
+The branch dropdown defaults to `main`. Confirm and click **Continue**.
 
-### 12.4 Trigger a scan and view findings \{#self-hosted_local-evaluation-scm-scan}
+![Sandbox repo selected, branch dropdown set to main, Continue enabled](/img/self-hosted/scm/04-sandbox-repo-selected.jpg)
 
-1. Open the new repository entry on the **Applications** page.
-2. Click **Run scan**. Plexicus shows a progress indicator while the worker pipeline (clone → SAST → SCA → enrichment) runs. This typically takes 1–5 minutes for a small repo.
-3. When the scan completes, open the **Findings** page in the left sidebar. The dashboard shows totals by severity; click any row to see the affected file, the matched rule, and the AI-generated remediation suggestion.
+### 12.5 Wait for the scan \{#self-hosted_local-evaluation-scm-scan}
 
-{/* TODO: screenshot — Repository detail page mid-scan showing the progress UI */}
+Plexicus shows the **Scanning in progress** screen while the worker pipeline (clone → SAST → SCA → enrichment) runs. Expect ~2 minutes for the sandbox repo, longer for real repositories.
 
-{/* TODO: screenshot — Findings page with severity breakdown and the first finding visible */}
+![Scanning in progress with Loading repository scan status spinner](/img/self-hosted/scm/05-scanning-in-progress.jpg)
 
-{/* TODO: screenshot — Finding detail panel showing affected file + remediation */}
+### 12.6 Land on the Dashboard \{#self-hosted_local-evaluation-scm-dashboard}
+
+After the scan completes Plexicus drops you on the **Dashboard**. It summarises the value the platform claims to have unlocked (saved cost, returned engineering time, comparison vs industry baseline) and reserves the bottom panels for findings reports once data accumulates.
+
+![Plexicus Dashboard after first scan](/img/self-hosted/scm/06-dashboard.jpg)
+
+### 12.7 Review the repository in Assets \{#self-hosted_local-evaluation-scm-assets}
+
+Open **Assets** in the left sidebar. The sandbox repository (`simplest-vulnerable`) appears with a `TOOLS` badge that shows the scanner state — `enriching` while the AI piloting service is still annotating findings, then transitioning to the final scanned state. The `FINDINGS`, `PIPELINE`, `PRIORITY`, and `TAGS` columns populate as enrichment completes.
+
+![Assets list with the simplest-vulnerable repository post-scan](/img/self-hosted/scm/06-assets-repo-list.jpg)
+
+### 12.8 Open the Findings page \{#self-hosted_local-evaluation-scm-findings}
+
+Open **Findings** in the left sidebar. The page is split into Repo / SCM / Cloud / Registry tabs (Repo is the default). The first time you land here on a brand-new install you'll often see the **"Zero findings remaining"** empty state — every finding the scanner produced has been auto-resolved or is still in the `enriched` state until you take an action on it.
+
+![Findings page empty state](/img/self-hosted/scm/07-findings-empty.jpg)
+
+To bring findings into the visible list, apply a filter (the funnel icon next to the Search box) that includes statuses like `enriched` and `completed`, or drill into the repository directly from the Assets page (12.7). For sandbox installs, the empty state itself is the proof that the full pipeline (clone → SAST → SCA → enrichment) ran end-to-end without erroring.
+
+### 12.alt Connect a real SCM (production path) \{#self-hosted_local-evaluation-scm-real}
+
+For production deployments, replace the Sandbox path with a real SCM OAuth integration:
+
+1. Register an OAuth application at GitHub / GitLab / Bitbucket / Gitea.
+2. Populate `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` (and equivalents for the other providers) in the `plexicus-fastapi` Secret created in step 8.
+3. Restart the FastAPI deployment (`kubectl -n plexicus rollout restart deploy/fastapi`).
+4. On the Onboarding screen click **Connect SCM** instead of Go To Sandbox.
+5. Plexicus redirects to the provider's OAuth consent screen. Authorize, get redirected back, then add a real repository through the **Applications** page.
+
+The browser-based OAuth redirect cannot be bypassed via API — the user must complete the authorization step in a browser. Once a SCM is connected, the same operations are available over the REST API for CI / scripting (`POST /create_repository_with_list`, `POST /request_repo_scan`, `GET /findings`).
 
 :::tip Automation
 Once a SCM is connected via the browser, the same operations are available over the REST API for CI / scripting use cases. See the [API reference](/docs/category/platform_api) (`POST /create_repository_with_list`, `POST /request_repo_scan`, `GET /findings`).
@@ -591,6 +623,24 @@ Check `kubectl describe pod -l app.kubernetes.io/name=frontend -n plexicus | gre
 ### Browser refuses to load `https://plexicus.local` \{#self-hosted_local-evaluation-tt-browser}
 
 The chart uses self-signed certificates by design. On Chrome, type `thisisunsafe` directly on the warning page to bypass it. For Safari and Firefox, click "Advanced → Proceed".
+
+### Login page shows skeleton placeholders forever \{#self-hosted_local-evaluation-tt-turnstile-skeleton}
+
+Symptom: opening `/login` shows the title and the OAuth buttons, but the email + password fields render as grey "animate-pulse" pill shapes that never resolve. Cause: Cloudflare Turnstile failed to initialise, usually because `NUXT_PUBLIC_TURNSTILE_SITE_KEY` is the literal `<to-fill>` placeholder. Browser console shows `TurnstileError: Invalid input for parameter "sitekey", got "<to-fill>"`.
+
+Fix: confirm chart 1.2.0+ is installed (it defaults the sitekey to Cloudflare's "always passes" test token), or override `global.required.turnstile.siteKey` and `secretKey` in your values overlay to the test tokens shown in step 9 — or to your real Cloudflare keys for production.
+
+### `Turnstile validation failed, Please try again` after Login \{#self-hosted_local-evaluation-tt-turnstile-validate}
+
+Symptom: filling in the form and clicking Login shows the inline error banner "Turnstile validation failed". Frontend Nuxt logs show `FetchError: [POST] "https://challenges.cloudflare.com/turnstile/v0/siteverify": 400 Bad Request, error-codes: ['invalid-input-secret']`. Cause: the server-side `NUXT_TURNSTILE_SECRET_KEY` is unset or stuck at `<to-fill>`. Fix: same as above — set `global.required.turnstile.secretKey` to the matching test secret (`1x0000000000000000000000000000000AA`) for eval, or to your real Cloudflare secret for production. Restart the frontend deployment after updating the values.
+
+### `400 Disallowed CORS origin` from API after login \{#self-hosted_local-evaluation-tt-cors}
+
+Symptom: the SPA can't talk to `api.plexicus.local`. `curl -i -X OPTIONS -H "Origin: https://plexicus.local" .../login` returns `400 Disallowed CORS origin`. Cause: FastAPI reads `CORS_ORIGINS` at startup and `https://plexicus.local` is not in the allow-list (or the env is empty). Fix: chart 1.2.0+ defaults `CORS_ORIGINS` to `<scheme>://<domain>,<scheme>://api.<domain>`. If you're on an older artifact, `kubectl -n plexicus set env deploy/fastapi CORS_ORIGINS=https://plexicus.local,https://api.plexicus.local` and restart the FastAPI rollout.
+
+### Scan stays at "Scanning in progress" forever \{#self-hosted_local-evaluation-tt-scan-stuck}
+
+Symptom: the Sandbox flow reaches "Scanning in progress" and the modal "Scanning taking longer than expected" appears after 15 minutes. Worker logs show `openai.OpenAIError: The api_key client option must be set either by passing api_key to the client or by setting the OPENAI_API_KEY environment variable`. Cause: the worker's `existingSecret` (`plexicus-worker`) is missing `OPENAI_API_KEY`. Fix: add it (`kubectl -n plexicus patch secret plexicus-worker --type=json -p='[{"op":"add","path":"/data/OPENAI_API_KEY","value":"<base64-of-your-deepseek-or-openai-key>"}]'`) and restart the worker. Chart 1.2.0+ wires the matching non-secret env vars (`OPENAI_BASE_URL`, `OPENAI_DEPLOYMENT_NAME`, `OPENAI_VERSION`) automatically.
 
 ---
 
