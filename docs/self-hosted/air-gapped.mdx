@@ -39,10 +39,22 @@ be disabled.
 ## High-Level Procedure \{#self-hosted_air-gapped-3}
 
 1. **Mirror all images to your internal registry.**
-   Mirror the Plexicus chart OCI artifact and all 8 custom service images — plus the 6
-   third-party subchart images (Redis, PostgreSQL, Temporal, MinIO, Elasticsearch stack,
-   MongoDB) — into an internal registry reachable from your cluster.
+   Mirror the Plexicus chart OCI artifact and the 8 custom service container images
+   (`fastapi`, `worker`, `frontend`, `analysis-scheduler`, `codex-remedium`, `exporter`,
+   `plexalyzer-code`, `plexalyzer-prov`) plus the prerequisite infrastructure images
+   (MongoDB, Redis, MinIO, PostgreSQL, Temporal — see step "Install Infrastructure
+   Prerequisites" in [the production install guide](/docs/self-hosted/helm-chart) for
+   the exact set, including any Bitnami init/sidecar images such as `os-shell`,
+   `mongodb-exporter`, `postgres-exporter`, `redis-exporter`, `redis-sentinel`,
+   `kubectl`, `minio-object-browser`).
    Full procedure: see `docs/image-registry.md` inside the chart artifact (extracted via `helm pull --untar`).
+
+   :::note Bitnami licensing change (August 2025)
+   Bitnami moved their official chart images to a paid distribution. Free legacy images
+   live under `docker.io/bitnamilegacy/*`. If you mirror these for air-gapped use, pull
+   from `bitnamilegacy/*` and re-tag into your internal registry. Production deployments
+   on amd64 Kubernetes can use these images directly.
+   :::
 
 2. **Mirror the mongo-seed-data init image separately.**
    The MongoDB seed image (`platform-standalone/mongo-seed-data`) is an init container

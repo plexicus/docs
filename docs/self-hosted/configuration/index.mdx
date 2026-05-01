@@ -38,7 +38,7 @@ Integrations where **you bring your own credentials and your own external servic
 | **Cloudflare Turnstile** | Bot protection on public signup forms | Optional — leave empty to disable | _coming soon_ |
 | **Object storage** | Artifacts, scan reports, AI inputs/outputs | Required (bundled MinIO works out-of-the-box) | _coming soon_ |
 | **Image registry mirror** | Mirror all custom images from your own registry — required for air-gapped or restricted networks | Optional | `docs/image-registry.md` (bundled with the chart artifact) |
-| **External dependencies (BYO Redis/Temporal/MongoDB)** | Use your own Redis, Temporal, or MongoDB instead of the bundled subcharts | Optional | See `global.dependencies` in `values-customer.yaml.example` (bundled with the chart artifact) |
+| **Infrastructure prerequisites (MongoDB, Redis, Temporal, MinIO, PostgreSQL)** | Five infra services that the Plexicus chart depends on. Install each as a separate Helm release in the same namespace before installing the umbrella chart. Customers running their own already-managed instances can skip the corresponding install and point Plexicus at the existing endpoint. | **Required** (chart 1.2.0+ no longer bundles them — bundling exceeded the 1 MB Helm release Secret limit) | `getting-started.md` and `secrets-management.md` (bundled with the chart artifact) |
 
 ### 🟡 Chart-internal (no setup needed) \{#self-hosted_configuration_index-4}
 

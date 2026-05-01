@@ -156,9 +156,103 @@ kubectl create secret docker-registry gar-secret \
 
 ---
 
-## 6. Prepare a Minimal Values File \{#self-hosted_local-evaluation-8}
+## 6. Install Infrastructure Prerequisites \{#self-hosted_local-evaluation-8}
 
-Save the following as `values-local.yaml`. Unlike production, local evaluation can rely on the bundled MongoDB, Redis, PostgreSQL, and MinIO subcharts with shared bootstrap passwords:
+Plexicus depends on five infrastructure services (MongoDB, Redis, MinIO, PostgreSQL, Temporal). They are **not bundled** in the umbrella chart — bundling them produced an artifact that exceeded the 1 MB Kubernetes Secret limit Helm uses for release storage. Install each as a separate Helm release in the `plexicus` namespace.
+
+```bash
+helm repo add bitnami https://charts.bitnami.com/bitnami
+helm repo add temporal https://go.temporal.io/helm-charts
+helm repo update
+
+# 1. MongoDB
+helm upgrade --install mongodb bitnami/mongodb --version 18.6.15 -n plexicus \
+  --set global.security.allowInsecureImages=true \
+  --set image.repository=bitnamilegacy/mongodb \
+  --set defaultInitContainers.volumePermissions.image.repository=bitnamilegacy/os-shell \
+  --set metrics.image.repository=bitnamilegacy/mongodb-exporter \
+  --set 'auth.rootPassword=localdev-password' \
+  --set 'auth.databases={plexicus}' \
+  --set 'auth.usernames={plexicus}' \
+  --set 'auth.passwords={localdev-password}' \
+  --wait
+
+# 2. Redis
+helm upgrade --install redis bitnami/redis --version 25.3.2 -n plexicus \
+  --set global.security.allowInsecureImages=true \
+  --set image.repository=bitnamilegacy/redis \
+  --set sentinel.image.repository=bitnamilegacy/redis-sentinel \
+  --set metrics.image.repository=bitnamilegacy/redis-exporter \
+  --set kubectl.image.repository=bitnamilegacy/kubectl \
+  --set defaultInitContainers.volumePermissions.image.repository=bitnamilegacy/os-shell \
+  --set sysctl.image.repository=bitnamilegacy/os-shell \
+  --set auth.password=localdev-password \
+  --set replica.replicaCount=0 \
+  --wait
+
+# 3. MinIO
+helm upgrade --install minio bitnami/minio --version 17.0.21 -n plexicus \
+  --set global.security.allowInsecureImages=true \
+  --set image.repository=bitnamilegacy/minio \
+  --set defaultInitContainers.volumePermissions.image.repository=bitnamilegacy/os-shell \
+  --set console.image.repository=bitnamilegacy/minio-object-browser \
+  --set apiIngress.enabled=false --set ingress.enabled=false \
+  --set auth.rootUser=minioadmin \
+  --set auth.rootPassword=localdev-password \
+  --set defaultBuckets=platform \
+  --wait
+
+# 4. PostgreSQL (for Temporal)
+helm upgrade --install temporal-postgresql bitnami/postgresql --version 18.5.6 -n plexicus \
+  --set global.security.allowInsecureImages=true \
+  --set image.repository=bitnamilegacy/postgresql \
+  --set metrics.image.repository=bitnamilegacy/postgres-exporter \
+  --set defaultInitContainers.volumePermissions.image.repository=bitnamilegacy/os-shell \
+  --set auth.postgresPassword=temporalpassword \
+  --wait
+
+# 5. Temporal
+helm upgrade --install temporal temporal/temporal --version 0.73.2 -n plexicus \
+  --set server.replicaCount=1 \
+  --set cassandra.enabled=false --set elasticsearch.enabled=false \
+  --set prometheus.enabled=false --set grafana.enabled=false \
+  --set server.config.persistence.default.driver=sql \
+  --set server.config.persistence.default.sql.driver=postgres12 \
+  --set server.config.persistence.default.sql.host=temporal-postgresql \
+  --set server.config.persistence.default.sql.port=5432 \
+  --set server.config.persistence.default.sql.database=temporal \
+  --set server.config.persistence.default.sql.user=postgres \
+  --set server.config.persistence.default.sql.password=temporalpassword \
+  --set server.config.persistence.visibility.driver=sql \
+  --set server.config.persistence.visibility.sql.driver=postgres12 \
+  --set server.config.persistence.visibility.sql.host=temporal-postgresql \
+  --set server.config.persistence.visibility.sql.port=5432 \
+  --set server.config.persistence.visibility.sql.database=temporal_visibility \
+  --set server.config.persistence.visibility.sql.user=postgres \
+  --set server.config.persistence.visibility.sql.password=temporalpassword
+
+kubectl -n plexicus get pods   # confirm all 5 prereqs are Running before continuing
+```
+
+:::warning Apple Silicon (arm64) Macs
+Bitnami's free **legacy** images are amd64-only and will fail to pull on an arm64 cluster (`no match for platform in manifest`). On Apple Silicon, replace the `bitnamilegacy/*` overrides with multi-arch upstream images for evaluation:
+
+```bash
+# Example for MongoDB on arm64
+helm upgrade --install mongodb bitnami/mongodb --version 18.6.15 -n plexicus \
+  --set image.repository=mongo --set image.tag=8.0 \
+  --set global.security.allowInsecureImages=true \
+  ...   # other overrides become unnecessary or use upstream multi-arch alternatives
+```
+
+For full evaluation on arm64 we recommend deploying the prereqs from the upstream multi-arch images (`mongo:8.0`, `redis:7-alpine`, `minio/minio`, `postgres:15-alpine`, `temporalio/auto-setup:1.29`) via plain `Deployment` + `Service` manifests. A reference manifest set is available on request — contact **[engineering@plexicus.ai](mailto:engineering@plexicus.ai)**.
+
+For production, deploy on an amd64 Kubernetes cluster (the standard cloud K8s offerings) — Bitnami legacy images work there as documented above.
+:::
+
+## 7. Prepare a Minimal Values File \{#self-hosted_local-evaluation-9}
+
+Save the following as `values-local.yaml`. The five services above are reached via their default in-cluster service names (`mongodb`, `redis-master`, `minio`, `temporal-postgresql`, `temporal-frontend`).
 
 Local evaluation uses the same `global.ingressClassName` and `global.certManager` fields as production — only the values change (nginx + self-signed instead of traefik + letsencrypt-prod).
 
@@ -171,23 +265,26 @@ global:
   certManager:
     enabled: true
     clusterIssuer: "selfsigned-issuer"
+  imagePullSecrets:
+    - name: gar-secret
   required:
     database:
-      host: "plexicus-mongodb"
+      host: "mongodb"
       name: "plexicus"
       port: 27017
-      username: "plexicus"
+      username: "root"
       options: "authSource=admin"
       password: "localdev-password"
     redis:
-      host: "plexicus-redis-master"
+      host: "redis-master"
       port: 6379
       password: "localdev-password"
     minio:
-      rootUser: "plexicus"
+      service: "minio:9000"
+      rootUser: "minioadmin"
       rootPassword: "localdev-password"
     postgresql:
-      password: "localdev-password"
+      password: "temporalpassword"
 
 fastapi:
   ingress:
@@ -214,7 +311,7 @@ For local evaluation, application secrets (OAuth client secrets, OpenAI API key,
 
 ---
 
-## 7. Install the Chart \{#self-hosted_local-evaluation-9}
+## 8. Install the Chart \{#self-hosted_local-evaluation-10}
 
 Set the chart version (your Plexicus contact provides this when you receive registry credentials, or contact **[engineering@plexicus.ai](mailto:engineering@plexicus.ai)** for the current version):
 
@@ -236,7 +333,7 @@ kubectl get pods -n plexicus -w
 
 ---
 
-## 8. Access the Platform \{#self-hosted_local-evaluation-10}
+## 9. Access the Platform \{#self-hosted_local-evaluation-11}
 
 Open your browser at:
 

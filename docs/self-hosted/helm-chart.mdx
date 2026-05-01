@@ -149,7 +149,93 @@ Repeat the same pattern for `plexicus-frontend`, `plexicus-analysis-scheduler`, 
 
 ---
 
-## 6. Prepare Your Values File \{#self-hosted_helm-chart-10}
+## 6. Install Infrastructure Prerequisites \{#self-hosted_helm-chart-prereq}
+
+Plexicus depends on five infrastructure services: **MongoDB**, **Redis**, **MinIO**, **PostgreSQL**, and **Temporal**. They are **not bundled** in the umbrella chart — bundling produced an artifact that exceeded the 1 MB Kubernetes Secret limit Helm uses for release storage. Install each as a separate Helm release in the `plexicus` namespace before installing the umbrella chart. Customers who already operate any of these services can skip the corresponding install and point Plexicus at their existing endpoints via `global.required.*` and `global.dependencies.*` overrides.
+
+:::note Bitnami licensing change (August 2025)
+Bitnami moved the official chart images to a paid distribution. Free legacy images live under `docker.io/bitnamilegacy/*`. The commands below override every image reference (main + init containers + sidecars) to use the legacy registry. If you mirror these into your own registry, replace `bitnamilegacy/` with your mirror path.
+:::
+
+```bash
+helm repo add bitnami https://charts.bitnami.com/bitnami
+helm repo add temporal https://go.temporal.io/helm-charts
+helm repo update
+
+# 1. MongoDB
+helm upgrade --install mongodb bitnami/mongodb --version 18.6.15 -n plexicus \
+  --set global.security.allowInsecureImages=true \
+  --set image.repository=bitnamilegacy/mongodb \
+  --set defaultInitContainers.volumePermissions.image.repository=bitnamilegacy/os-shell \
+  --set metrics.image.repository=bitnamilegacy/mongodb-exporter \
+  --set 'auth.rootPassword=<your-mongo-root-password>' \
+  --set 'auth.databases={plexicus}' \
+  --set 'auth.usernames={plexicus}' \
+  --set 'auth.passwords={<your-plexicus-db-password>}' \
+  --set persistence.size=10Gi --wait
+
+# 2. Redis
+helm upgrade --install redis bitnami/redis --version 25.3.2 -n plexicus \
+  --set global.security.allowInsecureImages=true \
+  --set image.repository=bitnamilegacy/redis \
+  --set sentinel.image.repository=bitnamilegacy/redis-sentinel \
+  --set metrics.image.repository=bitnamilegacy/redis-exporter \
+  --set kubectl.image.repository=bitnamilegacy/kubectl \
+  --set defaultInitContainers.volumePermissions.image.repository=bitnamilegacy/os-shell \
+  --set sysctl.image.repository=bitnamilegacy/os-shell \
+  --set auth.password=<your-redis-password> \
+  --set replica.replicaCount=0 \
+  --set master.persistence.size=4Gi --wait
+
+# 3. MinIO
+helm upgrade --install minio bitnami/minio --version 17.0.21 -n plexicus \
+  --set global.security.allowInsecureImages=true \
+  --set image.repository=bitnamilegacy/minio \
+  --set defaultInitContainers.volumePermissions.image.repository=bitnamilegacy/os-shell \
+  --set console.image.repository=bitnamilegacy/minio-object-browser \
+  --set apiIngress.enabled=false --set ingress.enabled=false \
+  --set auth.rootUser=<your-minio-user> \
+  --set auth.rootPassword=<your-minio-password> \
+  --set defaultBuckets=platform \
+  --set persistence.size=10Gi --wait
+
+# 4. PostgreSQL (for Temporal)
+helm upgrade --install temporal-postgresql bitnami/postgresql --version 18.5.6 -n plexicus \
+  --set global.security.allowInsecureImages=true \
+  --set image.repository=bitnamilegacy/postgresql \
+  --set metrics.image.repository=bitnamilegacy/postgres-exporter \
+  --set defaultInitContainers.volumePermissions.image.repository=bitnamilegacy/os-shell \
+  --set auth.postgresPassword=<your-temporal-pg-password> \
+  --set primary.persistence.size=4Gi --wait
+
+# 5. Temporal
+helm upgrade --install temporal temporal/temporal --version 0.73.2 -n plexicus \
+  --set server.replicaCount=1 \
+  --set cassandra.enabled=false --set elasticsearch.enabled=false \
+  --set prometheus.enabled=false --set grafana.enabled=false \
+  --set server.config.persistence.default.driver=sql \
+  --set server.config.persistence.default.sql.driver=postgres12 \
+  --set server.config.persistence.default.sql.host=temporal-postgresql \
+  --set server.config.persistence.default.sql.port=5432 \
+  --set server.config.persistence.default.sql.database=temporal \
+  --set server.config.persistence.default.sql.user=postgres \
+  --set server.config.persistence.default.sql.password=<your-temporal-pg-password> \
+  --set server.config.persistence.visibility.driver=sql \
+  --set server.config.persistence.visibility.sql.driver=postgres12 \
+  --set server.config.persistence.visibility.sql.host=temporal-postgresql \
+  --set server.config.persistence.visibility.sql.port=5432 \
+  --set server.config.persistence.visibility.sql.database=temporal_visibility \
+  --set server.config.persistence.visibility.sql.user=postgres \
+  --set server.config.persistence.visibility.sql.password=<your-temporal-pg-password>
+
+kubectl -n plexicus get pods   # confirm all 5 prereqs are Running before continuing
+```
+
+The default in-cluster service names produced by these installs are `mongodb`, `redis-master`, `minio`, `temporal-postgresql`, and `temporal-frontend`. Use them as the values for `global.required.database.host`, `global.required.redis.host`, `global.required.minio.service`, and the Temporal endpoints in your customer values overlay.
+
+---
+
+## 7. Prepare Your Values File \{#self-hosted_helm-chart-10}
 
 :::note Chart version
 The remaining commands in this guide reference a `$CHART_VERSION` shell variable. Set it once to the version you want to install — your Plexicus contact will provide the current version when you receive registry credentials. To upgrade later, contact **[engineering@plexicus.ai](mailto:engineering@plexicus.ai)** for the latest version.
@@ -419,7 +505,27 @@ If you manage your cluster with ArgoCD, you can point it directly at the OCI cha
     :::
   </Step>
 
-  <Step title="Create the ArgoCD Application">
+  <Step title="Create prerequisite Applications (sync-wave 0)">
+    Plexicus depends on five infrastructure services (MongoDB, Redis, MinIO, PostgreSQL, Temporal). They are not bundled in the umbrella chart — bundling them exceeded the 1 MB Kubernetes Secret limit Helm uses for release storage. Each is installed as its own ArgoCD Application synced before the umbrella.
+
+    Create one Application per prereq, each annotated with `argocd.argoproj.io/sync-wave: "0"`. The umbrella Application below carries `sync-wave: "5"` so ArgoCD waits for the prereqs to reach `Healthy` before it syncs.
+
+    A reference manifest set is available at `argocd/prereqs/applicationset-prereqs.yaml` inside the chart artifact (extract via `helm pull --untar`). Apply all five at once:
+
+    ```bash
+    helm pull oci://europe-west3-docker.pkg.dev/plexicus-registry/charts/plexicus \
+      --version $CHART_VERSION --untar
+    kubectl apply -f plexicus/argocd/prereqs/applicationset-prereqs.yaml
+    ```
+
+    :::note Bitnami licensing change (August 2025)
+    The reference manifest uses `bitnamilegacy/*` free legacy images. Replace `<TO-FILL>` with real passwords (or wire to ESO/Sealed-Secrets) before applying.
+    :::
+
+    Customers who already operate their own MongoDB / Redis / Temporal / MinIO / PostgreSQL can delete the corresponding Application from the manifest and instead point the umbrella Application at their existing endpoints via `global.required.*` and `global.dependencies.*` overrides.
+  </Step>
+
+  <Step title="Create the umbrella ArgoCD Application">
     Save the following manifest as `application.yaml`, adjusting the domain, version, and values to match your environment:
 
     ```yaml
@@ -428,12 +534,15 @@ If you manage your cluster with ArgoCD, you can point it directly at the OCI cha
     metadata:
       name: plexicus
       namespace: argocd
+      annotations:
+        # Defer until the five prerequisite Applications (sync-wave 0/1) are Healthy
+        argocd.argoproj.io/sync-wave: "5"
     spec:
       project: default
       source:
         repoURL: europe-west3-docker.pkg.dev/plexicus-registry/charts
         chart: plexicus
-        targetRevision: "1.1.0"  # replace with the latest version from the releases page
+        targetRevision: "1.2.0"
         helm:
           values: |
             global:
