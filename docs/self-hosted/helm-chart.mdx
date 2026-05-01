@@ -547,6 +547,15 @@ Review the release notes provided by the Plexicus team before upgrading. Any bre
 
 If you manage your cluster with ArgoCD, you can point it directly at the OCI chart instead of using the Helm CLI.
 
+:::tip Validated end-to-end
+The procedure below was validated end-to-end on `demo.plexicus.com` (k3s + ArgoCD v3, Helm chart 1.2.0+). The reference manifest set lives in the chart repo at `argocd/prereqs/applicationset-prereqs.yaml` and `argocd/application.yaml` — extract via `helm pull --untar` and adapt to your environment. Key gotchas surfaced during validation:
+
+- **Prereq service names take the `<release-name>-` prefix.** When ArgoCD creates the Bitnami Helm releases as Applications named `plexicus-mongodb`, `plexicus-redis`, etc., the in-cluster Services are `plexicus-mongodb`, `plexicus-redis-master`, `plexicus-temporal-postgresql`, `plexicus-temporal-frontend`, etc. — not the bare `mongodb` / `redis-master` defaults. Update `global.required.database.host`, `global.required.minio.service`, `global.required.redis.host`, `global.dependencies.temporal.host`, and `global.dependencies.redis.host` in the umbrella Application's `helm.values` block to match. (Setting `fullnameOverride` on each prereq Application is an alternative if you prefer the bare names.)
+- **The AppProject's `sourceRepos` list must include every chart source you reference**, including the OCI registry that hosts the Plexicus chart. Either enumerate them explicitly or use `sourceRepos: ['*']` in development.
+- **Self-signed certificates on the chart's OCI registry break ArgoCD's repo-server pull** even when `insecure: "true"` is set on the repository Secret. Either expose the registry behind an Ingress with a publicly trusted (Let's Encrypt) certificate, OR mount your private CA into the `argocd-repo-server` pod's truststore. The first option is simpler — register a DNS record like `registry.<your-domain>` pointing at the cluster, add a cert-manager-issued LE certificate to the registry's Ingress, and use `https://registry.<your-domain>/charts` as the OCI URL.
+- **Image-tag drift between bundled Plexicus services and the published GAR images.** The chart pins `<service>.image.tag` to the chart version (e.g. `1.2.0`), but the actual GAR images use independent build numbers (`1.0.NNN`) with a `latest` floating tag. Either override `<service>.image.tag: latest` in the umbrella's `helm.values` (acceptable for evaluation), or pin specific build tags per service for reproducible production deployments.
+:::
+
 <Steps>
   <Step title="Configure the OCI repository secret">
     Create a file named `repo-gar.yaml` with the following content, replacing `<CONTENTS OF sa-key.json>` with the literal text of your service account JSON key:
