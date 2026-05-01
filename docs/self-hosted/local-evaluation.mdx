@@ -322,7 +322,7 @@ The empty values are fine for an evaluation install; features that depend on the
 
 ## 9. Prepare the Plexicus values overlay \{#self-hosted_local-evaluation-values}
 
-Save the following as `/root/values-evaluator.yaml`. It tells the chart which prereq service to talk to, wires every `existingSecret`, and configures TLS via the self-signed issuer from step 4.
+Save the following as `/root/values-evaluator.yaml`. Chart 1.2.0+ defaults the in-cluster service names (`mongodb`, `redis-master`, `minio:9000`, etc.), the AI endpoint (DeepSeek's OpenAI-compatible API), and the Turnstile keys (Cloudflare test tokens) — so the overlay only has to override the things specific to your cluster: the domain, the ingress class, the self-signed ClusterIssuer, the prereq passwords, and the per-service `existingSecret` references.
 
 ```yaml
 global:
@@ -337,33 +337,26 @@ global:
     - name: gar-secret
 
   required:
+    # Only the *passwords* differ from the chart defaults — the host names
+    # (mongodb / redis-master / minio:9000 / authSource=admin / etc.) match
+    # what step 7 produced.
     database:
-      host: "mongodb"
-      name: "plexicus"
-      port: 27017
-      username: "root"
-      options: "authSource=admin"
       password: "<the-mongo-root-password-from-step-7>"
     redis:
-      host: "redis-master"
-      port: 6379
       password: "<the-redis-password-from-step-7>"
     minio:
-      service: "minio:9000"
-      rootUser: "minioadmin"
       rootPassword: "<the-minio-password-from-step-7>"
     postgresql:
       password: "<the-temporal-pg-password-from-step-7>"
 
-    # Cloudflare Turnstile bot protection.
-    # The chart defaults to Cloudflare's documented "always passes" test
-    # tokens, so the eval install reaches the login form without you having
-    # to register a real Turnstile site. PRODUCTION DEPLOYMENTS MUST OVERRIDE
-    # both siteKey and secretKey with real values from dash.cloudflare.com,
-    # otherwise the bot-protection layer is effectively disabled.
-    turnstile:
-      siteKey: "1x00000000000000000000AA"               # eval default — replace in prod
-      secretKey: "1x0000000000000000000000000000000AA"  # eval default — replace in prod
+    # Turnstile defaults to Cloudflare test tokens (chart 1.2.0+) — eval-friendly
+    # out of the box. PRODUCTION DEPLOYMENTS MUST OVERRIDE both siteKey AND
+    # secretKey with real keys from dash.cloudflare.com, otherwise the
+    # bot-protection layer is effectively disabled.
+    # Uncomment + replace for production:
+    # turnstile:
+    #   siteKey: "0x4AAAAAAA…YOUR-SITEKEY"
+    #   secretKey: "0x4AAAAAAA…YOUR-SERVER-SECRET"
 
 fastapi:
   existingSecret: plexicus-fastapi
@@ -491,7 +484,7 @@ kubectl -n plexicus exec deploy/mongodb -- mongosh \
 
 The collection name is `Users` (capital `U`) and the verification flag is `is_verified`.
 
-### 11.3 Log in \{#self-hosted_local-evaluation-login}
+### 11.3 Log in (API smoke test) \{#self-hosted_local-evaluation-login}
 
 ```bash
 curl -k -s -X POST \
@@ -501,6 +494,12 @@ curl -k -s -X POST \
   https://api.plexicus.local/login
 # {"access_token":"eyJhbGc…","token_type":"bearer"}
 ```
+
+`--resolve` is needed because step 5 edited `/etc/hosts` on the **laptop**, not on the server — and these curls run on the server. The flag tells curl to map `api.plexicus.local` to `<your-public-ip>` for this single request.
+
+:::note Browser login is a separate path
+This curl hits the FastAPI `/login` endpoint directly, which does NOT validate the Cloudflare Turnstile token. The browser-based login in §12 DOES — the SPA submits the token via the Nuxt SSR proxy and the chart's Turnstile defaults (test tokens) handle that automatically. If the browser login fails with `Turnstile validation failed` even though the curl above succeeds, you have a Turnstile config issue (see [troubleshooting](#self-hosted_local-evaluation-tt-turnstile-validate)).
+:::
 
 A `200` with an `access_token` confirms the full chain — frontend → ingress → fastapi → MongoDB authentication — is healthy. From here, open `https://plexicus.local` in a browser (accept the self-signed certificate warning) and sign in with the credentials you just registered.
 
@@ -589,6 +588,10 @@ Removing the entire evaluation stack:
 ```bash
 helm -n plexicus uninstall plexicus
 helm -n plexicus uninstall mongodb redis minio temporal-postgresql temporal
+# PVCs are NOT deleted by uninstall — drop them too if you want a fully
+# clean slate (otherwise re-installing with a different MongoDB password
+# will fail because the data volume retains the old auth state).
+kubectl -n plexicus delete pvc --all
 kubectl delete namespace plexicus
 helm -n cert-manager uninstall cert-manager
 helm -n ingress-nginx uninstall ingress-nginx

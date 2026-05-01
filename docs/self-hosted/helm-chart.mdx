@@ -120,29 +120,13 @@ You must create all secrets **before** installing the chart.
 Use the same password value for a given dependency (e.g. `DATABASE_PASSWORD`) across every service that shares it. Mismatches will cause connection errors at runtime.
 :::
 
-### fastapi \{#self-hosted_helm-chart-8}
+### Key catalog \{#self-hosted_helm-chart-8}
 
-```bash
-kubectl create secret generic plexicus-fastapi \
-  --from-literal=DATABASE_PASSWORD=<your-db-password> \
-  --from-literal=REDIS_PASSWORD=<your-redis-password> \
-  --from-literal=SECRET_KEY=<random-32-char-string> \
-  --from-literal=PLEXALYZER_SECRET_KEY=<plexalyzer-secret> \
-  --from-literal=GH_APP_PRIVATE_KEY="$(cat /path/to/gh-app.pem)" \
-  --from-literal=GITHUB_CLIENT_SECRET=<github-oauth-secret> \
-  --from-literal=GITLAB_CLIENT_SECRET=<gitlab-oauth-secret> \
-  --from-literal=BITBUCKET_CLIENT_SECRET=<bitbucket-oauth-secret> \
-  --from-literal=MINIO_ROOT_PASSWORD=<minio-password> \
-  --from-literal=OPENAI_API_KEY=<openai-key> \
-  --namespace plexicus
-```
-
-### Remaining services \{#self-hosted_helm-chart-9}
-
-Create one secret per service using the key catalog below:
+Eight Secrets are required — one per service that has `existingSecret` wired:
 
 | Secret name | Required keys |
 |-------------|--------------|
+| `plexicus-fastapi` | `DATABASE_PASSWORD`, `REDIS_PASSWORD`, `SECRET_KEY`, `PLEXALYZER_SECRET_KEY`, `MINIO_ROOT_PASSWORD`, `OPENAI_API_KEY`, plus optional `GH_APP_PRIVATE_KEY`, `GITHUB_CLIENT_SECRET`, `GITLAB_CLIENT_SECRET`, `BITBUCKET_CLIENT_SECRET`, `SMTP_PASSWORD`, `STRIPE_API_KEY`, `STRIPE_WEBHOOK_SECRET` (only the integrations you use) |
 | `plexicus-worker` | `DATABASE_PASSWORD`, `REDIS_PASSWORD`, `SECRET_KEY`, `PLEXALYZER_SECRET_KEY`, `GH_APP_PRIVATE_KEY`, `MINIO_ROOT_PASSWORD`, `PLEXALYZER_TOKEN`, `OPENAI_API_KEY` |
 | `plexicus-frontend` | `NUXT_SECRET_KEY` |
 | `plexicus-analysis-scheduler` | `DATABASE_PASSWORD`, `OPENAI_API_KEY` |
@@ -151,25 +135,85 @@ Create one secret per service using the key catalog below:
 | `plexicus-plexalyzer-code` | `PLEXALYZER_SECRET_KEY`, `OPENAI_API_KEY` |
 | `plexicus-plexalyzer-prov` | `PLEXALYZER_SECRET_KEY`, `OPENAI_API_KEY` |
 
-:::tip OPENAI_API_KEY across services
-Every service that performs AI-piloted enrichment (`worker`, `codex-remedium`, `analysis-scheduler`, `exporter`, `plexalyzer-code`, `plexalyzer-prov`) reads the **same** `OPENAI_API_KEY` from its respective Secret. Use the same key value across all of them. The key can be a regular OpenAI API key, an Azure OpenAI endpoint key, or a DeepSeek key (set the matching `global.required.ai.openAiBaseUrlSwe` to the provider's URL).
+:::tip Re-use the same value for shared keys
+`DATABASE_PASSWORD`, `REDIS_PASSWORD`, `MINIO_ROOT_PASSWORD`, `PLEXALYZER_SECRET_KEY`, `PLEXALYZER_TOKEN`, `OPENAI_API_KEY`, and `SECRET_KEY` MUST be identical across every Secret that lists them. They are the same credential consumed by different services. Mismatches cause `MongoDB Authentication failed`, `WRONGPASS` from Redis, and Plexalyzer worker handshake failures at runtime.
+
+`OPENAI_API_KEY` can be a regular OpenAI API key, an Azure OpenAI endpoint key, or a DeepSeek key — set the matching `global.required.ai.openAiBaseUrlSwe` to the provider's URL.
 :::
 
-Example for `worker`:
+### Bootstrap all eight secrets \{#self-hosted_helm-chart-9}
+
+The recipe below sets a handful of shell variables once, then creates every Secret. Run it from `~/plexicus-deploy` after step 4. Replace each `<...>` placeholder.
 
 ```bash
-kubectl create secret generic plexicus-worker \
-  --from-literal=DATABASE_PASSWORD=<your-db-password> \
-  --from-literal=REDIS_PASSWORD=<your-redis-password> \
-  --from-literal=SECRET_KEY=<random-32-char-string> \
-  --from-literal=PLEXALYZER_SECRET_KEY=<plexalyzer-secret> \
-  --from-literal=GH_APP_PRIVATE_KEY="$(cat /path/to/gh-app.pem)" \
-  --from-literal=MINIO_ROOT_PASSWORD=<minio-password> \
-  --from-literal=PLEXALYZER_TOKEN=<plexalyzer-token> \
-  --namespace plexicus
+# === Shared values (set once, used across multiple Secrets) ===
+DB_PASS=<choose-a-strong-mongo-root-password>
+REDIS_PASS=<choose-a-redis-password>
+MINIO_PASS=<choose-a-minio-password>
+SECRET_KEY=$(openssl rand -hex 32)             # Plexicus signing key
+PLEXALYZER_SECRET=$(openssl rand -hex 32)      # Plexalyzer worker handshake
+NUXT_SECRET=$(openssl rand -hex 32)            # Nuxt session secret
+OPENAI_KEY=<your-openai-or-azure-or-deepseek-api-key>
+
+# === Optional integration secrets — leave empty if not used ===
+GH_OAUTH_SECRET=""    # GitHub OAuth client_secret (App or OAuth App)
+GL_OAUTH_SECRET=""    # GitLab OAuth client_secret
+BB_OAUTH_SECRET=""    # Bitbucket OAuth client_secret
+SMTP_PASS=""          # SMTP password for transactional email
+
+# === Eight secrets — copy/paste the entire block ===
+kubectl -n plexicus create secret generic plexicus-fastapi \
+  --from-literal=DATABASE_PASSWORD="$DB_PASS" \
+  --from-literal=REDIS_PASSWORD="$REDIS_PASS" \
+  --from-literal=SECRET_KEY="$SECRET_KEY" \
+  --from-literal=PLEXALYZER_SECRET_KEY="$PLEXALYZER_SECRET" \
+  --from-literal=MINIO_ROOT_PASSWORD="$MINIO_PASS" \
+  --from-literal=OPENAI_API_KEY="$OPENAI_KEY" \
+  --from-literal=GH_APP_PRIVATE_KEY="" \
+  --from-literal=GITHUB_CLIENT_SECRET="$GH_OAUTH_SECRET" \
+  --from-literal=GITLAB_CLIENT_SECRET="$GL_OAUTH_SECRET" \
+  --from-literal=BITBUCKET_CLIENT_SECRET="$BB_OAUTH_SECRET" \
+  --from-literal=SMTP_PASSWORD="$SMTP_PASS"
+
+kubectl -n plexicus create secret generic plexicus-worker \
+  --from-literal=DATABASE_PASSWORD="$DB_PASS" \
+  --from-literal=REDIS_PASSWORD="$REDIS_PASS" \
+  --from-literal=SECRET_KEY="$SECRET_KEY" \
+  --from-literal=PLEXALYZER_SECRET_KEY="$PLEXALYZER_SECRET" \
+  --from-literal=GH_APP_PRIVATE_KEY="" \
+  --from-literal=MINIO_ROOT_PASSWORD="$MINIO_PASS" \
+  --from-literal=PLEXALYZER_TOKEN="$PLEXALYZER_SECRET" \
+  --from-literal=OPENAI_API_KEY="$OPENAI_KEY"
+
+kubectl -n plexicus create secret generic plexicus-frontend \
+  --from-literal=NUXT_SECRET_KEY="$NUXT_SECRET"
+
+kubectl -n plexicus create secret generic plexicus-analysis-scheduler \
+  --from-literal=DATABASE_PASSWORD="$DB_PASS" \
+  --from-literal=OPENAI_API_KEY="$OPENAI_KEY"
+
+kubectl -n plexicus create secret generic plexicus-codex-remedium \
+  --from-literal=DATABASE_PASSWORD="$DB_PASS" \
+  --from-literal=REDIS_PASSWORD="$REDIS_PASS" \
+  --from-literal=PLEXALYZER_SECRET_KEY="$PLEXALYZER_SECRET" \
+  --from-literal=OPENAI_API_KEY="$OPENAI_KEY"
+
+kubectl -n plexicus create secret generic plexicus-exporter \
+  --from-literal=DATABASE_PASSWORD="$DB_PASS" \
+  --from-literal=OPENAI_API_KEY="$OPENAI_KEY"
+
+for s in plexalyzer-code plexalyzer-prov; do
+  kubectl -n plexicus create secret generic plexicus-$s \
+    --from-literal=PLEXALYZER_SECRET_KEY="$PLEXALYZER_SECRET" \
+    --from-literal=OPENAI_API_KEY="$OPENAI_KEY"
+done
+
+# Verify
+kubectl -n plexicus get secrets | grep ^plexicus-
+# Expected: 8 plexicus-* secrets
 ```
 
-Repeat the same pattern for `plexicus-frontend`, `plexicus-analysis-scheduler`, `plexicus-codex-remedium`, `plexicus-exporter`, `plexicus-plexalyzer-code`, and `plexicus-plexalyzer-prov`.
+If you operate a real GitHub App (preferred over plain OAuth for production), replace the empty `GH_APP_PRIVATE_KEY=""` with `GH_APP_PRIVATE_KEY="$(cat /path/to/gh-app.pem)"` in both `plexicus-fastapi` and `plexicus-worker`.
 
 ---
 
@@ -233,6 +277,9 @@ helm upgrade --install temporal-postgresql bitnami/postgresql --version 18.5.6 -
   --set primary.persistence.size=4Gi --wait
 
 # 5. Temporal
+# NOTE: --wait is intentionally omitted. Temporal pods crash-loop for ~2
+# minutes while the schema-setup Job seeds the database — that is expected.
+# Wait for the schema Job to complete (the section below polls the pods).
 helm upgrade --install temporal temporal/temporal --version 0.73.2 -n plexicus \
   --set server.replicaCount=1 \
   --set cassandra.enabled=false --set elasticsearch.enabled=false \
@@ -255,7 +302,7 @@ helm upgrade --install temporal temporal/temporal --version 0.73.2 -n plexicus \
 kubectl -n plexicus get pods   # confirm all 5 prereqs are Running before continuing
 ```
 
-The default in-cluster service names produced by these installs are `mongodb`, `redis-master`, `minio`, `temporal-postgresql`, and `temporal-frontend`. Use them as the values for `global.required.database.host`, `global.required.redis.host`, `global.required.minio.service`, and the Temporal endpoints in your customer values overlay.
+The default in-cluster service names produced by these installs are `mongodb`, `redis-master`, `minio`, `temporal-postgresql`, and `temporal-frontend`. Chart 1.2.0+ defaults `global.required.database.host`, `global.required.redis.host`, `global.required.minio.service`, and the wait-loop endpoints to those names — so as long as you used the release names above, the customer overlay does not need to repeat them. Override only when connecting to externally-managed services or when ArgoCD prefixes the release names (see the [ArgoCD section below](#self-hosted_helm-chart-18)).
 
 ---
 
@@ -352,28 +399,14 @@ plexalyzer-prov:
 `global.domain` is required and validated by `values.schema.json` — the install fails fast if it is empty.
 :::
 
-### Wire the secrets \{#self-hosted_helm-chart-13}
+:::tip Why this overlay is short
+Chart 1.2.0+ defaults the in-cluster service names (`mongodb`, `redis-master`, `minio:9000`), the cross-service URLs (FastAPI's importer / notification / receive endpoints), the AI endpoint (DeepSeek's OpenAI-compatible API), and the Cloudflare Turnstile keys (test tokens for eval). All sensitive values (passwords, OAuth client secrets, API keys, real Turnstile keys for production) come from the eight `existingSecret` references — they are never written into `my-values.yaml`.
 
-Reference the Kubernetes Secrets you created in step 5:
-
-```yaml
-fastapi:
-  existingSecret: plexicus-fastapi
-worker:
-  existingSecret: plexicus-worker
-frontend:
-  existingSecret: plexicus-frontend
-analysis-scheduler:
-  existingSecret: plexicus-analysis-scheduler
-codex-remedium:
-  existingSecret: plexicus-codex-remedium
-exporter:
-  existingSecret: plexicus-exporter
-plexalyzer-code:
-  existingSecret: plexicus-plexalyzer-code
-plexalyzer-prov:
-  existingSecret: plexicus-plexalyzer-prov
-```
+Override entries in `global.required.*` only when:
+- you connect the chart to **externally-managed** MongoDB / Redis / MinIO / Temporal (different host/port than the prereq install in step 6 produced),
+- you use a **non-default release name** for the prereqs (e.g. ArgoCD prefixes them — see [the ArgoCD section below](#self-hosted_helm-chart-18)),
+- you run **production** and need to set real Cloudflare Turnstile keys, real OAuth client_id values, or your own AI provider URL.
+:::
 
 ### Cloudflare Turnstile (production) \{#self-hosted_helm-chart-turnstile}
 
@@ -394,38 +427,10 @@ Both `siteKey` and `secretKey` are required for the Nuxt frontend to render the 
 
 The chart's `fastapi.envs.CORS_ORIGINS` defaults to `<scheme>://<domain>,<scheme>://api.<domain>` so the SPA at the same domain plus the api subdomain works out of the box. Override `fastapi.envs.CORS_ORIGINS` in your customer overlay only if you front the SPA on additional hostnames (multi-tenant, branded subdomains, embedded iframe). An empty `CORS_ORIGINS` makes every cross-origin request return `400 Disallowed CORS origin`.
 
-### Ingress hostnames \{#self-hosted_helm-chart-14}
+:::tip Ingress class and TLS issuer are global
+`global.ingressClassName` (default: `traefik`) and `global.certManager.enabled` + `global.certManager.clusterIssuer` (default: `letsencrypt-prod`) apply to all eight Ingress resources automatically. Per-service overrides via `<service>.ingress.className` or `<service>.ingress.annotations` are possible but rarely needed.
 
-Only `fastapi` and `frontend` are externally reachable — all other services are cluster-internal. Provide just the hosts and TLS block; the ingress class and cert-manager annotation are injected globally:
-
-```yaml
-fastapi:
-  ingress:
-    hosts:
-      - host: api.plexicus.yourdomain.com
-        paths:
-          - path: /
-            pathType: Prefix
-    tls:
-      - secretName: plexicus-fastapi-tls
-        hosts:
-          - api.plexicus.yourdomain.com
-
-frontend:
-  ingress:
-    hosts:
-      - host: plexicus.yourdomain.com
-        paths:
-          - path: /
-            pathType: Prefix
-    tls:
-      - secretName: plexicus-frontend-tls
-        hosts:
-          - plexicus.yourdomain.com
-```
-
-:::tip
-`global.ingressClassName` (default: `traefik`) and `global.certManager.enabled` + `global.certManager.clusterIssuer` (default: `letsencrypt-prod`) apply to all eight Ingress resources automatically. Per-service overrides via `<service>.ingress.className` or `<service>.ingress.annotations` are still possible but rarely needed.
+Only `fastapi` and `frontend` are externally reachable. The other six services (worker, analysis-scheduler, codex-remedium, exporter, plexalyzer-code, plexalyzer-prov) are cluster-internal and do not need Ingress.
 :::
 
 ---
@@ -433,14 +438,14 @@ frontend:
 ## 8. Install the Chart \{#self-hosted_helm-chart-15}
 
 ```bash
-helm install plexicus \
+helm upgrade --install plexicus \
   oci://europe-west3-docker.pkg.dev/plexicus-registry/charts/plexicus \
   --version $CHART_VERSION \
   --namespace plexicus \
   --values my-values.yaml
 ```
 
-The installation takes a few minutes while all pods and dependencies initialize.
+The installation takes a few minutes while all pods and dependencies initialize. `upgrade --install` is idempotent — re-running it after fixing a values typo does the right thing instead of erroring with `release plexicus already exists`.
 
 ---
 
@@ -525,6 +530,9 @@ The collection name is `Users` (capital `U`); the verification flag is `is_verif
 
 ```bash
 kubectl -n plexicus exec deploy/mongodb -- mongosh \
+# ↑ if you installed via the ArgoCD path the deploy is named `plexicus-mongodb` —
+#   substitute `deploy/plexicus-mongodb` in this command and the next.
+#
   "mongodb://root:<your-mongo-root-password>@localhost:27017/plexicus?authSource=admin" \
   --quiet --eval '
     db.Users.updateOne(
@@ -672,7 +680,7 @@ Review the release notes provided by the Plexicus team before upgrading. Any bre
 If you manage your cluster with ArgoCD, you can point it directly at the OCI chart instead of using the Helm CLI.
 
 :::tip Validated end-to-end
-The procedure below was validated end-to-end on `demo.plexicus.com` (k3s + ArgoCD v3, Helm chart 1.2.0+). The reference manifest set lives in the chart repo at `argocd/prereqs/applicationset-prereqs.yaml` and `argocd/application.yaml` — extract via `helm pull --untar` and adapt to your environment. Key gotchas surfaced during validation:
+The procedure below was validated end-to-end on `demo.plexicus.com` (k3s + ArgoCD v3, Helm chart 1.2.0+). The reference manifest set lives in the chart repo at `argocd/prereqs/applications-prereqs.yaml` and `argocd/application.yaml` — extract via `helm pull --untar` and adapt to your environment. Key gotchas surfaced during validation:
 
 - **Prereq service names take the `<release-name>-` prefix.** When ArgoCD creates the Bitnami Helm releases as Applications named `plexicus-mongodb`, `plexicus-redis`, etc., the in-cluster Services are `plexicus-mongodb`, `plexicus-redis-master`, `plexicus-temporal-postgresql`, `plexicus-temporal-frontend`, etc. — not the bare `mongodb` / `redis-master` defaults. Update `global.required.database.host`, `global.required.minio.service`, `global.required.redis.host`, `global.dependencies.temporal.host`, and `global.dependencies.redis.host` in the umbrella Application's `helm.values` block to match. (Setting `fullnameOverride` on each prereq Application is an alternative if you prefer the bare names.)
 - **The AppProject's `sourceRepos` list must include every chart source you reference**, including the OCI registry that hosts the Plexicus chart. Either enumerate them explicitly or use `sourceRepos: ['*']` in development.
@@ -735,11 +743,12 @@ The procedure below was validated end-to-end on `demo.plexicus.com` (k3s + ArgoC
     git push -u origin main
     ```
 
-    **Register the repo with ArgoCD.** Apply a `Secret` in the `argocd` namespace labelled `argocd.argoproj.io/secret-type: repository`. Pick the auth flavor that matches your remote.
+    **Register the repo with ArgoCD.** Apply a `Secret` in the `argocd` namespace labelled `argocd.argoproj.io/secret-type: repository`. Pick the auth flavor that matches your remote and apply via heredoc — do NOT commit this Secret to Git, your `.gitignore` from the previous step already excludes it.
 
     For SSH (recommended for production):
 
-    ```yaml
+    ```bash
+    kubectl apply -f - <<'EOF'
     apiVersion: v1
     kind: Secret
     metadata:
@@ -755,11 +764,13 @@ The procedure below was validated end-to-end on `demo.plexicus.com` (k3s + ArgoC
         -----BEGIN OPENSSH PRIVATE KEY-----
         <paste the deploy key here>
         -----END OPENSSH PRIVATE KEY-----
+    EOF
     ```
 
     For HTTPS with a personal-access token:
 
-    ```yaml
+    ```bash
+    kubectl apply -f - <<'EOF'
     apiVersion: v1
     kind: Secret
     metadata:
@@ -773,12 +784,7 @@ The procedure below was validated end-to-end on `demo.plexicus.com` (k3s + ArgoC
       url: https://github.com/<your-org>/plexicus-gitops.git
       username: <bot-user>
       password: <github-pat>     # use a fine-grained PAT scoped to this repo only
-    ```
-
-    Apply the chosen variant:
-
-    ```bash
-    kubectl apply -f plexicus-gitops-repo.yaml
+    EOF
     ```
 
     **AppProject — restrict allowed sources.** Save the following as `projects/plexicus-appproject.yaml` inside the GitOps repo. The `sourceRepos` list **must** include both your GitOps Git URL and the Plexicus OCI registry — ArgoCD rejects any Application that references a source not on this list.
@@ -862,7 +868,7 @@ The procedure below was validated end-to-end on `demo.plexicus.com` (k3s + ArgoC
 
     Create one Application per prereq, each annotated with `argocd.argoproj.io/sync-wave: "0"`. The umbrella Application below carries `sync-wave: "5"` so ArgoCD waits for the prereqs to reach `Healthy` before it syncs.
 
-    A reference manifest set is available at `argocd/prereqs/applicationset-prereqs.yaml` inside the chart artifact (extract via `helm pull --untar` from `~/plexicus-deploy`). Copy it into your GitOps repo, commit, push, then apply:
+    A reference manifest set is available at `argocd/prereqs/applications-prereqs.yaml` inside the chart artifact (extract via `helm pull --untar` from `~/plexicus-deploy`). Copy it into your GitOps repo, commit, push, then apply:
 
     ```bash
     cd ~/plexicus-deploy
@@ -870,20 +876,20 @@ The procedure below was validated end-to-end on `demo.plexicus.com` (k3s + ArgoC
       --version $CHART_VERSION --untar
 
     # Copy the reference manifests into the GitOps repo (under apps/prereqs/)
-    cp plexicus/argocd/prereqs/applicationset-prereqs.yaml \
-       plexicus-gitops/apps/prereqs/applicationset-prereqs.yaml
+    cp plexicus/argocd/prereqs/applications-prereqs.yaml \
+       plexicus-gitops/apps/prereqs/applications-prereqs.yaml
 
     cd plexicus-gitops
-    # Edit apps/prereqs/applicationset-prereqs.yaml: replace every <TO-FILL>
+    # Edit apps/prereqs/applications-prereqs.yaml: replace every <TO-FILL>
     # password with a SealedSecret/ExternalSecret reference (see step 1 secrets handling).
 
-    git add apps/prereqs/applicationset-prereqs.yaml
+    git add apps/prereqs/applications-prereqs.yaml
     git commit -m "feat(argocd): add prereq Applications (mongo/redis/minio/postgres/temporal)"
     git push
 
     # Apply the manifest — ArgoCD reads it from the cluster and starts syncing
     # from your GitOps repo's main branch.
-    kubectl apply -f apps/prereqs/applicationset-prereqs.yaml
+    kubectl apply -f apps/prereqs/applications-prereqs.yaml
     ```
 
     :::note Bitnami licensing change (August 2025)
@@ -923,6 +929,23 @@ The procedure below was validated end-to-end on `demo.plexicus.com` (k3s + ArgoC
                 clusterIssuer: "letsencrypt-prod"
               imagePullSecrets:
                 - name: gar-secret
+              # ArgoCD names the per-prereq Helm release after the Application
+              # metadata.name (`plexicus-mongodb`, `plexicus-redis`, etc.), so
+              # the in-cluster Services are *prefixed*. The Helm-CLI install in
+              # step 6 produces bare names; this overlay rewrites the chart
+              # defaults to match the ArgoCD-prefixed names.
+              required:
+                database:
+                  host: plexicus-mongodb
+                redis:
+                  host: plexicus-redis-master
+                minio:
+                  service: plexicus-minio:9000
+              dependencies:
+                redis:
+                  host: plexicus-redis-master
+                temporal:
+                  host: plexicus-temporal-frontend
             fastapi:
               existingSecret: plexicus-fastapi
             worker:
