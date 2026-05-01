@@ -270,6 +270,13 @@ MINIO_PASS=<the-minio-password-from-step-7>
 SECRET_KEY=$(openssl rand -hex 32)
 PLEXALYZER_SECRET=$(openssl rand -hex 32)
 NUXT_SECRET=$(openssl rand -hex 32)
+# SSO / SAML / OIDC keys (chart 1.2.0+) — populate even if you don't use SSO
+# in the eval install; the SAML/OIDC handlers fall back to fail-closed if
+# these are unset, which surfaces as confusing 500s on a half-configured
+# install.
+BREAK_GLASS=$(openssl rand -hex 32)
+SSO_RELAY=$(openssl rand -hex 32)
+SSO_ENCRYPT=$(openssl rand -hex 32)
 
 kubectl -n plexicus create secret generic plexicus-fastapi \
   --from-literal=DATABASE_PASSWORD="$DB_PASS" \
@@ -282,7 +289,10 @@ kubectl -n plexicus create secret generic plexicus-fastapi \
   --from-literal=BITBUCKET_CLIENT_SECRET="" \
   --from-literal=MINIO_ROOT_PASSWORD="$MINIO_PASS" \
   --from-literal=SMTP_PASSWORD="" \
-  --from-literal=OPENAI_API_KEY=""
+  --from-literal=OPENAI_API_KEY="" \
+  --from-literal=BREAK_GLASS_SECRET_KEY="$BREAK_GLASS" \
+  --from-literal=SSO_RELAY_STATE_SECRET="$SSO_RELAY" \
+  --from-literal=SSO_ENCRYPTION_KEY="$SSO_ENCRYPT"
 
 kubectl -n plexicus create secret generic plexicus-worker \
   --from-literal=DATABASE_PASSWORD="$DB_PASS" \

@@ -126,7 +126,7 @@ Eight Secrets are required — one per service that has `existingSecret` wired:
 
 | Secret name | Required keys |
 |-------------|--------------|
-| `plexicus-fastapi` | `DATABASE_PASSWORD`, `REDIS_PASSWORD`, `SECRET_KEY`, `PLEXALYZER_SECRET_KEY`, `MINIO_ROOT_PASSWORD`, `OPENAI_API_KEY`, plus optional `GH_APP_PRIVATE_KEY`, `GITHUB_CLIENT_SECRET`, `GITLAB_CLIENT_SECRET`, `BITBUCKET_CLIENT_SECRET`, `SMTP_PASSWORD`, `STRIPE_API_KEY`, `STRIPE_WEBHOOK_SECRET` (only the integrations you use) |
+| `plexicus-fastapi` | `DATABASE_PASSWORD`, `REDIS_PASSWORD`, `SECRET_KEY`, `PLEXALYZER_SECRET_KEY`, `MINIO_ROOT_PASSWORD`, `OPENAI_API_KEY`, plus optional `GH_APP_PRIVATE_KEY`, `GITHUB_CLIENT_SECRET`, `GITLAB_CLIENT_SECRET`, `BITBUCKET_CLIENT_SECRET`, `SMTP_PASSWORD`, `STRIPE_API_KEY`, `STRIPE_WEBHOOK_SECRET`, `BREAK_GLASS_SECRET_KEY`, `SSO_RELAY_STATE_SECRET`, `SSO_ENCRYPTION_KEY` (only the integrations you use; SSO keys required only when SAML/OIDC SSO is enabled) |
 | `plexicus-worker` | `DATABASE_PASSWORD`, `REDIS_PASSWORD`, `SECRET_KEY`, `PLEXALYZER_SECRET_KEY`, `GH_APP_PRIVATE_KEY`, `MINIO_ROOT_PASSWORD`, `PLEXALYZER_TOKEN`, `OPENAI_API_KEY` |
 | `plexicus-frontend` | `NUXT_SECRET_KEY` |
 | `plexicus-analysis-scheduler` | `DATABASE_PASSWORD`, `OPENAI_API_KEY` |
@@ -161,6 +161,13 @@ GL_OAUTH_SECRET=""    # GitLab OAuth client_secret
 BB_OAUTH_SECRET=""    # Bitbucket OAuth client_secret
 SMTP_PASS=""          # SMTP password for transactional email
 
+# === SSO / SAML / OIDC secrets — required only when SSO is enabled ===
+# Generate strong random values; safe to populate even if SSO is off
+# (they're only consumed when SAML/OIDC handlers are invoked).
+BREAK_GLASS=$(openssl rand -hex 32)        # Emergency-admin bypass key
+SSO_RELAY=$(openssl rand -hex 32)          # HMAC for SAML RelayState signing
+SSO_ENCRYPT=$(openssl rand -hex 32)        # AES-256 key for OIDC client_secret encryption at rest
+
 # === Eight secrets — copy/paste the entire block ===
 kubectl -n plexicus create secret generic plexicus-fastapi \
   --from-literal=DATABASE_PASSWORD="$DB_PASS" \
@@ -173,7 +180,10 @@ kubectl -n plexicus create secret generic plexicus-fastapi \
   --from-literal=GITHUB_CLIENT_SECRET="$GH_OAUTH_SECRET" \
   --from-literal=GITLAB_CLIENT_SECRET="$GL_OAUTH_SECRET" \
   --from-literal=BITBUCKET_CLIENT_SECRET="$BB_OAUTH_SECRET" \
-  --from-literal=SMTP_PASSWORD="$SMTP_PASS"
+  --from-literal=SMTP_PASSWORD="$SMTP_PASS" \
+  --from-literal=BREAK_GLASS_SECRET_KEY="$BREAK_GLASS" \
+  --from-literal=SSO_RELAY_STATE_SECRET="$SSO_RELAY" \
+  --from-literal=SSO_ENCRYPTION_KEY="$SSO_ENCRYPT"
 
 kubectl -n plexicus create secret generic plexicus-worker \
   --from-literal=DATABASE_PASSWORD="$DB_PASS" \
