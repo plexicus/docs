@@ -468,54 +468,60 @@ A `200` with an `access_token` confirms the full chain — frontend → ingress 
 
 ## 12. Connect a SCM and run your first scan \{#self-hosted_local-evaluation-scm}
 
-:::warning Browser-only OAuth — by design
-Connecting GitHub / GitLab / Bitbucket to Plexicus uses a standard OAuth 2.0 redirect flow. The user must complete the authorization in a browser — there is no API-only or PAT-only shortcut to skip the redirect. Plan your eval session accordingly.
+:::warning Browser-only flow — by design
+Connecting GitHub / GitLab / Bitbucket / Gitea to Plexicus uses a standard OAuth 2.0 redirect flow. The user must complete the authorization in a browser — there is no API-only or Personal Access Token shortcut to skip the redirect. The whole sequence below happens in your browser.
 :::
 
-### 12.1 Connect GitHub via the UI \{#self-hosted_local-evaluation-scm-github}
+### 12.1 Sign in to the panel \{#self-hosted_local-evaluation-scm-signin}
 
-1. Sign in to `https://plexicus.local` with the admin user from step 11.
-2. Open the **Connectors** page (left sidebar).
-3. Click **GitHub → Connect**. The frontend calls `GET /vulnerability_tool/auth/github` (with your panel Bearer token) which returns an `authorization_url`.
-4. The browser is redirected to `github.com/login/oauth/authorize?client_id=…`. Log in to GitHub and click **Authorize Plexicus**.
-5. GitHub redirects back to `https://api.plexicus.local/vulnerability_tool/callback/github?code=…&state=…`. The callback exchanges the `code` for an access_token and refresh_token and stores them on the user record in MongoDB.
+Open `https://plexicus.local` in your browser. You will see the certificate-warning page (because the install uses a self-signed issuer). Accept the warning — on Chrome type `thisisunsafe` directly on the page; on Firefox / Safari click **Advanced → Proceed**.
 
-The same UI flow works for GitLab, Bitbucket, and Gitea — pick the provider whose OAuth client credentials you supplied in your `secrets.txt` / values overlay.
+Sign in with the admin email and password you just bootstrapped in step 11.
 
-### 12.2 Add a repository \{#self-hosted_local-evaluation-scm-add-repo}
+{/* TODO: screenshot — login page rendered at https://plexicus.local with the cert-warning bypassed and the email/password fields populated */}
 
-Once a SCM is connected you can add repositories from the **Applications** page in the UI, or via the API:
+### 12.2 Connect GitHub from the Connectors page \{#self-hosted_local-evaluation-scm-github}
 
-```bash
-curl -X POST https://api.plexicus.local/create_repository_with_list \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "source_control": "github",
-    "data": [
-      {
-        "uri": "https://github.com/<owner>/<repo>",
-        "nickname": "First repo",
-        "branch": "main"
-      }
-    ]
-  }'
-```
+1. Open the **Connectors** entry in the left sidebar.
+2. Find **GitHub** in the SCM Integrations panel and click **Connect**.
+3. Plexicus redirects you to `github.com/login/oauth/authorize?…`. Log in to GitHub and click **Authorize Plexicus** (or the name of your GitHub OAuth app).
+4. GitHub redirects you back to Plexicus and the connector card now shows **Connected**.
 
-### 12.3 Trigger a scan and read the findings \{#self-hosted_local-evaluation-scm-scan}
+{/* TODO: screenshot — Connectors page with the GitHub card before clicking Connect */}
 
-```bash
-# Kick off a scan (the response includes the scan_id)
-curl -X POST https://api.plexicus.local/request_repo_scan \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"repository_id":"<id-from-step-12.2>","scan_type":"app"}'
+{/* TODO: screenshot — GitHub authorize page (the consent screen the user lands on after clicking Connect) */}
 
-# Poll until status flips from running -> completed
-curl -H "Authorization: Bearer $TOKEN" https://api.plexicus.local/findings | jq '.data | length'
-```
+{/* TODO: screenshot — Connectors page after callback, GitHub card displaying "Connected" state */}
 
-Findings appear under **Findings** in the UI as the scan completes.
+The same flow works for **GitLab**, **Bitbucket**, and **Gitea** — pick the provider whose OAuth client credentials you supplied in step 8 (`plexicus-fastapi` Secret).
+
+### 12.3 Add a repository \{#self-hosted_local-evaluation-scm-add-repo}
+
+1. Open the **Applications** page in the left sidebar.
+2. Click **Add applications**.
+3. Pick the SCM connector you just authorized (e.g. **GitHub**).
+4. Choose one of your repositories from the list, set a nickname, pick the branch to scan (defaults to `main`).
+5. Click **Create selected repositories**.
+
+{/* TODO: screenshot — Applications page → Add applications dialog with the GitHub connector and repo list visible */}
+
+{/* TODO: screenshot — Applications page after creation showing the new repository tile */}
+
+### 12.4 Trigger a scan and view findings \{#self-hosted_local-evaluation-scm-scan}
+
+1. Open the new repository entry on the **Applications** page.
+2. Click **Run scan**. Plexicus shows a progress indicator while the worker pipeline (clone → SAST → SCA → enrichment) runs. This typically takes 1–5 minutes for a small repo.
+3. When the scan completes, open the **Findings** page in the left sidebar. The dashboard shows totals by severity; click any row to see the affected file, the matched rule, and the AI-generated remediation suggestion.
+
+{/* TODO: screenshot — Repository detail page mid-scan showing the progress UI */}
+
+{/* TODO: screenshot — Findings page with severity breakdown and the first finding visible */}
+
+{/* TODO: screenshot — Finding detail panel showing affected file + remediation */}
+
+:::tip Automation
+Once a SCM is connected via the browser, the same operations are available over the REST API for CI / scripting use cases. See the [API reference](/docs/category/platform_api) (`POST /create_repository_with_list`, `POST /request_repo_scan`, `GET /findings`).
+:::
 
 ## 13. Cleanup \{#self-hosted_local-evaluation-cleanup}
 
