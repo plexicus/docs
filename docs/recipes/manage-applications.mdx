@@ -1,0 +1,66 @@
+---
+title: "Manage Applications"
+description: "Create, scan, and monitor applications backed by your connected source-code repositories."
+---
+
+# Manage Applications \{#applications_index-1\}
+
+In Plexicus, an **Application** is a scanned unit — typically one repository, one branch, plus the configuration that controls how it's analyzed. You add an application by pointing Plexicus at a repository in a connected SCM. Once added, it cycles through the lifecycle below until findings are ready.
+
+:::tip Prerequisite
+You need at least one connected SCM. See [Connect Source Control](/docs/recipes) if you haven't done that yet.
+:::
+
+## Add an application \{#applications_index-2\}
+
+<Steps>
+  <Step title="Open Applications">
+    Navigate to **Applications** in the side panel and click **Add Applications**. You'll see the list of SCM connectors you've already configured.
+  </Step>
+  <Step title="Pick an SCM connector">
+    Select the connector that owns the repository you want to scan. Plexicus loads the visible repositories — this can take a few seconds for large orgs.
+
+    <img src="/docs/plexicus/applications.png" alt="Applications page" />
+  </Step>
+  <Step title="Select repositories">
+    Tick one or more repositories, then click **Create Selected Repositories**.
+
+    <img src="/docs/plexicus/applications/repositories.png" alt="Repository selection" />
+  </Step>
+  <Step title="Choose a branch (when prompted)">
+    If a repository has multiple branches, Plexicus shows a branch picker. Pick the branch you want scanned. You can add additional branches as separate applications later.
+
+    <img src="/docs/plexicus/applications/modal-branches.png" alt="Branch selection modal" />
+  </Step>
+  <Step title="Map BlackDuck project (only if BlackDuck is connected)">
+    If you've configured a BlackDuck connector for SCA, Plexicus prompts for the BlackDuck project name to attach the application to. This is optional — skip it if you're not using BlackDuck.
+
+    <img src="/docs/plexicus/blackduck/panel.png" alt="BlackDuck mapping" />
+    <img src="/docs/plexicus/blackduck/form.png" alt="BlackDuck project name form" />
+  </Step>
+</Steps>
+
+## Application lifecycle \{#applications_index-7\}
+
+After submission, Plexicus walks the application through four stages. The Applications page shows the current stage as a progress indicator.
+
+<AccordionGroup>
+  <Accordion title="Queued" icon="material-symbols:hourglass-empty">
+    Repository is waiting for Plexalyzer (the scan engine) to pick it up. Queue depth depends on cluster capacity and other in-flight scans.
+  </Accordion>
+  <Accordion title="Running" icon="material-symbols:play-circle-outline">
+    Plexalyzer is executing scanners against the repository — SAST, SCA, secrets, IaC, container, depending on what's detected. This is the longest stage; runtime scales with repo size.
+  </Accordion>
+  <Accordion title="Enriching" icon="material-symbols:auto-awesome-outline">
+    Raw scanner output is being enriched: severity recalculated with runtime context, false positives suppressed against your tuning rules, related findings clustered.
+  </Accordion>
+  <Accordion title="Completed" icon="material-symbols:check-circle-outline">
+    Scan is done. Findings are visible under [Work with Findings](/docs/recipes/work-with-findings) for this application.
+  </Accordion>
+</AccordionGroup>
+
+<img src="/docs/plexicus/applications/item.png" alt="Application status indicator" />
+
+## Next steps \{#applications_index-9\}
+
+Once the application reaches **Completed**, head to [Work with Findings](/docs/recipes/work-with-findings) to triage results and generate AI remediations.

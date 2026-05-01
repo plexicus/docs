@@ -1,122 +1,150 @@
+# Contributing to Plexicus Documentation
 
-# 🤝 Welcome to the Project!
-
-Thank you for your interest in contributing to our **Docusaurus documentation**.  
-We appreciate your help in making this project better.  
-This guide will walk you through the process of contributing to the repository.
+Thanks for helping make these docs better. This guide covers the contribution flow, the editorial conventions we enforce, and the URL-stability rules that keep external links from rotting.
 
 ---
 
-## 🚀 How to Contribute
+## How to Contribute
 
-1. **Fork the Repository**  
-   Create a fork of this repository on GitHub.
-
-2. **Clone Your Fork**  
-   Clone your forked repository to your local machine:  
+1. **Fork** the repository on GitHub.
+2. **Clone** your fork:
    ```bash
-   git clone https://github.com/your-username/your-fork.git
-```
-
-3. **Create a New Branch**
-   Always create a new branch for your work. Use a descriptive name:
-
-   ```bash
-   git checkout -b fix/name-of-fix
-   # or
-   git checkout -b feature/new-feature-name
+   git clone https://github.com/your-username/docs.git
+   cd docs
    ```
-
-4. **Make Your Changes**
-   Implement your feature or fix.
-
-5. **Commit and Push**
-   Commit your changes with a clear and concise message.
-   Push your changes to your new branch:
-
+3. **Branch** from `main`:
    ```bash
-   git add .
-   git commit -m "Fix: clear and descriptive commit message"
+   git checkout -b fix/short-description
+   # or feature/short-description, docs/short-description
+   ```
+4. **Make your changes.** Run `pnpm start` to preview locally; `pnpm build` to verify before opening a PR.
+5. **Commit and push:**
+   ```bash
+   git add docs/path/to/your/page.mdx
+   git commit -m "docs(<area>): one-line summary"
    git push origin your-branch-name
    ```
-
-6. **Open a Pull Request (PR)**
-   Open a PR from your branch to the `main` branch of the original repository.
-   Provide a detailed description of your changes.
+6. **Open a Pull Request** to `main`. Include a short description of *why* the change is needed and a screenshot if visuals change.
 
 ---
 
-## ✍️ Markdown / MDX Style Guide
+## Documentation Architecture (Diátaxis)
 
-When contributing to the documentation, it is essential to follow our conventions to maintain consistency.
+Every page in this site lives in **exactly one** of five sections. If you can't decide where a new page goes, the page probably needs to be split.
 
-* **Explicit Heading IDs**
-  All headings in `.md` and `.mdx` files must have an explicit heading ID.
-  This ensures anchor links work correctly and provides stable URLs for navigation.
+| Section | Quadrant | Question it answers |
+|---|---|---|
+| **Introduction** | Onboarding | "What is this and where do I start?" |
+| **Core Concepts** | Explanation | "How does it work and why?" |
+| **Recipes** | How-to | "How do I do <task>?" |
+| **Reference** | Information | "What is the exact contract / value / parameter?" |
+| **Troubleshooting** | Problem-solving | "Why is this broken and how do I fix it?" |
 
-* **Syntax**
-  Use the syntax `{#id}` directly after the heading text.
-  The format is:
+Read [Diátaxis](https://diataxis.fr/) once if you haven't. Two minutes, saves a lot of arguments.
 
-  ```
-  {#<parent-directories>-<file-name>-<heading-number>}
-  ```
+---
 
-  * Use hyphens to separate parent directories and file names.
-  * Use a hyphen to separate the file name from the heading number.
+## Voice and Style
 
-* **Example**
-  For a heading on the page `docs/api/getting-started.mdx`, the ID should be:
+- **Lead with the answer, then explain.** No "Welcome to your security journey" intros.
+- **One paragraph of "what & why"** at the top of every page. Then the content.
+- **No marketing adjectives.** "Robust", "powerful", "seamless", "best-in-class" — delete all.
+- **No filler admonitions.** Use `:::tip` / `:::warning` / `:::note` only when the reader will lose something by not reading it.
+- **Cite the source of truth** for technical claims (link to `/docs/concepts/...`, not the marketing site).
 
+---
+
+## Markdown / MDX Style
+
+- **All headings need explicit IDs.** Use the format `{#<parent-dir>-<file-name>-<heading-number>}`:
   ```markdown
-  ## Heading Title {#docs-api-getting-started-1}
+  ## Heading Title \{#api-getting-started-1\}
   ```
+  IDs survive renames; auto-generated slugs do not.
+- **Component-heavy is the default.** Reach for `<Card>`, `<CardGroup>`, `<Tabs>`, `<Steps>`, `<Accordion>` before falling back to wall-of-text. These are auto-registered globally — no imports required.
+- **Mermaid diagrams** are enabled (`@docusaurus/theme-mermaid`). Use them where prose describes a sequence or a graph.
+- **Images** live under `static/docs/plexicus/<area>/`. Reference with absolute paths from `static/`: `/docs/plexicus/findings/list.png`.
 
 ---
 
-## 📄 API Documentation
+## URL Stability — Read This Before Moving Pages
 
-Our API documentation is generated automatically from **OpenAPI specification files**.
+External users bookmark these URLs. Search engines index them. Slug churn breaks both.
 
-### Steps to Update
+**Rule (effective from this commit forward):**
 
-1. **Edit the YAML File**
-   All API specifications are located in the `api-swagger/` directory.
-   Edit the relevant `.yaml` file for your changes.
+> Once a doc page has been merged to `main`, its URL is **stable**. You may not delete or rename a slug without leaving a redirect.
 
-2. **Lint the File**
-   To ensure the file is valid and follows best practices, use **Spectral**.
-   Install it globally first:
+### What this means in practice
 
+- **Renaming a file or moving it between sections** → add a redirect entry in `docusaurus.config.ts` under the `@docusaurus/plugin-client-redirects` plugin config:
+  ```ts
+  {
+    from: '/docs/old/path',
+    to: '/docs/new/path',
+  }
+  ```
+- **Deleting a page** → either replace it with a redirect to the closest equivalent, or coordinate a deprecation in the PR description (call out which inbound links break and where users should land).
+- **Heading IDs are part of the URL contract.** Don't change `\{#some-id\}` once it's published unless you also update every link that points to it.
+
+### What does *not* require a redirect
+
+- **Editing the body** of an existing page.
+- **Adding a new page** at a new slug.
+- **Changing the visible title** without changing the slug.
+
+### One-time exception
+
+The PR that introduced this rule (the Diátaxis restructure) reorganized URLs *en bloc* and added the corresponding redirect map. After that PR, the rule applies without exception.
+
+---
+
+## Adding a New Page
+
+1. Decide the quadrant (see Diátaxis table above). If it doesn't fit one cleanly, the scope is wrong — split or rethink.
+2. Create the file under `docs/<section>/...` matching its quadrant.
+3. Add it to `sidebars.ts` in the right category.
+4. Add explicit heading IDs.
+5. Run `pnpm build` locally — the build fails on broken links, missing IDs, and TypeScript errors. Fix all of them before pushing.
+
+---
+
+## API Documentation
+
+Platform API reference is auto-generated from the OpenAPI spec.
+
+1. **Edit the YAML/JSON file** in `api-swagger/`.
+2. **Lint with Spectral**:
    ```bash
    npm install -g @stoplight/spectral
+   spectral lint api-swagger/platform.json
    ```
-
-   Then, run the linter on your file:
-
-   ```bash
-   spectral lint <path_to_your_yaml_file>
-   ```
-
-3. **Generate Docs**
-   After your changes are validated, regenerate the documentation:
-
+3. **Regenerate**:
    ```bash
    npm run gen-api-docs
    ```
 
-   Or for versioned docs:
-
-   ```bash
-   npm run gen-api-docs:version
-   ```
+Do not hand-edit files under `docs/platform_api/` — they'll be overwritten on the next regen.
 
 ---
 
-✅ Following this guide will help keep our documentation consistent, stable, and easy to navigate.
-We’re excited to have your contributions onboard!
+## Internationalization
 
+Translations live in `i18n/`. Locales are configured in `config.json` (`locales: ["en", "es"]`).
+
+- After adding or editing English content, run `npm run write-translations:all` to extract translatable strings.
+- Translations are reviewed separately from content PRs — don't block on `es/` lagging behind `en/`.
+
+---
+
+## Local Development
+
+```bash
+pnpm install        # install deps
+pnpm start          # dev server with hot reload
+pnpm build          # production build (fails on broken links — run before pushing)
+pnpm typecheck      # TypeScript strict check
+pnpm clear          # nuke .docusaurus and build/ if things get weird
 ```
 
-Do you also want me to add a **“Code of Conduct”** section so contributors know about community expectations (tone, respectful communication, etc.)?
-```
+The build is configured with `onBrokenLinks: 'throw'`. If your PR breaks a link, CI will catch it — but it's faster to catch it locally.

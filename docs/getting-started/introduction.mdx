@@ -1,59 +1,87 @@
 ---
 title: Introduction
+description: AI-powered Cloud-Native Application Protection. Find vulnerabilities, generate fixes, ship pull requests — across code, cloud, and runtime.
 ---
 
-<img
-	className="block dark:hidden"
-	src="/docs/diagram-light.png"
-	alt="Hero Light"
-/>
-<img
-	className="hidden dark:block"
-	src="/docs/diagram-dark.png"
-	alt="Hero Dark"
-/>
+# Welcome to Plexicus \{#getting-started_introduction-1\}
 
-# Welcome to Plexicus Documentation \{#getting-started_introduction-1}
+Plexicus is an AI-powered **Cloud-Native Application Protection Platform (CNAPP)**. It scans your code and cloud, prioritizes what actually matters, and generates the patch as a pull request — closing the loop from finding to merge without leaving the platform.
 
-Plexicus is the leading AI-powered Cloud-Native Application Protection Platform (CNAPP), built to secure your entire cloud-native lifecycle from code to cloud. Designed for modern development and cloud environments, Plexicus provides a unified platform to identify, prioritize, and remediate risks across your applications, infrastructure, and workloads with unprecedented efficiency.
+This site is the operator's manual. Pick a starting point below.
 
-Our platform automates critical aspects of application security, helping your teams:
-
-- **Streamline Security Workflows**: Automate vulnerability identification, enrichment, and remediation to reduce manual intervention by up to 95%.
-- **Ensure Compliance**: Maintain adherence to industry standards like PCI DSS, SOC 2, NIST 800-53, and more.
-- **Seamlessly Integrate**: Work effortlessly with your existing tools such as GitHub, GitLab, Bitbucket, and other CI/CD platforms.
-
-By leveraging advanced AI algorithms, Plexicus delivers actionable insights to secure every stage of the software development lifecycle, from code creation to deployment. Explore this documentation to unlock the full potential of Plexicus and transform the way your organization protects its digital assets.
+<CardGroup cols={2}>
+  <Card
+    title="I'm onboarding the company"
+    icon="material-symbols:rocket-launch-outline"
+    href="/docs/getting-started/quickstart"
+  >
+    Register, configure your organization, connect your first SCM and cloud,
+    invite the team. Plan to spend ~10 minutes.
+  </Card>
+  <Card
+    title="I'm a developer triaging a finding"
+    icon="material-symbols:bug-report-outline"
+    href="/docs/recipes/work-with-findings"
+  >
+    Skip the org setup. Jump straight to filtering findings, generating
+    AI remediations, and reviewing the resulting PR.
+  </Card>
+  <Card
+    title="I want to deploy on my own cluster"
+    icon="material-symbols:dns-outline"
+    href="/docs/self-hosted"
+  >
+    Helm chart, local k3s evaluation, or air-gapped install — pick the path
+    that matches your environment. No telemetry leaves the cluster.
+  </Card>
+  <Card
+    title="I just want to understand the platform"
+    icon="material-symbols:menu-book-outline"
+    href="/docs/getting-started/key-features"
+  >
+    The capability map across ASPM, CSPM, CWPP, and CIEM, plus the tools
+    we orchestrate behind each one.
+  </Card>
+</CardGroup>
 
 ---
 
-# Workflow \{#getting-started_introduction-2}
+## How the loop works \{#getting-started_introduction-2\}
 
-1. **Initiating Repository Analysis**:  
-   An **Admin**, **Cyberoper**, or **Developer** begins by analyzing a new repository.
+```mermaid
+flowchart LR
+    A[Repo connected] --> B[Scan & enrich]
+    B --> C[Findings ranked]
+    C --> D{Eligible for AI fix?}
+    D -- yes --> E[Generate patch]
+    E --> F[Open Pull Request]
+    D -- no --> G[Open Issue]
+    F --> H[Reviewer merges]
+    G --> H
+    H --> I[Finding closed]
+```
 
-2. **Findings Creation**:  
-   Once the repository is analyzed, AI generates findings and suggests improvements.
-
-3. **File Editing and Review**:
-
-   - The **Admin** or **Cyberoper** reviews and edits the file containing AI-driven improvements.
-   - They send the edited file to the **Developer**.
-
-4. **Developer Review and Finalization**:
-   - The **Developer** analyzes the suggested improvements.
-   - They can make additional edits or finalize the changes by creating a pull request to update the file.
+1. **Connect a source code repository or a cloud account.** Plexicus orchestrates SAST, SCA, secrets, IaC, container, CSPM, CWPP, and CIEM scanners.
+2. **Scans run and findings are enriched.** Severity is recalculated using runtime context, not just the scanner's default CVSS.
+3. **Eligible findings are remediated by AI.** The platform generates a patch, validates it, and opens a pull request in your SCM.
+4. **A reviewer merges.** The finding closes automatically when the PR lands.
 
 ---
 
-# Role Differences \{#getting-started_introduction-3}
+## Roles \{#getting-started_introduction-3\}
 
-| **Action**                | **Admin** | **Cyberoper** | **Developer** |
-| ------------------------- | --------- | ------------- | ------------- |
-| Add Members to Team       | Yes       | No            | No            |
-| Analyze Repositories      | Yes       | **No**        | Yes           |
-| View All Findings         | Yes       | Yes           | No            |
-| Send Findings to Dev Team | Yes       | Yes           | **No**        |
-| Edit File                 | Yes       | Yes           | Yes           |
-| Make Pull Request         | Yes       | No            | Yes           |
-| Request Review            | No        | No            | Yes           |
+Plexicus enforces three roles. Pick the right one when you invite a teammate.
+
+| Action                | Admin | Cyberoper | Developer |
+| --------------------- | :---: | :-------: | :-------: |
+| Add team members      | ✅ | — | — |
+| Connect repositories  | ✅ | — | ✅ |
+| View all findings     | ✅ | ✅ | — |
+| Send findings to dev  | ✅ | ✅ | — |
+| Edit suggested patch  | ✅ | ✅ | ✅ |
+| Open the pull request | ✅ | — | ✅ |
+| Request review        | — | — | ✅ |
+
+:::tip Persona shortcut
+**Admin** = sets up the org. **Cyberoper** = security analyst, triages findings. **Developer** = ships the fix. The Quickstart walks the Admin path; the Developer path starts at [Work with Findings](/docs/recipes/work-with-findings).
+:::

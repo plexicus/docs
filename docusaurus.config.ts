@@ -6,7 +6,7 @@ import { locales } from './config.json'
 
 const config: Config = {
   title: 'Plexicus Documentation',
-  tagline: 'Dinosaurs are cool',
+  tagline: 'Secure your code-to-cloud lifecycle with AI-driven remediation.',
   favicon: 'img/favicon.ico',
   markdown: {
     mermaid: true,
@@ -58,6 +58,41 @@ const config: Config = {
 
   plugins: [
     ['./src/plugins/tailwind-config.js', {}],
+    [
+      '@docusaurus/plugin-client-redirects',
+      {
+        // URL governance — see CONTRIBUTING.md.
+        // The Diátaxis restructure (PR #1) moved every non-self-hosted doc.
+        // Past this PR, slug changes require an entry here.
+        redirects: [
+          // ---- Source-control connector pages (was /docs/integrations/*) ----
+          { from: '/docs/integrations/github', to: '/docs/recipes/connect-github' },
+          { from: '/docs/integrations/gitlab', to: '/docs/recipes/connect-gitlab' },
+          { from: '/docs/integrations/gitlab/self-hosted', to: '/docs/recipes/connect-self-hosted-gitlab' },
+          { from: '/docs/integrations/bitbucket', to: '/docs/recipes/connect-bitbucket' },
+          { from: '/docs/integrations/gitea', to: '/docs/recipes/connect-gitea' },
+          // ---- Cloud connector pages (was /docs/integrations/*) ----
+          { from: '/docs/integrations/aws', to: '/docs/recipes/connect-aws' },
+          { from: '/docs/integrations/azure', to: '/docs/recipes/connect-azure' },
+          { from: '/docs/integrations/gcp', to: '/docs/recipes/connect-gcp' },
+          { from: '/docs/integrations/oci', to: '/docs/recipes/connect-oci' },
+          // ---- Applications & findings (now Recipes) ----
+          { from: '/docs/applications', to: '/docs/recipes/manage-applications' },
+          { from: '/docs/findings', to: '/docs/recipes/work-with-findings' },
+          // ---- Organization (now Reference) ----
+          { from: '/docs/organization/client', to: '/docs/reference/organization-settings' },
+          // ---- Deleted settings stubs (now folded into organization-settings) ----
+          {
+            from: '/docs/settings/change-password',
+            to: '/docs/reference/organization-settings#organization_client-3',
+          },
+          {
+            from: '/docs/settings/two-factor-authentication',
+            to: '/docs/reference/organization-settings#organization_client-2',
+          },
+        ],
+      },
+    ],
     [
       'docusaurus-plugin-openapi-docs',
       {
@@ -167,11 +202,15 @@ const config: Config = {
           items: [
             {
               label: 'Quickstart',
-              to: '/docs/getting-started/introduction',
+              to: '/docs/getting-started/quickstart',
             },
             {
               label: 'Connectors',
-              to: '/docs/integrations/github'
+              to: '/docs/recipes/connect-github'
+            },
+            {
+              label: 'Self-Hosted',
+              to: '/docs/self-hosted'
             }
           ],
         },

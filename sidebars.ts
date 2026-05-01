@@ -1,138 +1,183 @@
 import type { SidebarsConfig } from '@docusaurus/plugin-content-docs';
 import { SidebarConfig } from '@docusaurus/plugin-content-docs/src/sidebars/types.js';
 
-/**
- @type {import('@docusaurus/plugin-content-docs').SidebarsConfig}
- */
+import { versionCrumb } from 'docusaurus-plugin-openapi-docs/lib/sidebars/utils';
 
-// import petstoreVersions from './docs/petstore_versioned/versions.json'
-
-import { versionCrumb, versionSelector } from 'docusaurus-plugin-openapi-docs/lib/sidebars/utils'
-
-import platformSidebar from './docs/platform_api/sidebar'
-// import petstoreVersionSidebar from './docs/petstore_versioned/1.0.0/sidebar'
-// This runs in Node.js - Don't use client-side code here (browser APIs, JSX...)
+import platformSidebar from './docs/platform_api/sidebar';
 
 /**
- * Creating a sidebar enables you to:
- - create an ordered group of docs
- - render a sidebar for each doc of that group
- - provide next/previous navigation
-
- The sidebars can be generated from the filesystem, or explicitly defined here.
-
- Create as many sidebars as you want.
+ * Sidebar follows Diátaxis: Introduction / Core Concepts (Explanation) /
+ * Recipes (How-to) / Reference / Troubleshooting.
+ *
+ * URL stability is governed by CONTRIBUTING.md — once a slug ships, it cannot
+ * be moved or deleted without leaving a redirect in docusaurus.config.ts.
  */
 
-const documentations: SidebarConfig = [
+const introduction: SidebarConfig = [
   {
     type: 'category',
-    label: 'Get Started',
-    link: {
-      type: 'doc',
-      id: 'getting-started/introduction'
-    },
+    label: 'Introduction',
+    collapsed: false,
+    link: { type: 'doc', id: 'getting-started/introduction' },
     items: [
       'getting-started/introduction',
-      'getting-started/key-features',
       'getting-started/quickstart',
+      'getting-started/key-features',
     ],
   },
+];
+
+const coreConcepts: SidebarConfig = [
   {
     type: 'category',
-    label: 'Self-Hosted',
+    label: 'Core Concepts',
+    collapsed: false,
     link: {
-      type: 'doc',
-      id: 'self-hosted/index',
+      type: 'generated-index',
+      title: 'Core Concepts',
+      description:
+        'Explanation-oriented documentation: how Plexicus works under the hood. AI remediation pipeline, findings model, applications lifecycle, and platform architecture. Filled out incrementally — see the roadmap on docs.plexicus.ai/blog.',
+      slug: '/concepts',
     },
     items: [
-      'self-hosted/index',
-      'self-hosted/helm-chart',
-      'self-hosted/local-evaluation',
-      'self-hosted/air-gapped',
+      // Concept pages land in PR #2: ai-remediation, findings-model,
+      // applications-lifecycle, architecture. The category renders an
+      // auto-generated index page until then.
+    ],
+  },
+];
+
+const recipes: SidebarConfig = [
+  {
+    type: 'category',
+    label: 'Recipes',
+    collapsed: false,
+    link: {
+      type: 'generated-index',
+      title: 'Recipes',
+      description:
+        'Goal-oriented how-to guides. Pick the task you need to accomplish — connect a source-code provider, wire up a cloud account, manage applications, work with findings. Each recipe assumes you already have an account; see the Quickstart if you do not.',
+      slug: '/recipes',
+    },
+    items: [
+      'recipes/manage-applications',
+      'recipes/work-with-findings',
       {
         type: 'category',
-        label: 'Configuration',
-        link: {
-          type: 'doc',
-          id: 'self-hosted/configuration/index',
-        },
+        label: 'Connect Source Control',
+        collapsed: true,
         items: [
-          'self-hosted/configuration/index',
+          'recipes/connect-github',
+          'recipes/connect-gitlab',
+          'recipes/connect-self-hosted-gitlab',
+          'recipes/connect-bitbucket',
+          'recipes/connect-gitea',
+        ],
+      },
+      {
+        type: 'category',
+        label: 'Connect Cloud Accounts',
+        collapsed: true,
+        items: [
+          'recipes/connect-aws',
+          'recipes/connect-azure',
+          'recipes/connect-gcp',
+          'recipes/connect-oci',
         ],
       },
     ],
   },
+];
+
+const reference: SidebarConfig = [
   {
     type: 'category',
-    label: 'Connectors',
+    label: 'Reference',
+    collapsed: false,
+    link: {
+      type: 'generated-index',
+      title: 'Reference',
+      description:
+        'Surgical reference material: organization settings, self-hosted deployment, and the Platform API. Information-oriented — read it when you need a specific value, parameter, or configuration option.',
+      slug: '/reference',
+    },
     items: [
+      'reference/organization-settings',
       {
         type: 'category',
-        label: 'SCM Integrations',
+        label: 'Self-Hosted',
+        collapsed: true,
+        link: { type: 'doc', id: 'self-hosted/index' },
         items: [
-          'integrations/github',
+          'self-hosted/index',
+          'self-hosted/helm-chart',
+          'self-hosted/local-evaluation',
+          'self-hosted/air-gapped',
           {
             type: 'category',
-            label: 'GitLab',
-            items: [
-              'integrations/gitlab/index',
-              'integrations/gitlab/self-hosted',
-            ],
+            label: 'Configuration',
+            link: { type: 'doc', id: 'self-hosted/configuration/index' },
+            items: ['self-hosted/configuration/index'],
           },
-          'integrations/bitbucket',
-          'integrations/gitea',
         ],
       },
       {
-        type: 'category',
-        label: 'Cloud Deployment',
-        items: [
-          'integrations/aws',
-          'integrations/azure',
-          'integrations/gcp',
-          'integrations/oci',
-        ],
+        type: 'link',
+        label: 'Platform API',
+        href: '/docs/category/platform_api',
       },
     ],
   },
+];
+
+const troubleshooting: SidebarConfig = [
   {
     type: 'category',
-    label: 'Plexicus Flow',
+    label: 'Troubleshooting',
+    collapsed: true,
+    link: {
+      type: 'generated-index',
+      title: 'Troubleshooting',
+      description:
+        'Problem-solving guides: error codes, recovery procedures, and known-bad states. Filled out incrementally; if you hit something not covered here, open an issue at github.com/plexicus/docs.',
+      slug: '/troubleshooting',
+    },
     items: [
-      'applications/index',
-      'findings/index'
+      // Troubleshooting pages land in PR #4. The category renders an
+      // auto-generated index page until then.
     ],
   },
-  {
-    type: 'category',
-    label: 'Settings',
-    items: [
-      'settings/change-password',
-      'settings/two-factor-authentication',
-    ],
-  },
-  {
-    type: 'category',
-    label: 'Organization',
-    items: [
-      'organization/client'
-    ],
-  },
-]
+];
+
 const externalLinks: SidebarConfig = [
-  { type: 'link', href: 'https://github.com/apps/plexicus', label: "Github Apps", customProps: { icon: 'carbon:logo-github' } },
-  { type: 'link', href: 'https://www.plexicus.ai/blog', label: "Plexicus Blog", customProps: { icon: 'material-symbols:post-rounded' } },
-]
+  {
+    type: 'link',
+    href: 'https://github.com/apps/plexicus',
+    label: 'GitHub App',
+    customProps: { icon: 'carbon:logo-github' },
+  },
+  {
+    type: 'link',
+    href: 'https://www.plexicus.ai/blog',
+    label: 'Blog',
+    customProps: { icon: 'material-symbols:post-rounded' },
+  },
+];
+
 const sidebars: SidebarsConfig = {
-  // By default, Docusaurus generates a sidebar from the docs folder structure
-  docsSidebar: [...externalLinks, ...documentations],
-  // multi versioned sidebar
+  docsSidebar: [
+    ...externalLinks,
+    ...introduction,
+    ...coreConcepts,
+    ...recipes,
+    ...reference,
+    ...troubleshooting,
+  ],
   'platform-current': [
     {
       type: 'html',
       defaultStyle: true,
-      value: versionCrumb(`v2.0.0`)
+      value: versionCrumb('v2.0.0'),
     },
     {
       type: 'category',
@@ -140,12 +185,11 @@ const sidebars: SidebarsConfig = {
       link: {
         type: 'generated-index',
         title: 'Platform API (latest)',
-        description:
-          'This is a sample server Platform server. Generated by @docusaurus-plugin-openapi-docs plugin. Read more: https://github.com/PaloAltoNetworks/docusaurus-openapi-docs',
-        slug: '/category/platform_api'
+        description: 'Auto-generated reference for the Plexicus Platform API. Generated by docusaurus-plugin-openapi-docs from api-swagger/platform.json.',
+        slug: '/category/platform_api',
       },
-      items: platformSidebar
-    }
+      items: platformSidebar,
+    },
   ],
 };
 
