@@ -427,6 +427,82 @@ helm get notes plexicus -n plexicus
 ```
 :::
 
+A first end-to-end smoke test from outside the cluster:
+
+```bash
+curl -s -o /dev/null -w "Frontend  %{http_code}\n" https://<your-domain>/
+curl -s -o /dev/null -w "API/health %{http_code}\n" https://api.<your-domain>/health
+# Frontend  302         (the SPA's login redirect — Tier A passes)
+# API/health 200        (FastAPI is reading from MongoDB / Redis / MinIO / Temporal)
+```
+
+A trusted-TLS verification (no `-k` needed when using a public ClusterIssuer):
+
+```bash
+curl -s -o /dev/null -w "TLS verify=%{ssl_verify_result}\n" https://<your-domain>/
+# TLS verify=0   (publicly trusted certificate)
+```
+
+---
+
+## 9. Bootstrap the First Admin User \{#self-hosted_helm-chart-bootstrap}
+
+The chart ships with an empty database. Plexicus does **not** seed an initial admin during install — every account is created through the registration API. The default registration flow expects email verification via SMTP; on a brand-new install the very first admin therefore has to be either:
+
+- **(Recommended for production)** registered through the regular UI flow once `SMTP_*` credentials are wired into `plexicus-fastapi` (the user clicks the verification link in the welcome email), or
+- **(Bootstrap-only shortcut)** registered via the API and then flagged `is_verified: true` directly on the `Users` MongoDB collection — useful for environments where SMTP is intentionally not configured (air-gapped, internal-only, or staging).
+
+### 9.1 Register the user via the API \{#self-hosted_helm-chart-bootstrap-register}
+
+The schema validator requires at least one uppercase letter, one lowercase letter, one digit, and one special character:
+
+```bash
+curl -s -X POST -H "Content-Type: application/json" \
+  -d '{
+    "email":"admin@your-domain.example",
+    "password":"ChangeMeNow1!",
+    "confirm_password":"ChangeMeNow1!",
+    "first_name":"Admin",
+    "last_name":"User",
+    "company":"Your Company"
+  }' \
+  https://api.<your-domain>/register
+# {"success":true,"message":"User successfully registered. Please check your email for verification link."}
+```
+
+If SMTP is wired up, the user clicks the link in the welcome email and is done. Skip to step 9.3.
+
+### 9.2 (Bootstrap shortcut) Manually verify the user in MongoDB \{#self-hosted_helm-chart-bootstrap-verify}
+
+:::warning Use only when SMTP is intentionally absent
+This shortcut writes directly to MongoDB. In production, prefer wiring real SMTP credentials and using the verification email. Use the shortcut only for the very first admin in eval / staging / air-gapped clusters.
+:::
+
+The collection name is `Users` (capital `U`); the verification flag is `is_verified`:
+
+```bash
+kubectl -n plexicus exec deploy/mongodb -- mongosh \
+  "mongodb://root:<your-mongo-root-password>@localhost:27017/plexicus?authSource=admin" \
+  --quiet --eval '
+    db.Users.updateOne(
+      { email: "admin@your-domain.example" },
+      { $set: { is_verified: true, role: "admin" } }
+    )
+  '
+# { acknowledged: true, matchedCount: 1, modifiedCount: 1 }
+```
+
+### 9.3 Log in \{#self-hosted_helm-chart-bootstrap-login}
+
+```bash
+curl -s -X POST -H "Content-Type: application/json" \
+  -d '{"email":"admin@your-domain.example","password":"ChangeMeNow1!"}' \
+  https://api.<your-domain>/login
+# {"access_token":"eyJhbGc…","token_type":"bearer"}
+```
+
+A `200` with an `access_token` confirms the full chain — frontend → ingress → fastapi → MongoDB authentication — is healthy. Open `https://<your-domain>` in a browser and sign in with the credentials you just registered.
+
 ---
 
 ## Day 2 References \{#self-hosted_helm-chart-day2}
