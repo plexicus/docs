@@ -82,6 +82,18 @@ const recipes: SidebarConfig = [
       },
       {
         type: 'category',
+        label: 'Enterprise Integrations',
+        collapsed: true,
+        items: [
+          'recipes/connect-jira',
+          'recipes/connect-servicenow',
+          'recipes/configure-sso',
+          'recipes/configure-2fa',
+          'recipes/configure-webhooks',
+        ],
+      },
+      {
+        type: 'category',
         label: 'Connect Source Control',
         collapsed: true,
         items: [

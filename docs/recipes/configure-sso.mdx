@@ -1,0 +1,218 @@
+---
+title: "Configure SSO"
+description: "Single sign-on via SAML 2.0 or OIDC — Okta, Azure AD, and Google Workspace setup."
+---
+
+# Configure SSO \{#recipes_configure-sso-1\}
+
+Single sign-on lets your IdP (Okta, Azure AD, Google Workspace, …) be the source of truth for who can log in to Plexicus. Once enabled, Plexicus rejects email/password login for SSO-required users and routes them through the IdP.
+
+:::note Self-hosted required
+SSO requires the env vars `SSO_RELAY_STATE_SECRET` and `SSO_ENCRYPTION_KEY` to be set in the deployment. On the Plexicus SaaS, SSO is available on Enterprise tier; contact sales to enable.
+:::
+
+## Decision: SAML 2.0 or OIDC? \{#recipes_configure-sso-2\}
+
+Both work. Pick based on your IdP:
+
+| IdP | Recommended | Why |
+|---|---|---|
+| Okta | SAML 2.0 | First-class SAML app, simplest config |
+| Azure AD / Entra ID | SAML 2.0 | Enterprise app gallery has a Plexicus template |
+| Google Workspace | SAML 2.0 | Workspace SAML app is the cleanest path |
+| Auth0 | OIDC | Auth0's strength is OIDC; SAML is heavier |
+| Custom IdP | OIDC | Modern default; simpler than SAML |
+
+## Common steps \{#recipes_configure-sso-3\}
+
+Regardless of provider, you'll do these four:
+
+<Steps>
+  <Step title="Get Plexicus's Service Provider metadata">
+    Open Plexicus → Organization → SSO. Plexicus shows:
+    - **Entity ID:** `https://app.plexicus.ai/saml/metadata` (SaaS) or your self-hosted equivalent
+    - **ACS URL:** `https://app.plexicus.ai/saml/acs`
+    - **Single Logout URL:** `https://app.plexicus.ai/saml/sls`
+    - **SP X.509 certificate:** click to download
+
+    For OIDC: **Redirect URI:** `https://app.plexicus.ai/oidc/callback`
+  </Step>
+  <Step title="Create the application in your IdP">
+    See per-IdP sections below.
+  </Step>
+  <Step title="Map attributes / claims">
+    Plexicus expects:
+    - `email` — the user's primary address (used for login)
+    - `firstName` / `lastName` — for display
+    - `groups` — comma-separated list, used for role mapping (optional)
+  </Step>
+  <Step title="Upload the IdP metadata into Plexicus">
+    Either paste the IdP's metadata XML / OIDC discovery URL, or fill in fields individually (Issuer, SSO URL, X.509 cert).
+  </Step>
+  <Step title="Test in incognito">
+    Open `https://app.plexicus.ai/sso/your-org-slug` in an incognito window. You should be redirected to your IdP, authenticate there, and land back in Plexicus logged in.
+  </Step>
+</Steps>
+
+## Okta — SAML 2.0 \{#recipes_configure-sso-4\}
+
+<Steps>
+  <Step title="Create the app">
+    Okta admin → Applications → Create App Integration → SAML 2.0.
+
+    Name: *Plexicus*. Logo: optional.
+  </Step>
+  <Step title="Configure SAML">
+    - **Single sign-on URL:** Plexicus's ACS URL (from Step 1 above)
+    - **Audience URI (SP Entity ID):** Plexicus's Entity ID
+    - **Name ID format:** `EmailAddress`
+    - **Application username:** Email
+  </Step>
+  <Step title="Attribute Statements">
+    | Name | Value |
+    |---|---|
+    | `email` | `user.email` |
+    | `firstName` | `user.firstName` |
+    | `lastName` | `user.lastName` |
+    | `groups` | (Group attribute, regex `.*`) |
+  </Step>
+  <Step title="Assign users / groups">
+    Okta admin → Applications → Plexicus → Assignments. Add the users/groups who should have access.
+  </Step>
+  <Step title="Copy IdP metadata">
+    Sign On tab → SAML Setup → View SAML setup instructions → copy the IdP metadata block. Paste into Plexicus.
+  </Step>
+</Steps>
+
+## Azure AD / Entra ID — SAML 2.0 \{#recipes_configure-sso-5\}
+
+<Steps>
+  <Step title="Create the enterprise app">
+    Microsoft Entra → Enterprise applications → New application → Create your own application → Integrate any other application you don't find in the gallery (Non-gallery).
+
+    Name: *Plexicus*.
+  </Step>
+  <Step title="Configure single sign-on">
+    Single sign-on → SAML.
+    - **Identifier (Entity ID):** Plexicus's Entity ID
+    - **Reply URL (ACS):** Plexicus's ACS URL
+    - **Sign on URL:** `https://app.plexicus.ai`
+  </Step>
+  <Step title="Attributes & Claims">
+    Edit:
+    - Unique User Identifier: `user.mail`
+    - Add `firstName` (`user.givenname`), `lastName` (`user.surname`)
+    - Optionally add `groups` claim with security groups
+  </Step>
+  <Step title="Assign users">
+    Users and groups → Add user/group.
+  </Step>
+  <Step title="Copy Federation Metadata XML">
+    SAML Signing Certificate section → Federation Metadata XML → Download. Upload into Plexicus.
+  </Step>
+</Steps>
+
+## Google Workspace — SAML 2.0 \{#recipes_configure-sso-6\}
+
+<Steps>
+  <Step title="Create custom SAML app">
+    admin.google.com → Apps → Web and mobile apps → Add app → Add custom SAML app.
+
+    Name: *Plexicus*.
+  </Step>
+  <Step title="Save Google's IdP metadata">
+    Google shows SSO URL, Entity ID, and Certificate. Save these — you'll paste them into Plexicus.
+  </Step>
+  <Step title="Configure Service Provider details">
+    - **ACS URL:** Plexicus's ACS URL
+    - **Entity ID:** Plexicus's Entity ID
+    - **Name ID format:** `EMAIL`
+    - **Name ID:** Basic Information → Primary email
+  </Step>
+  <Step title="Attribute mapping">
+    | Google directory attribute | App attribute |
+    |---|---|
+    | Primary email | email |
+    | First name | firstName |
+    | Last name | lastName |
+  </Step>
+  <Step title="Turn on for everyone (or selected OUs)">
+    Service status: ON. By default it's OFF for everyone.
+  </Step>
+</Steps>
+
+## Group → Role mapping \{#recipes_configure-sso-7\}
+
+If you send a `groups` claim, Plexicus can auto-assign roles based on membership.
+
+In Plexicus → Organization → SSO → Group Mapping:
+
+```yaml
+# Pseudo-config; actual UI is form-based
+- group: plexicus-admins
+  role: admin
+- group: appsec-team
+  role: cyberoper
+- group: engineers
+  role: developer
+```
+
+Users not in any mapped group default to **developer**. Users in multiple mapped groups get the highest-privilege role they qualify for.
+
+## Enforcing SSO \{#recipes_configure-sso-8\}
+
+By default, SSO is *additive* — users can still log in with email/password. To enforce SSO-only:
+
+Plexicus → Organization → SSO → **Require SSO for all users** → Save.
+
+Once enforced, password-based login is disabled. **Make sure at least one Admin can sign in via SSO before flipping this switch** — otherwise, you lock yourself out and need a self-hosted break-glass key (`BREAK_GLASS_SECRET_KEY`) to recover.
+
+## OIDC — generic \{#recipes_configure-sso-9\}
+
+For Auth0, Keycloak, or any OIDC IdP:
+
+<Steps>
+  <Step title="Register an OIDC client in your IdP">
+    Application type: **Regular Web Application**. Redirect URI: `https://app.plexicus.ai/oidc/callback`.
+  </Step>
+  <Step title="Get the discovery URL">
+    Most IdPs publish at `https://your-idp/.well-known/openid-configuration`.
+  </Step>
+  <Step title="In Plexicus → SSO → OIDC">
+    Set:
+    - **Discovery URL** (Plexicus auto-fills issuer, JWKS, endpoints)
+    - **Client ID** + **Client Secret**
+    - **Scopes:** `openid email profile groups`
+  </Step>
+  <Step title="Test in incognito">
+    Same as SAML.
+  </Step>
+</Steps>
+
+## Common errors \{#recipes_configure-sso-10\}
+
+<AccordionGroup>
+  <Accordion title="SAML response invalid signature" icon="material-symbols:gpp-bad-outline">
+    The IdP's signing certificate doesn't match what Plexicus has stored. Re-download the IdP metadata and re-paste — IdPs rotate certs periodically.
+  </Accordion>
+  <Accordion title="`User not found` after SSO redirect" icon="material-symbols:person-off-outline">
+    The IdP authenticated the user, but their email isn't in Plexicus and JIT (just-in-time) provisioning is off. Either pre-create the user, or enable JIT in Plexicus → SSO settings.
+  </Accordion>
+  <Accordion title="Loop redirect (IdP → Plexicus → IdP)" icon="material-symbols:autorenew">
+    Clock skew between Plexicus and the IdP exceeds 5 minutes. Sync NTP on the self-hosted node, or accept a wider skew window in the SSO config.
+  </Accordion>
+  <Accordion title="Logged in but read-only access" icon="material-symbols:visibility-outline">
+    The user fell through to the default role (developer). Either expand group mapping, or have an admin manually elevate them once.
+  </Accordion>
+</AccordionGroup>
+
+## Related \{#recipes_configure-sso-11\}
+
+<CardGroup cols={2}>
+  <Card title="Configure 2FA" icon="material-symbols:lock-outline" href="/docs/recipes/configure-2fa">
+    For tenants who can't or don't want SSO.
+  </Card>
+  <Card title="Self-Hosted: Configuration" icon="material-symbols:dns-outline" href="/docs/self-hosted/configuration">
+    Where SSO_RELAY_STATE_SECRET / SSO_ENCRYPTION_KEY live in the helm values.
+  </Card>
+</CardGroup>

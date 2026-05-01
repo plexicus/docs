@@ -1,0 +1,128 @@
+---
+title: "Connect Jira"
+description: "Mirror findings into Jira as issues — credentials, project mapping, field templates, and the workflows that drive it."
+---
+
+# Connect Jira \{#recipes_connect-jira-1\}
+
+When you wire Jira into Plexicus, eligible findings (typically those flagged with `remediation_type=issue`, or anything you manually escalate) get mirrored into Jira as issues. Plexicus owns the source of truth; Jira is the routing surface for your dev team.
+
+Backed by the `JiraTicketingService` adapter (Jira Cloud + Jira Server REST API).
+
+:::tip When to wire this
+Only useful if your team triages security work in Jira. If issues live in GitHub/GitLab Issues already, skip Jira and let Plexicus open issues directly via `POST /issues/{finding_id}` — see [Findings Model](/docs/concepts/findings-model).
+:::
+
+## Prerequisites \{#recipes_connect-jira-2\}
+
+- A Jira project where security issues will land (e.g. `SEC` or `APPSEC`).
+- A Jira API token (or OAuth — see below).
+- Permissions to create issues + transitions in that project.
+
+## Authenticate Plexicus to Jira \{#recipes_connect-jira-3\}
+
+<Steps>
+  <Step title="Generate a Jira API token">
+    [id.atlassian.com → Security → API tokens → Create](https://id.atlassian.com/manage-profile/security/api-tokens). Name it *Plexicus production*. Copy immediately.
+
+    For Jira Server (self-hosted), use a personal access token from the user profile menu instead.
+  </Step>
+  <Step title="Open Plexicus → Organization → Integrations → Jira">
+    Set:
+    - **Jira URL:** `https://your-org.atlassian.net` (no trailing slash, no `/wiki`)
+    - **Email:** the Atlassian account that owns the token
+    - **API Token:** the token you just created
+    - **Default project key:** `APPSEC`
+  </Step>
+  <Step title="Click Test Connection">
+    Plexicus calls `JiraTicketingService.test_connection()`, which does a `GET /rest/api/3/myself` and confirms write access on the chosen project. Failures are reported with the underlying HTTP error.
+  </Step>
+</Steps>
+
+## Map Plexicus fields to Jira fields \{#recipes_connect-jira-4\}
+
+Plexicus uses **template-based field mapping** with placeholders that resolve against the Finding document at issue-creation time. Defaults are sensible — override only what you need.
+
+| Plexicus field | Default Jira field | Template |
+|---|---|---|
+| Title | Summary | `[%Finding.SEVERITY%] %Finding.TITLE%` |
+| Description | Description | `%Finding.DESCRIPTION%\n\nFile: %Finding.FILE%:%Finding.LINE%\nCWE: %Finding.CWE%\nLink: %Finding.URL%` |
+| Severity | Priority | mapping below |
+| Type | Issue Type | `Bug` |
+| Component | Components | `%Finding.REPOSITORY%` |
+| OWASP | Labels | `owasp-%Finding.OWASP%` |
+| CWE | Labels | `cwe-%Finding.CWE%` |
+
+### Severity → Jira Priority mapping
+
+| Plexicus | Jira Priority |
+|---|---|
+| Critical | Highest |
+| High | High |
+| Medium | Medium |
+| Low | Low |
+| Informational | Lowest |
+
+To override a mapping, edit it in the Integrations → Jira page. Templates accept any field on the Finding document — see the full schema in [Findings Model](/docs/concepts/findings-model).
+
+## What gets mirrored \{#recipes_connect-jira-5\}
+
+Plexicus opens a Jira issue when:
+
+1. A user clicks **Create Issue** on a finding (`POST /issues/{finding_id}`).
+2. A bulk **Send to Jira** is triggered.
+3. A finding's `remediation_type=issue` AND auto-create-issues is enabled at the org level.
+
+Plexicus **does not** auto-mirror every finding — that would flood Jira. The decision to escalate is always explicit.
+
+## Bidirectional sync \{#recipes_connect-jira-6\}
+
+When an SCM PR is merged for a finding, Plexicus automatically transitions the linked Jira issue to **Done** via `MergedPullRequestWorkflow`. Conversely, closing a Jira issue does *not* close the Plexicus finding — the finding's lifecycle is owned by Plexicus, not Jira.
+
+If you want closing-the-Jira to close-the-finding too, set up a Jira webhook → Plexicus's `POST /webhook/send-ticket` endpoint with the appropriate payload. See [Configure Webhooks](/docs/recipes/configure-webhooks).
+
+## Multiple Jira projects \{#recipes_connect-jira-7\}
+
+To route findings to different projects (e.g. by repository or severity), configure **routing rules** in the Jira integration page:
+
+```yaml
+# Pseudo-config — actual UI is form-based
+default: APPSEC
+rules:
+  - if: severity in [Critical, High]
+    project: SECURITY
+  - if: repository startswith "infra/"
+    project: INFRA
+  - if: tool == "trivy"
+    project: APPSEC-DEPS
+```
+
+The first matching rule wins. Findings that match no rule fall through to the default project.
+
+## Common errors \{#recipes_connect-jira-8\}
+
+<AccordionGroup>
+  <Accordion title="`401 Unauthorized` from Jira" icon="material-symbols:lock-outline">
+    API token revoked or email mismatch. Regenerate at [id.atlassian.com](https://id.atlassian.com/manage-profile/security/api-tokens).
+  </Accordion>
+  <Accordion title="`403 Forbidden` on issue creation" icon="material-symbols:block-outline">
+    The Atlassian user has API access but lacks `Create Issues` permission on the target project. Add them to the project's Developers group in Jira.
+  </Accordion>
+  <Accordion title="Issues created but components are blank" icon="material-symbols:warning-outline">
+    Jira validates Components against the project's allowlist. If `%Finding.REPOSITORY%` resolves to a component that doesn't exist, Jira silently drops it. Fix: pre-create the components, or remove the Components mapping.
+  </Accordion>
+  <Accordion title="Custom fields not populated" icon="material-symbols:edit-outline">
+    Plexicus only knows about the standard Jira fields out of the box. To map to a Jira custom field, use the field's internal ID (e.g. `customfield_10042`) in the mapping config.
+  </Accordion>
+</AccordionGroup>
+
+## Related \{#recipes_connect-jira-9\}
+
+<CardGroup cols={2}>
+  <Card title="Connect ServiceNow" icon="material-symbols:checklist-outline" href="/docs/recipes/connect-servicenow">
+    The same flow for ServiceNow Table API.
+  </Card>
+  <Card title="Configure Webhooks" icon="material-symbols:webhook-outline" href="/docs/recipes/configure-webhooks">
+    Wire bidirectional sync between Plexicus and your tracker.
+  </Card>
+</CardGroup>

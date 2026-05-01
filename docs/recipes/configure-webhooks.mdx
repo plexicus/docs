@@ -1,0 +1,181 @@
+---
+title: "Configure Webhooks"
+description: "Inbound webhooks from your SCM, outbound webhooks to your tracker — wire both directions without polling."
+---
+
+# Configure Webhooks \{#recipes_configure-webhooks-1\}
+
+Plexicus uses webhooks in two directions:
+
+- **Inbound** — your SCM (GitHub, GitLab, Bitbucket, Gitea) pushes events to Plexicus, which auto-triggers scans and PR-status sync.
+- **Outbound** — Plexicus pushes events to your systems (Jira, Slack, custom services) so they react to remediations and findings without polling.
+
+This recipe covers both.
+
+## Inbound — let your SCM trigger Plexicus \{#recipes_configure-webhooks-2\}
+
+If you connected the SCM via OAuth or via the Plexicus GitHub App, **inbound webhooks are configured automatically**. You don't need to do anything.
+
+If you're on a self-hosted SCM (GitLab self-managed, Bitbucket Server, Gitea) and webhooks didn't auto-provision, follow the recipe per provider:
+
+<Tabs>
+  <TabItem value="github" label="GitHub" default>
+
+GitHub App installs handle webhooks automatically. For OAuth-only connections, manually add a webhook:
+
+1. Repository → Settings → Webhooks → Add webhook.
+2. **Payload URL:** `https://app.plexicus.ai/webhooks/github`
+3. **Content type:** `application/json`
+4. **Secret:** generate a random string; paste the same value into Plexicus → Connector → GitHub → Webhook Secret.
+5. **Events:** Select individual events: `push`, `pull_request`, `pull_request_review`.
+
+Plexicus validates the `X-Hub-Signature-256` HMAC against your secret on every request — invalid signatures are rejected with `401`.
+
+  </TabItem>
+  <TabItem value="gitlab" label="GitLab">
+
+1. Project → Settings → Webhooks → Add new webhook.
+2. **URL:** `https://app.plexicus.ai/webhooks/gitlab`
+3. **Secret token:** generate one; paste into Plexicus → Connector → GitLab.
+4. **Trigger:** Push events, Merge request events.
+
+  </TabItem>
+  <TabItem value="bitbucket" label="Bitbucket">
+
+1. Repository → Settings → Webhooks → Add webhook.
+2. **URL:** `https://app.plexicus.ai/webhooks/bitbucket`
+3. **Triggers:** `repo:push`, `pullrequest:created`, `pullrequest:fulfilled`, `pullrequest:rejected`.
+
+Bitbucket Cloud doesn't support custom signing secrets out of the box — Plexicus uses the IP allowlist of Atlassian's webhook origins as the trust boundary. For Bitbucket Server, you can configure HMAC.
+
+  </TabItem>
+  <TabItem value="gitea" label="Gitea">
+
+1. Repository → Settings → Webhooks → Add Webhook → Gitea.
+2. **Target URL:** `https://app.plexicus.ai/webhooks/gitea`
+3. **HTTP Method:** POST
+4. **Content Type:** `application/json`
+5. **Secret:** paste the secret you set in Plexicus.
+6. **Trigger:** Push events, Pull request events.
+
+  </TabItem>
+</Tabs>
+
+### How Plexicus distinguishes providers \{#recipes_configure-webhooks-3\}
+
+All four SCMs send POST requests with JSON payloads to similar-looking endpoints. Plexicus identifies the source by inspecting the payload (heuristics from the platform's `ARCHITECTURE.md`):
+
+| Provider | Heuristic |
+|---|---|
+| GitHub | `action` + (`zen` OR `pull_request` OR `alert`) |
+| GitLab | `object_kind == "merge_request"` OR `project.web_url contains gitlab.com` |
+| Bitbucket | `eventKey == "pullrequest:fulfilled"` OR (`actor` + `repository`) |
+| Gitea | `secret` + `pusher` |
+
+This means a misrouted webhook (sending GitHub payloads to `/webhooks/gitlab`) gets correctly identified anyway — but the URL convention is still recommended for clarity.
+
+## Outbound — Plexicus → your systems \{#recipes_configure-webhooks-4\}
+
+Two outbound paths today:
+
+<CardGroup cols={2}>
+  <Card title="Send-ticket webhook" icon="material-symbols:send-outline">
+    `POST /webhook/send-ticket` — fires when a finding is sent to Jira, ServiceNow, or your custom tracker. Used internally by the ticketing services.
+  </Card>
+  <Card title="Custom outbound webhook" icon="material-symbols:webhook-outline">
+    Configure URLs in Organization → Integrations → Custom Webhooks. Plexicus POSTs JSON payloads on configured event types.
+  </Card>
+</CardGroup>
+
+### Configure a custom outbound webhook \{#recipes_configure-webhooks-5\}
+
+<Steps>
+  <Step title="Open Organization → Integrations → Custom Webhooks → Add">
+    Set:
+    - **URL:** the receiver
+    - **Events:** which Plexicus events trigger this webhook (see catalog below)
+    - **Secret:** Plexicus signs every payload with HMAC-SHA256 using this secret; paste the same value into your receiver
+    - **Custom headers:** for receivers that need auth (e.g. `Authorization: Bearer ...`)
+  </Step>
+  <Step title="Test">
+    Click **Send test event**. Plexicus posts a synthetic payload to your URL and shows the response status.
+  </Step>
+</Steps>
+
+### Event catalog \{#recipes_configure-webhooks-6\}
+
+| Event | When it fires | Payload key fields |
+|---|---|---|
+| `finding.created` | New finding lands after enrichment | `finding_id`, `severity`, `repository`, `tool` |
+| `finding.status_changed` | Status transition (Enriched → Processing, etc.) | `finding_id`, `from`, `to` |
+| `remediation.ready` | Codex Remedium produced a validated diff | `finding_id`, `remediation_id`, `diff_size` |
+| `remediation.pr_submitted` | PR opened in SCM | `finding_id`, `pr_url` |
+| `remediation.pr_accepted` | PR merged | `finding_id`, `pr_url`, `merged_at` |
+| `remediation.pr_rejected` | PR closed without merge | `finding_id`, `pr_url`, `closed_at` |
+| `scan.started` | Application scan kicked off | `application_id`, `repository_id`, `scan_type` |
+| `scan.completed` | Application reached Completed state | `application_id`, `findings_summary` |
+| `scan.failed` | Scan terminated with errors | `application_id`, `error_code`, `error_message` |
+
+### Payload signing \{#recipes_configure-webhooks-7\}
+
+Every outbound payload includes:
+
+```http
+POST /your/endpoint HTTP/1.1
+Content-Type: application/json
+X-Plexicus-Signature: sha256=<hex-hmac-of-body-with-your-secret>
+X-Plexicus-Event: finding.status_changed
+X-Plexicus-Delivery: <unique-uuid-for-this-delivery>
+
+{ "finding_id": "...", "from": "Enriched", "to": "Processing", ... }
+```
+
+Verify the signature in your receiver:
+
+```python
+import hmac, hashlib
+
+expected = "sha256=" + hmac.new(
+    secret.encode(),
+    request.body,
+    hashlib.sha256
+).hexdigest()
+
+if not hmac.compare_digest(expected, request.headers["X-Plexicus-Signature"]):
+    return 401
+```
+
+## Retries and ordering \{#recipes_configure-webhooks-8\}
+
+- Plexicus retries failed deliveries (`5xx` or timeout) with exponential backoff for up to 24 hours.
+- Successful deliveries (`2xx`) are not retried — even if your receiver crashed *after* responding.
+- Events are **not strictly ordered** across deliveries. Use the `X-Plexicus-Delivery` UUID for idempotency in your receiver, and the event timestamp for ordering.
+
+## Disabling webhooks temporarily \{#recipes_configure-webhooks-9\}
+
+To pause a webhook without deleting it: Organization → Integrations → Custom Webhooks → toggle **Active**. Plexicus stops POSTing but keeps the configuration so you can re-enable later.
+
+## Common errors \{#recipes_configure-webhooks-10\}
+
+<AccordionGroup>
+  <Accordion title="Inbound: `401 Invalid signature`" icon="material-symbols:lock-outline">
+    The webhook secret in your SCM doesn't match what Plexicus has stored. Re-paste the same value in both places.
+  </Accordion>
+  <Accordion title="Inbound: `200` but no scan triggered" icon="material-symbols:warning-outline">
+    The event is recognized but ignored — typically because the branch isn't watched (configured per-application) or because the event type isn't in the trigger set (e.g., `pull_request_review_comment` doesn't trigger scans). Check the application's Pipeline Setup.
+  </Accordion>
+  <Accordion title="Outbound: receiver returns 5xx, deliveries pile up" icon="material-symbols:error-outline">
+    Plexicus retries for 24h. Fix the receiver, then click **Replay failed** in the webhook detail page to re-send queued events. After 24h, failed events are dropped.
+  </Accordion>
+</AccordionGroup>
+
+## Related \{#recipes_configure-webhooks-11\}
+
+<CardGroup cols={2}>
+  <Card title="Connect Source Control" icon="material-symbols:fork-right-outline" href="/docs/recipes/connect-github">
+    SCM connector setup auto-provisions inbound webhooks.
+  </Card>
+  <Card title="Connect Jira / ServiceNow" icon="material-symbols:checklist-outline" href="/docs/recipes/connect-jira">
+    Bidirectional ticketing sync uses outbound webhooks.
+  </Card>
+</CardGroup>

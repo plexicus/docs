@@ -1,0 +1,110 @@
+---
+title: "Connect ServiceNow"
+description: "Route findings into ServiceNow Incident or Security Incident records via the Table API."
+---
+
+# Connect ServiceNow \{#recipes_connect-servicenow-1\}
+
+Plexicus mirrors findings into ServiceNow as records on a target table — typically `incident` or `sn_si_incident` (Security Incident Response if you have SIR licensed). Backed by `ServiceNowTicketingService` against the ServiceNow Table API.
+
+:::tip Use SIR if you have it
+If your org has the Security Incident Response module licensed, point Plexicus at `sn_si_incident` instead of `incident`. SIR has dedicated fields (CVE, CWE, severity) that map cleanly to Plexicus's Finding schema.
+:::
+
+## Prerequisites \{#recipes_connect-servicenow-2\}
+
+- Your ServiceNow instance URL (e.g. `https://your-org.service-now.com`).
+- A service account with REST API access + `itil` role (or `sn_si.write` for SIR).
+- Knowledge of which table records will land on (`incident`, `sn_si_incident`, or a custom one).
+
+## Authenticate \{#recipes_connect-servicenow-3\}
+
+<Steps>
+  <Step title="Create a service account in ServiceNow">
+    System Definition → Users → New. Set username (e.g. `plexicus_integration`), password, and roles (`itil` for `incident`, `sn_si.write` for SIR).
+
+    For OAuth instead of basic auth, register an Application Registry and use a Client Credentials grant. OAuth is recommended for production.
+  </Step>
+  <Step title="Open Plexicus → Organization → Integrations → ServiceNow">
+    Set:
+    - **Instance URL:** `https://your-org.service-now.com`
+    - **Username:** `plexicus_integration`
+    - **Password / Token:** the password (or OAuth bearer token)
+    - **Target table:** `incident` or `sn_si_incident`
+  </Step>
+  <Step title="Click Test Connection">
+    Plexicus calls `GET /api/now/table/{target_table}?sysparm_limit=1` to verify read access, then attempts a no-op write to verify create permissions.
+  </Step>
+</Steps>
+
+## Field mapping \{#recipes_connect-servicenow-4\}
+
+Default mapping for `incident`:
+
+| Plexicus field | ServiceNow field | Template |
+|---|---|---|
+| Title | `short_description` | `[%Finding.SEVERITY%] %Finding.TITLE%` |
+| Description | `description` | `%Finding.DESCRIPTION%\n\nFile: %Finding.FILE%:%Finding.LINE%\nCWE: %Finding.CWE%\nLink: %Finding.URL%` |
+| Severity | `urgency` + `impact` | mapping below |
+| Category | `category` | `Security` |
+| Subcategory | `subcategory` | `Application Security` |
+| Caller | `caller_id` | service account sys_id |
+| Assignment group | `assignment_group` | configurable |
+
+### Severity → urgency/impact
+
+ServiceNow computes `priority` from `urgency × impact`. Plexicus sets both:
+
+| Plexicus | urgency | impact | resulting priority |
+|---|:-:|:-:|:-:|
+| Critical | 1 (High) | 1 (High) | 1 (Critical) |
+| High | 2 (Medium) | 1 (High) | 2 (High) |
+| Medium | 2 (Medium) | 2 (Medium) | 3 (Moderate) |
+| Low | 3 (Low) | 2 (Medium) | 4 (Low) |
+| Informational | 3 (Low) | 3 (Low) | 5 (Planning) |
+
+For SIR (`sn_si_incident`), Plexicus uses the dedicated `severity` field directly (1–4) and skips urgency/impact.
+
+## What gets mirrored \{#recipes_connect-servicenow-5\}
+
+Same triggers as Jira:
+
+1. User clicks **Create Issue** on a finding.
+2. Bulk **Send to ServiceNow** action.
+3. Auto-create-issues at the org level for findings whose `remediation_type=issue`.
+
+Plexicus stores the resulting ServiceNow `sys_id` on the Remediation document so subsequent updates target the same record.
+
+## Bidirectional sync \{#recipes_connect-servicenow-6\}
+
+PR-merged in SCM → Plexicus closes the ServiceNow record by setting `state=7` (Closed) + `close_code=Solved (Permanently)`.
+
+To make ServiceNow → Plexicus close-on-resolve, configure a Business Rule that POSTs to Plexicus's `/webhook/send-ticket` on `state` change to Resolved/Closed. See [Configure Webhooks](/docs/recipes/configure-webhooks).
+
+## Common errors \{#recipes_connect-servicenow-7\}
+
+<AccordionGroup>
+  <Accordion title="`401 Unauthorized`" icon="material-symbols:lock-outline">
+    Service account password expired (ServiceNow defaults to 90 days). Use OAuth to avoid this.
+  </Accordion>
+  <Accordion title="Records created but assignment group blank" icon="material-symbols:warning-outline">
+    The configured assignment group's `name` doesn't match. Use the group's `sys_id` instead — the Table API silently drops invalid name references.
+  </Accordion>
+  <Accordion title="Records create but cannot be updated" icon="material-symbols:edit-off-outline">
+    `itil` role grants create + read but not update on records owned by other users. Either grant `itil_admin` (broad) or write a custom ACL allowing the service account to update its own records.
+  </Accordion>
+  <Accordion title="`Could not match: caller_id`" icon="material-symbols:person-off-outline">
+    The `caller_id` in the template doesn't resolve to a sys_id. Set it to a literal sys_id or remove the field from the mapping.
+  </Accordion>
+</AccordionGroup>
+
+## Related \{#recipes_connect-servicenow-8\}
+
+<CardGroup cols={2}>
+  <Card title="Connect Jira" icon="material-symbols:checklist-outline" href="/docs/recipes/connect-jira">
+    The Atlassian equivalent.
+  </Card>
+  <Card title="Configure Webhooks" icon="material-symbols:webhook-outline" href="/docs/recipes/configure-webhooks">
+    Bidirectional sync via business rules.
+  </Card>
+</CardGroup>
