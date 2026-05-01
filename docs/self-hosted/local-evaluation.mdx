@@ -466,7 +466,58 @@ curl -k -s -X POST \
 
 A `200` with an `access_token` confirms the full chain — frontend → ingress → fastapi → MongoDB authentication — is healthy. From here, open `https://plexicus.local` in a browser (accept the self-signed certificate warning) and sign in with the credentials you just registered.
 
-## 12. Cleanup \{#self-hosted_local-evaluation-cleanup}
+## 12. Connect a SCM and run your first scan \{#self-hosted_local-evaluation-scm}
+
+:::warning Browser-only OAuth — by design
+Connecting GitHub / GitLab / Bitbucket to Plexicus uses a standard OAuth 2.0 redirect flow. The user must complete the authorization in a browser — there is no API-only or PAT-only shortcut to skip the redirect. Plan your eval session accordingly.
+:::
+
+### 12.1 Connect GitHub via the UI \{#self-hosted_local-evaluation-scm-github}
+
+1. Sign in to `https://plexicus.local` with the admin user from step 11.
+2. Open the **Connectors** page (left sidebar).
+3. Click **GitHub → Connect**. The frontend calls `GET /vulnerability_tool/auth/github` (with your panel Bearer token) which returns an `authorization_url`.
+4. The browser is redirected to `github.com/login/oauth/authorize?client_id=…`. Log in to GitHub and click **Authorize Plexicus**.
+5. GitHub redirects back to `https://api.plexicus.local/vulnerability_tool/callback/github?code=…&state=…`. The callback exchanges the `code` for an access_token and refresh_token and stores them on the user record in MongoDB.
+
+The same UI flow works for GitLab, Bitbucket, and Gitea — pick the provider whose OAuth client credentials you supplied in your `secrets.txt` / values overlay.
+
+### 12.2 Add a repository \{#self-hosted_local-evaluation-scm-add-repo}
+
+Once a SCM is connected you can add repositories from the **Applications** page in the UI, or via the API:
+
+```bash
+curl -X POST https://api.plexicus.local/create_repository_with_list \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "source_control": "github",
+    "data": [
+      {
+        "uri": "https://github.com/<owner>/<repo>",
+        "nickname": "First repo",
+        "branch": "main"
+      }
+    ]
+  }'
+```
+
+### 12.3 Trigger a scan and read the findings \{#self-hosted_local-evaluation-scm-scan}
+
+```bash
+# Kick off a scan (the response includes the scan_id)
+curl -X POST https://api.plexicus.local/request_repo_scan \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"repository_id":"<id-from-step-12.2>","scan_type":"app"}'
+
+# Poll until status flips from running -> completed
+curl -H "Authorization: Bearer $TOKEN" https://api.plexicus.local/findings | jq '.data | length'
+```
+
+Findings appear under **Findings** in the UI as the scan completes.
+
+## 13. Cleanup \{#self-hosted_local-evaluation-cleanup}
 
 Removing the entire evaluation stack:
 
