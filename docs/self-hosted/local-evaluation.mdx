@@ -1,118 +1,106 @@
 ---
-title: "Local Evaluation (Self-Signed)"
-description: "Run Plexicus on a local Kubernetes cluster with self-signed TLS certificates for evaluation, demos, and development"
+title: "Evaluator Installation (Ubuntu + k3s)"
+description: "Stand up Plexicus on a single Ubuntu 24.04 server with k3s and self-signed TLS for evaluation, demos, and proof-of-value testing"
 ---
 
 import {Steps, Step} from '@site/src/components/steps'
 
-# Local Evaluation \{#self-hosted_local-evaluation-1}
+# Evaluator Installation \{#self-hosted_local-evaluation-1}
 
 :::note
-Examples on this page assume chart 1.2.0 or later.
+This guide assumes Plexicus chart **1.2.0 or later** and was validated end-to-end on **Ubuntu 24.04.3 LTS (amd64)** running **k3s v1.35.4** + **Helm v3.20**. It produces a single-node cluster with a publicly reachable IP, suitable for proof-of-value testing on cloud or bare-metal Linux. For production deployments follow the [Self-Hosted Installation](/docs/self-hosted/helm-chart) guide instead.
 :::
-
-This guide spins up Plexicus on a local Kubernetes cluster using [kind](https://kind.sigs.k8s.io/) and self-signed TLS certificates. It is intended for evaluation, demos, and development — **not production**. For production deployments, follow the [Self-Hosted Installation](/docs/self-hosted/helm-chart) guide instead.
 
 :::warning
-Self-signed certificates produce browser warnings and cannot be used by webhook integrations (GitHub, GitLab, Bitbucket) that require a publicly trusted certificate. Use this setup only for local testing.
+Self-signed certificates produce browser warnings and cannot be used by webhook integrations (GitHub Apps, GitLab, Bitbucket) that require a publicly trusted certificate. Use this setup for evaluation only — not for production traffic.
 :::
 
-## Prerequisites \{#self-hosted_local-evaluation-2}
+## What you need before you start \{#self-hosted_local-evaluation-prereqs}
 
-| Requirement | Minimum version | Install command |
-|-------------|----------------|-----------------|
-| Docker | 20.10 | [Docker Desktop](https://www.docker.com/products/docker-desktop/) |
-| kind | v0.20 | `brew install kind` (macOS) |
-| Helm | v3.8 | `brew install helm` |
-| kubectl | — | `brew install kubectl` |
+| Item | Minimum | Notes |
+|------|---------|-------|
+| Server OS | **Ubuntu 24.04 LTS** (amd64) | The recipe was validated on Noble Numbat. Any Debian-derived distro with `systemd` should work, but the commands and version pins below are tested only on 24.04. |
+| CPU | **4 vCPU** | Plexicus services + 5 prereqs comfortably fit on 4 cores during idle/eval; 2 vCPU is too tight. |
+| RAM | **8 GB** | Less than 8 GB will OOMKill `fastapi` or schedule failures on `plexalyzer-*`. |
+| Disk | **50 GB** | The chart artifacts plus Plexicus container images consume ~10 GB; persistent volumes for MongoDB / MinIO / PostgreSQL add another ~5 GB. 50 GB leaves headroom for scan workloads. |
+| Network | **Public IP, ports 22/80/443 reachable** | k3s' built-in `klipper-lb` LoadBalancer assigns the node's public IP as the ingress EXTERNAL-IP, so the install procedure does not need an external load balancer or reverse proxy. |
+| DNS | Two hostnames pointing at the server's public IP | Either a real DNS record (`plexicus.eval.example.com`, `api.plexicus.eval.example.com`) or a per-machine `/etc/hosts` entry on each evaluator's laptop. The default chart values use `plexicus.local` / `api.plexicus.local` — adjust to fit. |
+| Plexicus registry credentials | A Google Cloud service account JSON (`keys.json`) | Provided by Plexicus when you request evaluation access. The chart pulls all custom images from `europe-west3-docker.pkg.dev` using this key. Email **[engineering@plexicus.ai](mailto:engineering@plexicus.ai)** to obtain it. |
 
-You also need **registry access credentials** (`sa-key.json`). If you do not have them yet, request access by emailing **engineering@plexicus.ai** — see step 1 of the [Self-Hosted Installation](/docs/self-hosted/helm-chart#self-hosted_helm-chart-3) guide.
-
----
-
-## 1. Create a Local Cluster \{#self-hosted_local-evaluation-3}
-
-Create a kind configuration file `kind-config.yaml` that exposes ports 80 and 443 to the host:
-
-```yaml
-kind: Cluster
-apiVersion: kind.x-k8s.io/v1alpha4
-nodes:
-  - role: control-plane
-    kubeadmConfigPatches:
-      - |
-        kind: InitConfiguration
-        nodeRegistration:
-          kubeletExtraArgs:
-            node-labels: "ingress-ready=true"
-    extraPortMappings:
-      - containerPort: 80
-        hostPort: 80
-        protocol: TCP
-      - containerPort: 443
-        hostPort: 443
-        protocol: TCP
-```
-
-Create the cluster:
-
-```bash
-kind create cluster --name plexicus --config kind-config.yaml
-```
-
-Verify the cluster is running:
-
-```bash
-kubectl cluster-info --context kind-plexicus
-```
+If you do not have a server yet, any cloud VM (Hetzner, DigitalOcean, AWS Lightsail, GCP small instance, …) running stock Ubuntu 24.04 will do. The numbers above are the ones the procedure was actually validated against — **4 vCPU / 7.6 GiB RAM / 150 GB disk** completed Tier A + Tier B with comfortable headroom.
 
 ---
 
-## 2. Install Ingress Controller \{#self-hosted_local-evaluation-4}
+## 1. Install k3s \{#self-hosted_local-evaluation-k3s}
 
-Install ingress-nginx (recommended for kind):
+SSH into the server as `root` (or any user with passwordless `sudo`). The single-line installer below pins all the choices that matter for an evaluation install:
+
+- `--disable=traefik` — k3s ships traefik as the default ingress controller; we disable it because the chart and its docs assume **ingress-nginx** as the customer-supplied ingress.
+- `--write-kubeconfig-mode=644` — makes `/etc/rancher/k3s/k3s.yaml` readable so subsequent `helm` and `kubectl` calls can read it without `sudo`.
 
 ```bash
+curl -sfL https://get.k3s.io | \
+  INSTALL_K3S_EXEC="--disable=traefik --write-kubeconfig-mode=644" \
+  sh -
+```
+
+Export the kubeconfig path so `helm` (which does not auto-detect it) can find the cluster, and persist it for future SSH sessions:
+
+```bash
+echo 'export KUBECONFIG=/etc/rancher/k3s/k3s.yaml' >> /root/.bashrc
+export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
+```
+
+Confirm the node is `Ready`:
+
+```bash
+kubectl get nodes
+# Expected:
+# NAME          STATUS   ROLES           AGE   VERSION
+# <hostname>    Ready    control-plane   30s   v1.35.4+k3s1
+```
+
+## 2. Install Helm and add chart repositories \{#self-hosted_local-evaluation-helm}
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+
 helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+helm repo add jetstack      https://charts.jetstack.io
+helm repo add bitnami       https://charts.bitnami.com/bitnami
+helm repo add temporal      https://go.temporal.io/helm-charts
 helm repo update
+```
+
+## 3. Install ingress-nginx (LoadBalancer mode) \{#self-hosted_local-evaluation-ingress}
+
+```bash
 helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx \
   --namespace ingress-nginx --create-namespace \
-  --set controller.hostPort.enabled=true \
-  --set controller.service.type=NodePort
+  --set controller.service.type=LoadBalancer \
+  --set controller.ingressClassResource.default=true
 ```
 
-Wait for the controller to be ready:
+Verify the controller picked up the public IP via k3s' built-in `klipper-lb`:
 
 ```bash
-kubectl wait --namespace ingress-nginx \
-  --for=condition=ready pod \
-  --selector=app.kubernetes.io/component=controller \
-  --timeout=180s
+kubectl -n ingress-nginx get svc ingress-nginx-controller
+# NAME                       TYPE           CLUSTER-IP      EXTERNAL-IP        PORT(S)                      AGE
+# ingress-nginx-controller   LoadBalancer   10.43.173.102   <your-public-ip>   80:30200/TCP,443:30723/TCP   30s
 ```
 
----
-
-## 3. Install cert-manager and Self-Signed Issuer \{#self-hosted_local-evaluation-5}
-
-Install cert-manager:
+## 4. Install cert-manager and a self-signed ClusterIssuer \{#self-hosted_local-evaluation-certmanager}
 
 ```bash
-helm repo add cert-manager https://charts.jetstack.io
-helm repo update
-helm upgrade --install cert-manager cert-manager/cert-manager \
+helm upgrade --install cert-manager jetstack/cert-manager \
   --namespace cert-manager --create-namespace \
-  --set installCRDs=true
-```
+  --set crds.enabled=true
 
-Wait for cert-manager to be ready, then apply a self-signed `ClusterIssuer`:
+kubectl wait --for=condition=ready pod \
+  -l app.kubernetes.io/instance=cert-manager \
+  -n cert-manager --timeout=180s
 
-```bash
-kubectl wait --namespace cert-manager \
-  --for=condition=ready pod \
-  --selector=app.kubernetes.io/instance=cert-manager \
-  --timeout=180s
-
-cat <<EOF | kubectl apply -f -
+kubectl apply -f - <<'EOF'
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
 metadata:
@@ -122,60 +110,53 @@ spec:
 EOF
 ```
 
----
+## 5. Configure DNS for the two Plexicus hostnames \{#self-hosted_local-evaluation-dns}
 
-## 4. Add Local DNS Entries \{#self-hosted_local-evaluation-6}
+The chart provisions two ingress resources: `plexicus.local` (the frontend SPA) and `api.plexicus.local` (the FastAPI backend). Each evaluator's laptop needs to resolve those names to the server's public IP.
 
-Add the following lines to `/etc/hosts` (Linux/macOS) or `C:\Windows\System32\drivers\etc\hosts` (Windows):
+The simplest path: add a one-line entry to `/etc/hosts` on each evaluator's machine (replace `<server-ip>` with the actual IP):
 
 ```
-127.0.0.1  plexicus.local
-127.0.0.1  api.plexicus.local
+<server-ip>  plexicus.local api.plexicus.local
 ```
 
----
+If you prefer real DNS, configure A records `plexicus.<your-domain>` and `api.plexicus.<your-domain>` and override `global.domain` in the values file in step 9. The procedure is otherwise identical.
 
-## 5. Authenticate and Create Pull Secret \{#self-hosted_local-evaluation-7}
+## 6. Create the Plexicus namespace and image-pull secret \{#self-hosted_local-evaluation-pullsecret}
 
-Log Helm in to the OCI registry and create the namespace plus image pull secret:
+Copy the service-account key Plexicus gave you to the server (or paste it inline) and create the registry pull secret:
 
 ```bash
-cat sa-key.json | helm registry login \
-  europe-west3-docker.pkg.dev \
-  --username _json_key \
-  --password-stdin
-
 kubectl create namespace plexicus
 
+# /root/keys.json is the service-account JSON Plexicus provided
 kubectl create secret docker-registry gar-secret \
   --docker-server=europe-west3-docker.pkg.dev \
   --docker-username=_json_key \
-  --docker-password="$(cat sa-key.json)" \
+  --docker-password="$(cat /root/keys.json)" \
   --namespace plexicus
 ```
 
----
+## 7. Install the five infrastructure prerequisites \{#self-hosted_local-evaluation-prereqs-install}
 
-## 6. Install Infrastructure Prerequisites \{#self-hosted_local-evaluation-8}
+The Plexicus chart 1.2.0+ does **not** bundle MongoDB / Redis / MinIO / PostgreSQL / Temporal — bundling them pushed the chart `.tgz` over the 1 MB Kubernetes Secret limit Helm uses for release storage. Install each as its own Helm release in the `plexicus` namespace.
 
-Plexicus depends on five infrastructure services (MongoDB, Redis, MinIO, PostgreSQL, Temporal). They are **not bundled** in the umbrella chart — bundling them produced an artifact that exceeded the 1 MB Kubernetes Secret limit Helm uses for release storage. Install each as a separate Helm release in the `plexicus` namespace.
+:::note Bitnami licensing change (August 2025)
+Bitnami moved their official chart images to a paid distribution. Free legacy images live under `docker.io/bitnamilegacy/*`. The commands below override every image reference (main + init + sidecar containers) accordingly. The `bitnamilegacy/*` images are amd64-only — perfect for this Ubuntu evaluator path. (For arm64 macOS evaluation see the appendix at the bottom of this page.)
+:::
 
 ```bash
-helm repo add bitnami https://charts.bitnami.com/bitnami
-helm repo add temporal https://go.temporal.io/helm-charts
-helm repo update
-
 # 1. MongoDB
 helm upgrade --install mongodb bitnami/mongodb --version 18.6.15 -n plexicus \
   --set global.security.allowInsecureImages=true \
   --set image.repository=bitnamilegacy/mongodb \
   --set defaultInitContainers.volumePermissions.image.repository=bitnamilegacy/os-shell \
   --set metrics.image.repository=bitnamilegacy/mongodb-exporter \
-  --set 'auth.rootPassword=localdev-password' \
+  --set 'auth.rootPassword=<choose-a-strong-mongo-root-password>' \
   --set 'auth.databases={plexicus}' \
   --set 'auth.usernames={plexicus}' \
-  --set 'auth.passwords={localdev-password}' \
-  --wait
+  --set 'auth.passwords={<choose-a-plexicus-db-password>}' \
+  --set persistence.size=4Gi --wait
 
 # 2. Redis
 helm upgrade --install redis bitnami/redis --version 25.3.2 -n plexicus \
@@ -186,9 +167,9 @@ helm upgrade --install redis bitnami/redis --version 25.3.2 -n plexicus \
   --set kubectl.image.repository=bitnamilegacy/kubectl \
   --set defaultInitContainers.volumePermissions.image.repository=bitnamilegacy/os-shell \
   --set sysctl.image.repository=bitnamilegacy/os-shell \
-  --set auth.password=localdev-password \
+  --set auth.password=<choose-a-redis-password> \
   --set replica.replicaCount=0 \
-  --wait
+  --set master.persistence.size=2Gi --wait
 
 # 3. MinIO
 helm upgrade --install minio bitnami/minio --version 17.0.21 -n plexicus \
@@ -198,20 +179,21 @@ helm upgrade --install minio bitnami/minio --version 17.0.21 -n plexicus \
   --set console.image.repository=bitnamilegacy/minio-object-browser \
   --set apiIngress.enabled=false --set ingress.enabled=false \
   --set auth.rootUser=minioadmin \
-  --set auth.rootPassword=localdev-password \
+  --set auth.rootPassword=<choose-a-minio-password> \
   --set defaultBuckets=platform \
-  --wait
+  --set persistence.size=2Gi --wait
 
-# 4. PostgreSQL (for Temporal)
+# 4. PostgreSQL (used by Temporal)
 helm upgrade --install temporal-postgresql bitnami/postgresql --version 18.5.6 -n plexicus \
   --set global.security.allowInsecureImages=true \
   --set image.repository=bitnamilegacy/postgresql \
   --set metrics.image.repository=bitnamilegacy/postgres-exporter \
   --set defaultInitContainers.volumePermissions.image.repository=bitnamilegacy/os-shell \
-  --set auth.postgresPassword=temporalpassword \
-  --wait
+  --set auth.postgresPassword=<choose-a-temporal-pg-password> \
+  --set primary.persistence.size=2Gi --wait
 
-# 5. Temporal
+# 5. Temporal — the Helm install does not pass --wait because the
+# server pods crash-loop briefly while the schema-setup Job runs.
 helm upgrade --install temporal temporal/temporal --version 0.73.2 -n plexicus \
   --set server.replicaCount=1 \
   --set cassandra.enabled=false --set elasticsearch.enabled=false \
@@ -222,51 +204,110 @@ helm upgrade --install temporal temporal/temporal --version 0.73.2 -n plexicus \
   --set server.config.persistence.default.sql.port=5432 \
   --set server.config.persistence.default.sql.database=temporal \
   --set server.config.persistence.default.sql.user=postgres \
-  --set server.config.persistence.default.sql.password=temporalpassword \
+  --set server.config.persistence.default.sql.password=<the-temporal-pg-password-from-step-4> \
   --set server.config.persistence.visibility.driver=sql \
   --set server.config.persistence.visibility.sql.driver=postgres12 \
   --set server.config.persistence.visibility.sql.host=temporal-postgresql \
   --set server.config.persistence.visibility.sql.port=5432 \
   --set server.config.persistence.visibility.sql.database=temporal_visibility \
   --set server.config.persistence.visibility.sql.user=postgres \
-  --set server.config.persistence.visibility.sql.password=temporalpassword
-
-kubectl -n plexicus get pods   # confirm all 5 prereqs are Running before continuing
+  --set server.config.persistence.visibility.sql.password=<the-temporal-pg-password-from-step-4>
 ```
 
-:::warning Apple Silicon (arm64) Macs
-Bitnami's free **legacy** images are amd64-only and will fail to pull on an arm64 cluster (`no match for platform in manifest`). On Apple Silicon, replace the `bitnamilegacy/*` overrides with multi-arch upstream images for evaluation:
+Wait until every prerequisite pod reaches `Running` (Temporal needs ~2 min while the schema bootstrap completes):
 
 ```bash
-# Example for MongoDB on arm64
-helm upgrade --install mongodb bitnami/mongodb --version 18.6.15 -n plexicus \
-  --set image.repository=mongo --set image.tag=8.0 \
-  --set global.security.allowInsecureImages=true \
-  ...   # other overrides become unnecessary or use upstream multi-arch alternatives
+kubectl -n plexicus get pods --watch
 ```
 
-For full evaluation on arm64 we recommend deploying the prereqs from the upstream multi-arch images (`mongo:8.0`, `redis:7-alpine`, `minio/minio`, `postgres:15-alpine`, `temporalio/auto-setup:1.29`) via plain `Deployment` + `Service` manifests. A reference manifest set is available on request — contact **[engineering@plexicus.ai](mailto:engineering@plexicus.ai)**.
+You should end up with eight `1/1 Running` pods and one `Completed` schema-setup Job.
 
-For production, deploy on an amd64 Kubernetes cluster (the standard cloud K8s offerings) — Bitnami legacy images work there as documented above.
+## 8. Create the per-service application secrets \{#self-hosted_local-evaluation-app-secrets}
+
+Plexicus services read sensitive values (passwords, OAuth client secrets, AI-piloting keys, etc.) from Kubernetes Secrets through the `existingSecret` pattern. Create one Secret per service **before** installing the chart.
+
+The full key catalog per service is in the chart-bundled `docs/secrets-management.md` (extract via `helm pull oci://… --untar`). For an evaluation install the eight commands below are sufficient — replace each `<…>` placeholder.
+
+:::tip Coordinate the database password
+The MongoDB password you set in `plexicus-fastapi`, `plexicus-worker`, `plexicus-analysis-scheduler`, `plexicus-codex-remedium`, and `plexicus-exporter` MUST match the `auth.rootPassword` you used in step 7's `mongodb` install. Mismatches surface as `MongoDB Authentication failed` in `fastapi` logs.
 :::
 
-## 7. Prepare a Minimal Values File \{#self-hosted_local-evaluation-9}
+```bash
+# Use the SAME values you supplied in step 7 — they are not secrets the
+# chart generates, they are the credentials your prereq Helm releases use.
+DB_PASS=<the-mongo-root-password-from-step-7>
+REDIS_PASS=<the-redis-password-from-step-7>
+MINIO_PASS=<the-minio-password-from-step-7>
 
-Save the following as `values-local.yaml`. The five services above are reached via their default in-cluster service names (`mongodb`, `redis-master`, `minio`, `temporal-postgresql`, `temporal-frontend`).
+# Generate one-off random values for everything else
+SECRET_KEY=$(openssl rand -hex 32)
+PLEXALYZER_SECRET=$(openssl rand -hex 32)
+NUXT_SECRET=$(openssl rand -hex 32)
 
-Local evaluation uses the same `global.ingressClassName` and `global.certManager` fields as production — only the values change (nginx + self-signed instead of traefik + letsencrypt-prod).
+kubectl -n plexicus create secret generic plexicus-fastapi \
+  --from-literal=DATABASE_PASSWORD="$DB_PASS" \
+  --from-literal=REDIS_PASSWORD="$REDIS_PASS" \
+  --from-literal=SECRET_KEY="$SECRET_KEY" \
+  --from-literal=PLEXALYZER_SECRET_KEY="$PLEXALYZER_SECRET" \
+  --from-literal=GH_APP_PRIVATE_KEY="" \
+  --from-literal=GITHUB_CLIENT_SECRET="" \
+  --from-literal=GITLAB_CLIENT_SECRET="" \
+  --from-literal=BITBUCKET_CLIENT_SECRET="" \
+  --from-literal=MINIO_ROOT_PASSWORD="$MINIO_PASS" \
+  --from-literal=SMTP_PASSWORD="" \
+  --from-literal=OPENAI_API_KEY=""
+
+kubectl -n plexicus create secret generic plexicus-worker \
+  --from-literal=DATABASE_PASSWORD="$DB_PASS" \
+  --from-literal=REDIS_PASSWORD="$REDIS_PASS" \
+  --from-literal=SECRET_KEY="$SECRET_KEY" \
+  --from-literal=PLEXALYZER_SECRET_KEY="$PLEXALYZER_SECRET" \
+  --from-literal=GH_APP_PRIVATE_KEY="" \
+  --from-literal=MINIO_ROOT_PASSWORD="$MINIO_PASS" \
+  --from-literal=PLEXALYZER_TOKEN="$PLEXALYZER_SECRET" \
+  --from-literal=AZURE_RESOURCE_PASSWORD=""
+
+kubectl -n plexicus create secret generic plexicus-frontend \
+  --from-literal=NUXT_SECRET_KEY="$NUXT_SECRET"
+
+kubectl -n plexicus create secret generic plexicus-analysis-scheduler \
+  --from-literal=DATABASE_PASSWORD="$DB_PASS" \
+  --from-literal=OPENAI_API_KEY=""
+
+kubectl -n plexicus create secret generic plexicus-codex-remedium \
+  --from-literal=DATABASE_PASSWORD="$DB_PASS" \
+  --from-literal=REDIS_PASSWORD="$REDIS_PASS" \
+  --from-literal=PLEXALYZER_SECRET_KEY="$PLEXALYZER_SECRET"
+
+kubectl -n plexicus create secret generic plexicus-exporter \
+  --from-literal=DATABASE_PASSWORD="$DB_PASS" \
+  --from-literal=OPENAI_API_KEY=""
+
+for s in plexalyzer-code plexalyzer-prov; do
+  kubectl -n plexicus create secret generic plexicus-$s \
+    --from-literal=PLEXALYZER_SECRET_KEY="$PLEXALYZER_SECRET" \
+    --from-literal=OPENAI_API_KEY=""
+done
+```
+
+The empty values are fine for an evaluation install; features that depend on them (GitHub OAuth scanning, AI remediation, transactional email) will be unavailable until you fill them in.
+
+## 9. Prepare the Plexicus values overlay \{#self-hosted_local-evaluation-values}
+
+Save the following as `/root/values-evaluator.yaml`. It tells the chart which prereq service to talk to, wires every `existingSecret`, and configures TLS via the self-signed issuer from step 4.
 
 ```yaml
 global:
   domain: plexicus.local
-  scheme: https
-  wsScheme: wss
+  scheme: "https"
+  wsScheme: "wss"
   ingressClassName: "nginx"
   certManager:
     enabled: true
     clusterIssuer: "selfsigned-issuer"
   imagePullSecrets:
     - name: gar-secret
+
   required:
     database:
       host: "mongodb"
@@ -274,131 +315,206 @@ global:
       port: 27017
       username: "root"
       options: "authSource=admin"
-      password: "localdev-password"
+      password: "<the-mongo-root-password-from-step-7>"
     redis:
       host: "redis-master"
       port: 6379
-      password: "localdev-password"
+      password: "<the-redis-password-from-step-7>"
     minio:
       service: "minio:9000"
       rootUser: "minioadmin"
-      rootPassword: "localdev-password"
+      rootPassword: "<the-minio-password-from-step-7>"
     postgresql:
-      password: "temporalpassword"
+      password: "<the-temporal-pg-password-from-step-7>"
 
 fastapi:
+  existingSecret: plexicus-fastapi
   ingress:
+    enabled: true
     hosts:
       - host: api.plexicus.local
+        paths:
+          - {path: /, pathType: Prefix}
     tls:
-      - secretName: plexicus-api-tls
-        hosts:
-          - api.plexicus.local
+      - secretName: plexicus-fastapi-tls
+        hosts: [api.plexicus.local]
 
 frontend:
+  existingSecret: plexicus-frontend
   ingress:
+    enabled: true
     hosts:
       - host: plexicus.local
+        paths:
+          - {path: /, pathType: Prefix}
     tls:
       - secretName: plexicus-frontend-tls
-        hosts:
-          - plexicus.local
+        hosts: [plexicus.local]
+
+worker:             { existingSecret: plexicus-worker }
+analysis-scheduler: { existingSecret: plexicus-analysis-scheduler }
+codex-remedium:     { existingSecret: plexicus-codex-remedium }
+exporter:           { existingSecret: plexicus-exporter }
+plexalyzer-code:    { existingSecret: plexicus-plexalyzer-code }
+plexalyzer-prov:    { existingSecret: plexicus-plexalyzer-prov }
 ```
 
-:::tip
-For local evaluation, application secrets (OAuth client secrets, OpenAI API key, etc.) can be omitted. Features that depend on them (e.g. SCM connectors, AI remediation) will be disabled until you provide them.
-:::
+## 10. Install the Plexicus chart \{#self-hosted_local-evaluation-install}
 
----
-
-## 8. Install the Chart \{#self-hosted_local-evaluation-10}
-
-Set the chart version (your Plexicus contact provides this when you receive registry credentials, or contact **[engineering@plexicus.ai](mailto:engineering@plexicus.ai)** for the current version):
+Pull the chart from the OCI registry — the credentials Plexicus provided also authenticate Helm:
 
 ```bash
-export CHART_VERSION=1.2.0
+cat /root/keys.json | helm registry login \
+  europe-west3-docker.pkg.dev \
+  --username _json_key \
+  --password-stdin
 
-helm install plexicus \
+export CHART_VERSION=1.2.0   # ask engineering@plexicus.ai for the latest published version
+
+helm upgrade --install plexicus \
   oci://europe-west3-docker.pkg.dev/plexicus-registry/charts/plexicus \
   --version $CHART_VERSION \
   --namespace plexicus \
-  --values values-local.yaml
+  -f /root/values-evaluator.yaml
 ```
 
-Watch the pods come up (this can take 5–10 minutes on a fresh local cluster while images are pulled):
+Watch pods come up:
 
 ```bash
-kubectl get pods -n plexicus -w
+kubectl -n plexicus get pods -w
+```
+
+Within 3–5 minutes every Plexicus pod (`fastapi`, `frontend`, `worker`, `analysis-scheduler`, `codex-remedium`, `exporter`, `plexalyzer-code`, `plexalyzer-prov`) should be `1/1 Running`. The `temporal-frontend` / `history` / `matching` / `worker` pods restart 3–5 times during the initial schema bootstrap — this is expected.
+
+Verify the TLS certificates were issued and the ingresses are bound:
+
+```bash
+kubectl -n plexicus get certificate
+# NAME                    READY   SECRET                  AGE
+# plexicus-fastapi-tls    True    plexicus-fastapi-tls    2m
+# plexicus-frontend-tls   True    plexicus-frontend-tls   2m
+
+kubectl -n plexicus get ingress
+# NAME       CLASS   HOSTS                ADDRESS            PORTS     AGE
+# fastapi    nginx   api.plexicus.local   <your-public-ip>   80, 443   2m
+# frontend   nginx   plexicus.local       <your-public-ip>   80, 443   2m
+```
+
+A first end-to-end smoke test from the server itself:
+
+```bash
+curl -k -s -o /dev/null -w "Frontend  %{http_code}\n" -H "Host: plexicus.local"     https://localhost
+curl -k -s -o /dev/null -w "API/health %{http_code}\n" -H "Host: api.plexicus.local" https://localhost/health
+# Frontend  302         (the SPA's login redirect)
+# API/health 200        (FastAPI is reading from MongoDB / Redis / MinIO / Temporal)
+```
+
+## 11. Bootstrap the first admin user \{#self-hosted_local-evaluation-bootstrap}
+
+The chart ships an empty MongoDB. Plexicus does **not** seed an initial admin during install — every account is created through the registration API and verified by SMTP. Because evaluation deployments rarely have outbound SMTP wired, the registration's email-verification step has to be bypassed manually for the very first user.
+
+:::warning Eval-only shortcut
+The shortcut below flips a verification flag directly on the Mongo document. Do **not** use this pattern in production — wire real SMTP credentials into `plexicus-fastapi` (`SMTP_PASSWORD`) instead and let users verify by clicking the email link.
+:::
+
+### 11.1 Register the first user via the API \{#self-hosted_local-evaluation-register}
+
+The password must satisfy the schema validator (at least one uppercase, one lowercase, one digit, one special character):
+
+```bash
+curl -k -s -X POST \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email":"admin@your-domain.example",
+    "password":"ChangeMeNow1!",
+    "confirm_password":"ChangeMeNow1!",
+    "first_name":"Admin",
+    "last_name":"User",
+    "company":"Your Company"
+  }' \
+  --resolve api.plexicus.local:443:<your-public-ip> \
+  https://api.plexicus.local/register
+# {"success":true,"message":"User successfully registered. Please check your email for verification link."}
+```
+
+### 11.2 Manually verify the user in MongoDB \{#self-hosted_local-evaluation-verify}
+
+```bash
+kubectl -n plexicus exec deploy/mongodb -- mongosh \
+  "mongodb://root:<the-mongo-root-password-from-step-7>@localhost:27017/plexicus?authSource=admin" \
+  --quiet --eval '
+    db.Users.updateOne(
+      { email: "admin@your-domain.example" },
+      { $set: { is_verified: true, role: "admin" } }
+    )
+  '
+# { acknowledged: true, matchedCount: 1, modifiedCount: 1 }
+```
+
+The collection name is `Users` (capital `U`) and the verification flag is `is_verified`.
+
+### 11.3 Log in \{#self-hosted_local-evaluation-login}
+
+```bash
+curl -k -s -X POST \
+  -H "Content-Type: application/json" \
+  -d '{"email":"admin@your-domain.example","password":"ChangeMeNow1!"}' \
+  --resolve api.plexicus.local:443:<your-public-ip> \
+  https://api.plexicus.local/login
+# {"access_token":"eyJhbGc…","token_type":"bearer"}
+```
+
+A `200` with an `access_token` confirms the full chain — frontend → ingress → fastapi → MongoDB authentication — is healthy. From here, open `https://plexicus.local` in a browser (accept the self-signed certificate warning) and sign in with the credentials you just registered.
+
+## 12. Cleanup \{#self-hosted_local-evaluation-cleanup}
+
+Removing the entire evaluation stack:
+
+```bash
+helm -n plexicus uninstall plexicus
+helm -n plexicus uninstall mongodb redis minio temporal-postgresql temporal
+kubectl delete namespace plexicus
+helm -n cert-manager uninstall cert-manager
+helm -n ingress-nginx uninstall ingress-nginx
+```
+
+To remove k3s entirely:
+
+```bash
+/usr/local/bin/k3s-uninstall.sh
 ```
 
 ---
 
-## 9. Access the Platform \{#self-hosted_local-evaluation-11}
+## Troubleshooting \{#self-hosted_local-evaluation-troubleshoot}
 
-Open your browser at:
+### Pods stuck in `Init:0/1 (wait-for-dependencies)` \{#self-hosted_local-evaluation-tt-init}
 
-**https://plexicus.local**
+The `wait-for-dependencies` initContainer probes `redis-master:6379` and `temporal-frontend:7233`. If the prereq Helm releases are not yet `Healthy`, or you are using externally-managed Redis / Temporal at different service names, override `global.dependencies.*` in the values overlay.
 
-Your browser will warn that the certificate is not trusted — this is expected with self-signed certificates. Accept the warning to continue. On Chrome, type `thisisunsafe` directly on the warning page to bypass it.
+### `pymongo.errors.InvalidURI: MongoDB URI options are key=value pairs.` \{#self-hosted_local-evaluation-tt-mongo-uri}
 
----
+Symptom: every Plexicus pod CrashLoopBackOff with this Python traceback. Cause: the chart did not propagate `global.required.database.host` into `<service>.envs.DATABASE_HOST`, so the pod sees the literal string `<to-fill>` instead of `mongodb`. This was fixed in chart 1.2.0 — confirm you are not running an older artifact and that `kubectl get deploy fastapi -o yaml | grep -A1 DATABASE_HOST` shows `value: mongodb` (or whatever you set in step 9).
 
-## Cleanup \{#self-hosted_local-evaluation-11}
+### `MongoDB Authentication failed` (code 18) \{#self-hosted_local-evaluation-tt-mongo-auth}
 
-To remove the entire local environment:
+The `DATABASE_PASSWORD` in the `plexicus-fastapi` Secret does not match the `auth.rootPassword` you supplied to `helm install mongodb`. Recreate the Secret with the correct password and `kubectl rollout restart deploy -n plexicus`.
 
-```bash
-kind delete cluster --name plexicus
-```
+### Frontend ingress returns 503 \{#self-hosted_local-evaluation-tt-frontend-503}
 
-To remove the entries from `/etc/hosts`, simply delete the lines you added in step 4.
+Check `kubectl describe pod -l app.kubernetes.io/name=frontend -n plexicus | grep "Startup:"`. The probe path must be `/`, not `/health` (Nuxt does not expose a `/health` route). Chart 1.2.0+ ships the correct path; older artifacts had `/health` and need to be repackaged. If you packaged the chart yourself, ensure your build did **not** reuse a stale `charts/frontend-*.tgz` from a previous package.
 
----
+### Browser refuses to load `https://plexicus.local` \{#self-hosted_local-evaluation-tt-browser}
 
-## Troubleshooting \{#self-hosted_local-evaluation-12}
-
-### Pods stuck in `ImagePullBackOff` \{#self-hosted_local-evaluation-13}
-
-Verify the pull secret was created in the correct namespace and that your service account key is still valid:
-
-```bash
-kubectl get secret gar-secret -n plexicus
-kubectl describe pod <pod-name> -n plexicus | grep -A5 Events
-```
-
-### Browser cannot reach `https://plexicus.local` \{#self-hosted_local-evaluation-14}
-
-Check that the ingress controller is reachable on port 443:
-
-```bash
-curl -kv https://plexicus.local
-```
-
-If this fails, confirm the kind cluster's port mappings are active:
-
-```bash
-docker ps --filter "name=plexicus-control-plane"
-```
-
-The output should show `0.0.0.0:80->80/tcp` and `0.0.0.0:443->443/tcp`.
-
-### Certificate is not being issued \{#self-hosted_local-evaluation-15}
-
-```bash
-kubectl get certificate -n plexicus
-kubectl describe certificate plexicus-api-tls -n plexicus
-```
-
-If the certificate is stuck in `Pending`, verify the `selfsigned-issuer` `ClusterIssuer` exists and is ready:
-
-```bash
-kubectl get clusterissuer selfsigned-issuer
-```
+The chart uses self-signed certificates by design. On Chrome, type `thisisunsafe` directly on the warning page to bypass it. For Safari and Firefox, click "Advanced → Proceed".
 
 ---
 
-## Next Steps \{#self-hosted_local-evaluation-16}
+## Appendix — macOS evaluation via kind / Docker Desktop \{#self-hosted_local-evaluation-appendix-mac}
 
-- Once you are ready to deploy to a real cluster, follow the [Self-Hosted Installation](/docs/self-hosted/helm-chart) guide.
-- For SCM integration testing, you will need a publicly reachable cluster with valid TLS — local evaluation cannot receive webhooks from GitHub/GitLab/Bitbucket.
-- For questions or issues, contact **engineering@plexicus.ai**.
+Running the evaluator path on macOS is supported but adds two friction points the Linux/k3s path avoids:
+
+1. **arm64 Apple Silicon vs. amd64 images.** Plexicus container images and several Bitnami legacy images (notably `bitnamilegacy/mongodb`) are amd64-only. Docker Desktop's Rosetta-for-x86 emulation works in `KubernetesMode: kubeadm` but **not** in `kind` mode — verify Settings → Kubernetes shows "kubeadm" before installing the chart. For mongodb specifically, fall back to the upstream multi-arch `mongo:8.0` image deployed via a plain `Deployment` instead of the Bitnami chart.
+2. **Public-IP routing.** Docker Desktop's K8s LoadBalancer routes to `localhost`, so `https://plexicus.local` works only from the same Mac unless you forward ports to other devices.
+
+The Linux/k3s path above remains the recommended evaluator setup. For a true zero-cost local install, prefer a tiny Hetzner/DO/AWS Lightsail Ubuntu VM ($5/month) over fighting Docker Desktop.
