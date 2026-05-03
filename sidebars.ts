@@ -38,6 +38,7 @@ const coreConcepts: SidebarConfig = [
       'concepts/applications-lifecycle',
       'concepts/findings-model',
       'concepts/ai-remediation',
+      'concepts/xbom',
       'concepts/roles-and-permissions',
       'concepts/multi-tenant-security',
       'concepts/compliance',

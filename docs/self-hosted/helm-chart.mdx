@@ -490,7 +490,7 @@ A first end-to-end smoke test from outside the cluster:
 ```bash
 curl -s -o /dev/null -w "Frontend  %{http_code}\n" https://<your-domain>/
 curl -s -o /dev/null -w "API/health %{http_code}\n" https://api.<your-domain>/health
-# Frontend  302         (the SPA's login redirect — Tier A passes)
+# Frontend  302         (the SPA login redirect)
 # API/health 200        (FastAPI is reading from MongoDB / Redis / MinIO / Temporal)
 ```
 

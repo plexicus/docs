@@ -1,0 +1,47 @@
+---
+title: "XBOM"
+description: "Plexicus's exploitable bill of materials — the dedicated view for software-supply-chain risk. Documentation in progress."
+---
+
+# XBOM \{#concepts_xbom-1\}
+
+XBOM (Exploitable Bill of Materials) is the dedicated Plexicus view for software-supply-chain risk: which third-party components your applications depend on, which of those have known exploits, and how exposure traces back to specific repositories and findings.
+
+XBOM is reachable from the main sidebar at **XBOM** (`app.plexicus.ai/xbom`).
+
+:::warning Documentation in progress
+This page is a placeholder. The XBOM feature is shipped and visible in the UI, but the full documentation — what each panel shows, how to read the supply-chain graph, how XBOM relates to SBOM exports, and the workflow for triaging exploitable components — is still being written.
+
+If you need detail before this page lands, the source-of-truth references are:
+
+- The **XBOM** page itself (`/xbom`) and its inline tooltips.
+- [`Findings Model`](/docs/concepts/findings-model) — XBOM is built from the same findings catalog filtered to dependency-CVE class.
+- [`Supply Chain chart`](/docs/reference/dashboards) — the supply-chain dashboard endpoint shares its data source with XBOM.
+- The chart-bundled SBOM exports per application (Syft / Trivy).
+
+Open an issue at [github.com/plexicus/docs](https://github.com/plexicus/docs) if you'd like to prioritize this page.
+:::
+
+## What we know so far \{#concepts_xbom-2\}
+
+- XBOM is a first-class section of the Plexicus UI (`/xbom` route, `sidebar.xbom_title` i18n key).
+- It surfaces dependency-level risk, distinct from per-finding triage in `/findings`.
+- Data comes from the same enrichment pipeline as Findings — Trivy SCA, Syft, Grype, and BlackDuck (when configured) feed it.
+- The "X" in XBOM stands for *exploitable* — XBOM filters the broader dependency inventory to components with known exploit paths (EPSS-scored, CVE-mapped).
+
+## Related \{#concepts_xbom-3\}
+
+<CardGroup cols={2}>
+  <Card title="Findings Model" icon="material-symbols:bug-report-outline" href="/docs/concepts/findings-model">
+    The data model that backs XBOM.
+  </Card>
+  <Card title="Dashboards" icon="material-symbols:dashboard-outline" href="/docs/reference/dashboards">
+    The Supply Chain chart shares XBOM's data source.
+  </Card>
+  <Card title="Scanner Catalog" icon="material-symbols:list-alt-outline" href="/docs/reference/scanner-catalog">
+    SCA scanners (Trivy, Syft, Grype, BlackDuck) that feed XBOM.
+  </Card>
+  <Card title="Export Findings" icon="material-symbols:download-outline" href="/docs/recipes/export-findings">
+    SBOM exports per application.
+  </Card>
+</CardGroup>

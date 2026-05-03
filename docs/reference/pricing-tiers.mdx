@@ -1,111 +1,84 @@
 ---
-title: "Pricing Tiers"
-description: "Free, Trial, Essentials, Pro, Enterprise — what each tier includes and where the limits bite."
+title: "Pricing & Plans"
+description: "Where to find current plans, where the limits bite, and how billing flows in SaaS, Microsoft Marketplace, and self-hosted."
 ---
 
-# Pricing Tiers \{#reference_pricing-tiers-1\}
+# Pricing & Plans \{#reference_pricing-tiers-1\}
 
-Plexicus has five tiers backed by Stripe (SaaS) or pre-paid licensing (self-hosted Enterprise). Tier choice is per-organization and changes via Organization → Billing.
+Plexicus pricing is **fetched live** from Stripe (or Microsoft Marketplace, if you onboarded that way). This page does not list specific plan names or prices because they change — query the live API or open the **Plan & Pricings** page in the UI for the current state.
 
-:::tip Read the live `GET /pricings`
-This page is the canonical *what each tier means*. The exact prices and SKU details live in `GET /pricings` (authenticated) — query that endpoint for current pricing data, since prices change.
+:::tip Where to look
+- **In the UI:** *Plan & Pricings* page (`app.plexicus.ai/plan-pricings`) shows the plans and limits that apply to your tenant.
+- **From the API:** `GET /pricings` returns the same data programmatically.
+- **In your account:** *Subscription Detail* (`app.plexicus.ai/payment`) shows your current plan + usage.
 :::
 
-## Tier matrix \{#reference_pricing-tiers-2\}
+## How plans are structured \{#reference_pricing-tiers-2\}
 
-| Capability | Free | Trial | Essentials | Pro | Enterprise |
-|---|:-:|:-:|:-:|:-:|:-:|
-| Connected repositories | 1 | 5 | 10 | 50 | unlimited |
-| Connected cloud accounts | — | 1 | 1 | 5 | unlimited |
-| Manual scan trigger | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Scheduled scans | — | ✅ | ✅ | ✅ | ✅ |
-| Webhook-triggered scans | — | ✅ | ✅ | ✅ | ✅ |
-| AI Remediation (PRs) | — | ✅ | ✅ | ✅ | ✅ |
-| Bulk remediation | — | — | ✅ | ✅ | ✅ |
-| Deep reasoning enrichment | — | — | — | ✅ | ✅ |
-| Custom AI provider (BYO key) | — | — | — | ✅ | ✅ |
-| API tokens (CI/CD) | 1 | 3 | 5 | 25 | unlimited |
-| Team members | 1 | 3 | 5 | 25 | unlimited |
-| Jira / ServiceNow integration | — | — | — | ✅ | ✅ |
-| SSO (SAML / OIDC) | — | — | — | — | ✅ |
-| Custom domain binding | — | — | — | ✅ | ✅ |
-| Audit log retention | 30 days | 30 days | 90 days | 365 days | configurable |
-| Self-hosted option | — | — | — | — | ✅ |
-| Data residency choice | — | — | — | EU | EU + custom |
-| Dedicated support | — | — | community | email | priority + Slack |
-| SLA | — | — | — | 99.5% | 99.9% |
+Each plan defines:
 
-The exact numerical limits above are *typical defaults at the time of writing* and may differ from the live `GET /pricings` response. Always trust the live API for billing decisions.
+- **Limits** — repositories, cloud accounts, team members, API tokens.
+- **Features** — scheduled scans, AI remediation, bulk remediation, deep-reasoning enrichment, SSO, Jira / ServiceNow integration, custom domain binding.
+- **Support tier** — community / email / priority.
+
+Free-tier clients have scheduled scans disabled (the analysis-scheduler explicitly skips them). Other limits are enforced at the API level — when you hit a cap, the response is `409` with a message naming the limit.
 
 ## Where the limits bite \{#reference_pricing-tiers-3\}
 
-What happens when you hit each cap:
-
 <AccordionGroup>
   <Accordion title="Repository limit hit" icon="material-symbols:fork-right-outline">
-    Adding a new application is blocked with `409 Repository limit reached for tier {tier}`. Existing repositories continue scanning. Either upgrade or remove unused repos.
+    Adding a new application is blocked. Existing repositories continue scanning. Either upgrade or remove unused repos.
   </Accordion>
   <Accordion title="Cloud account limit hit" icon="material-symbols:cloud-outline">
-    Same — `POST /create-cloud-scan` returns 409. Existing cloud apps unaffected.
+    Same — `POST /create_cloud_scan` returns `409`. Existing cloud apps unaffected.
   </Accordion>
   <Accordion title="Free tier — no scheduled scans" icon="material-symbols:schedule-outline">
-    Free clients are explicitly skipped by `analysis-scheduler`:
+    The `analysis-scheduler` service explicitly skips free-tier clients:
 
     > For each repo, check client subscription (skip free tier)
 
-    You can still trigger manual scans, but the daily/weekly cadence is off.
+    Manual scan triggers still work. Webhook-triggered scans depend on tier.
   </Accordion>
   <Accordion title="API token limit hit" icon="material-symbols:key-outline">
-    `POST /user/generate-api-token` returns 409. Revoke an unused token first via [Generate API Token](/docs/recipes/generate-api-token).
+    `POST /user/generate-api-token` returns `409`. Revoke an unused token first via [Generate API Token](/docs/recipes/generate-api-token).
   </Accordion>
   <Accordion title="Team member limit hit" icon="material-symbols:group-outline">
-    `POST /team` returns 409. Remove an inactive member or upgrade.
-  </Accordion>
-  <Accordion title="Audit log retention exceeded" icon="material-symbols:history-outline">
-    Older entries are deleted automatically (per `AUDIT_RETENTION_DAYS`). For longer retention on a lower tier, export the log periodically — see [Export Findings](/docs/recipes/export-findings).
+    `POST /team` returns `409`. Remove an inactive member or upgrade.
   </Accordion>
 </AccordionGroup>
 
-## Trial conversion \{#reference_pricing-tiers-4\}
-
-Trial = a time-limited Pro tier (30 days by default). At the end:
-
-- If a payment method is on file → auto-converts to **Essentials** (not Pro). Upgrade explicitly to stay on Pro.
-- If no payment method → reverts to Free. Excess data (repos beyond limit, extra team members) is preserved but **read-only** until you upgrade or remove the excess.
-
-## Self-hosted licensing \{#reference_pricing-tiers-5\}
+## Self-hosted \{#reference_pricing-tiers-5\}
 
 Self-hosted deployments use a license key issued by Plexicus, not Stripe. The key is set via the Helm chart's `licenseKey` value or a Kubernetes Secret.
 
 License keys encode:
 
-- Tier (always Enterprise for self-hosted)
-- Expiry date
-- Maximum allowed clients (multi-tenant self-hosted) or unlimited (single-tenant)
-- Feature flags (SSO, AI provider override, etc.)
+- Expiry date.
+- Maximum allowed clients (multi-tenant) or unlimited (single-tenant).
+- Feature flags (SSO, AI provider override, etc.).
 
-Renewal is handled via [engineering@plexicus.ai](mailto:engineering@plexicus.ai). Expired keys put the deployment into degraded mode (existing scans continue; new scans blocked).
+Renewal is handled via [engineering@plexicus.ai](mailto:engineering@plexicus.ai). Expired keys put the deployment into a degraded mode — existing scans continue; new scans are blocked.
 
 ## Microsoft Marketplace \{#reference_pricing-tiers-6\}
 
-Plexicus is also available via the Microsoft Marketplace (Azure-only billing). Tier mapping is the same; billing flows through your Azure subscription instead of Stripe. SSO with Azure AD is included on the marketplace SKU regardless of tier.
+Plexicus is available via the Azure Marketplace. Billing flows through your Azure subscription instead of Stripe; the plan structure and limits mirror the Stripe SKUs. Activation status is shown at `app.plexicus.ai/microsoft-marketplace`.
 
-## Reading your current tier \{#reference_pricing-tiers-7\}
+## Reading your current plan \{#reference_pricing-tiers-7\}
 
 ```bash
 curl -X GET "https://app.plexicus.ai/client" \
   -H "Authorization: Bearer $TOKEN"
 ```
 
-Look for `subscription_tier`. The full tier definition (including limits as currently provisioned for your account) is in `subscription_features`.
+Look for `subscription_tier` and `subscription_features`. The shape comes from your billing provider — Stripe returns `product.name` and `metadata`, Microsoft Marketplace returns `planId`.
 
 ## Related \{#reference_pricing-tiers-8\}
 
 <CardGroup cols={2}>
-  <Card title="Organization Settings" icon="material-symbols:settings-outline" href="/docs/reference/organization-settings">
+  <Card title="Organization & Account Settings" icon="material-symbols:settings-outline" href="/docs/reference/organization-settings">
     Where to upgrade, change payment method, view invoices.
   </Card>
   <Card title="Self-Hosted" icon="material-symbols:dns-outline" href="/docs/self-hosted">
-    The Enterprise + on-prem option.
+    Enterprise + on-premises option.
   </Card>
 </CardGroup>

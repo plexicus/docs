@@ -28,7 +28,7 @@ Self-signed certificates produce browser warnings and cannot be used by webhook 
 | DNS | Two hostnames pointing at the server's public IP | Either a real DNS record (`plexicus.eval.example.com`, `api.plexicus.eval.example.com`) or a per-machine `/etc/hosts` entry on each evaluator's laptop. The default chart values use `plexicus.local` / `api.plexicus.local` — adjust to fit. |
 | Plexicus registry credentials | A Google Cloud service account JSON (`keys.json`) | Provided by Plexicus when you request evaluation access. The chart pulls all custom images from `europe-west3-docker.pkg.dev` using this key. Email **[engineering@plexicus.ai](mailto:engineering@plexicus.ai)** to obtain it. |
 
-If you do not have a server yet, any cloud VM (Hetzner, DigitalOcean, AWS Lightsail, GCP small instance, …) running stock Ubuntu 24.04 will do. The numbers above are the ones the procedure was actually validated against — **4 vCPU / 7.6 GiB RAM / 150 GB disk** completed Tier A + Tier B with comfortable headroom.
+If you do not have a server yet, any cloud VM (Hetzner, DigitalOcean, AWS Lightsail, GCP small instance, …) running stock Ubuntu 24.04 will do. The numbers above are the ones the procedure was actually validated against — **4 vCPU / 7.6 GiB RAM / 150 GB disk** completed an end-to-end install + scan with comfortable headroom.
 
 ### Where you run each command
 

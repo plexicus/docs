@@ -1,85 +1,108 @@
 ---
-title: "Client"
-description: "Start configuring your account"
+title: "Organization & Account Settings"
+description: "Where to configure your account, organization, team, billing, and integrations in the Plexicus UI."
 ---
 
-## Configure Your Profile \{#organization_client-1}
+# Organization & Account Settings \{#organization_client-1\}
 
-### Enable Two-Factor Authentication \{#organization_client-2}
+This page is the operator's map of the Settings area. Each section below names the **UI label**, the **path** in the SaaS, and what you do there.
 
-1. Navigate to [Authentication Settings](https://app.plexicus.ai/settings#authentication).
-2. Click **Enable two-factor authentication**.
-3. Follow the steps to set up two-factor authentication on your preferred authenticator app.
+The Settings sidebar is reached from the user menu in the top-right corner of any page.
 
-### Change Your Password \{#organization_client-3}
+## Account \{#organization_client-3\}
 
-1. Navigate to [Account Settings](https://app.plexicus.ai/settings#account).
-2. Enter your current password.
-3. Enter your new password and confirm it by entering it again.  
-   **Password Requirements:**
-   - Minimum of 8 characters.
-   - At least one uppercase letter.
-   - At least one special character.
-   - At least one number.
-4. Click the **Save User** button.
+Path: **Settings → Account** (`app.plexicus.ai/settings/account`).
 
----
+Change your password (for accounts created with email + password — Google or SCM-OAuth users skip this section):
 
-## Configure Your Organization \{#organization_client-4}
+1. Enter your current password.
+2. Enter the new password and confirm.
+   - Minimum 8 characters
+   - At least one uppercase letter
+   - At least one number
+   - At least one special character
+3. Click **Save**.
 
-### Save Your Organization Name \{#organization_client-5}
+Account deletion lives at **Settings → Account → Delete account** (`/settings/account/deletion`). Deletion is irreversible.
 
-1. Navigate to [Organization Settings](https://app.plexicus.ai/organization).
-2. Select the **Client** section.
-3. Enter your organization's name.
-4. Click the **Save Client** button.
+## Authentication (2FA) \{#organization_client-2\}
 
-### Change Your Plexicus Settings \{#organization_client-6}
+Path: **Settings → Authentication** (`app.plexicus.ai/settings/authentication`).
 
-#### Modify Your Schedule Scan \{#organization_client-7}
+Enable two-factor authentication and manage authenticator app pairing. Full walkthrough: [Configure 2FA](/docs/recipes/configure-2fa).
 
-1. Navigate to [Organization Settings](https://app.plexicus.ai/organization).
-2. Select the **Covulor** section.
-3. Choose your preferred schedule option:
-   - None
-   - Weekly
-   - Monthly
-4. Click the **Save** button.
+## Plexalyzer Token \{#organization_client-9\}
 
-#### Enable Advanced AI Analysis
+Path: **Settings → Plexalyzer Token** (`app.plexicus.ai/settings/plexalyzer-token`).
 
-1. Toggle the switch to enable **Advanced AI Analysis**.
+Generate, view, and revoke the Plexalyzer service token used by self-hosted Plexalyzer workers to authenticate against the platform. Most SaaS users don't need this — it's intended for self-hosted scanning workers.
 
-#### Enable Prioritization Managed by Plexicus
+## Domain Verification \{#organization_client-10\}
 
-1. Toggle the switch to enable **Prioritization Managed by Plexicus**.
+Path: **Settings → Domain Verification** (`app.plexicus.ai/settings/domain-verification`).
 
-### Add Members to Your Team
+Register and verify a custom domain to bind your tenant to. Full walkthrough: [Register a Domain](/docs/recipes/register-domain).
 
-1. Navigate to [Team Settings](https://app.plexicus.ai/organization).
-2. Select the **Team** section.
-3. Enter the new member's email in the input field.
-4. Select their role:
-   - **Developer**
-   - **Cyberoper**
-5. Click the **Create** button.
+## Client (Organization profile) \{#organization_client-4\}
 
-### Set Up Payment Methods
+Path: **Settings → Client** (`app.plexicus.ai/settings/client`).
 
-1. Navigate to [Billing Settings](https://app.plexicus.ai/organization).
-2. Select the **Billing** section.
-3. Enter the following details:
-   - Credit card information.
-   - Address.
-   - Legal name.
-4. Click the **Save Billing** button.
+This is the organization-level profile page. Configure:
 
-### Make Changes to Your Azure Credentials
+- **Organization name** — your company name as shown to your team.
+- **Schedule scan** — pick a recurring scan cadence (None / Weekly / Monthly).
+- **Advanced AI Analysis** — toggle deep-reasoning enrichment on findings.
+- **Prioritization Managed by Plexicus** — let Plexicus recompute finding priority based on runtime context.
 
-1. Navigate to [Azure OpenAI Settings](https://app.plexicus.ai/organization).
-2. Select the **Azure OpenAI** section.
-3. Enter the following details:
-   - API Key.
-   - API Version (optional).
-   - Deployment Name.
-   - Base URL.
+Click **Save** when done.
+
+## CNAPP \{#organization_client-11\}
+
+Path: **Settings → CNAPP** (`app.plexicus.ai/settings/cnapp`).
+
+Cloud-native security configuration: which scanners run, severity thresholds, custom parameters per tool. See [Customize Scanners](/docs/recipes/customize-scanners) and [Configure Custom Parameters](/docs/recipes/configure-custom-parameters).
+
+## Team \{#organization_client-8\}
+
+Path: **Settings → Team** (`app.plexicus.ai/settings/team`).
+
+Invite and manage team members:
+
+1. Enter the new member's email.
+2. Pick a role:
+   - **Cyberoper** — security operator; triages findings, manages remediations.
+   - **Developer** — engineer who fixes findings assigned to them.
+   - (Admin invites are managed via the audit / superadmin path.)
+3. Click **Invite**.
+
+Role definitions: [Roles and Permissions](/docs/concepts/roles-and-permissions).
+
+## Subscription \{#organization_client-12\}
+
+Path: **Subscription Detail** (`app.plexicus.ai/payment`) — accessible from Settings or from the user-menu's "Subscription" link.
+
+Sub-pages:
+
+- **Information** (`/payment/info`) — current plan, payment method, billing address.
+- **Invoices** (`/payment/invoices`) — download past invoices.
+- **Cancel / Reactivate** (`/payment/cancel`).
+
+For tier matrices and limits, see [Pricing Tiers](/docs/reference/pricing-tiers).
+
+## Microsoft Marketplace \{#organization_client-13\}
+
+If you onboarded via the Azure Marketplace, billing flows through your Azure subscription instead of Stripe. Activation status is at `app.plexicus.ai/microsoft-marketplace`.
+
+## Language \{#organization_client-14\}
+
+Path: **Settings → Language** (`app.plexicus.ai/settings/language`).
+
+Switch the UI between English and Spanish.
+
+## AI Provider \{#organization_client-15\}
+
+OpenAI / Azure OpenAI / DeepSeek configuration is managed via the **CNAPP** section above (or via the API for self-hosted). See [Configure AI Provider](/docs/recipes/configure-ai-provider) for the full setup.
+
+:::note Geo-region restrictions
+On the SaaS, registration from some countries (notably Spain) is routed to a contact form. This is a regional regulation policy, not a per-organization setting. Self-hosted deployments don't apply geo-restrictions.
+:::

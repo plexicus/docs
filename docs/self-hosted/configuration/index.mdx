@@ -25,20 +25,22 @@ Plexicus integrations fall into three categories. Only the first two are documen
 
 Integrations where **you bring your own credentials and your own external service**. Self-hosted Plexicus connects to the endpoints you specify, using the keys you provide.
 
-| Integration | Purpose | Required? | Source of truth |
-|-------------|---------|-----------|-----------------|
-| **GitHub App** | Scan GitHub repositories | Conditional — required if you scan GitHub | _coming soon_ — see `docs/secrets-management.md` bundled with the chart artifact |
-| **GitHub OAuth** | "Login with GitHub" for end users | Optional | _coming soon_ |
-| **GitLab OAuth** | Scan GitLab repositories + login | Optional | _coming soon_ |
-| **Bitbucket OAuth** | Scan Bitbucket repositories + login | Optional | _coming soon_ |
-| **Gitea OAuth** | Scan self-hosted Gitea repositories + login | Optional | _coming soon_ |
-| **Google OAuth** | "Login with Google" for end users | Optional | _coming soon_ |
-| **AI Piloting** (Azure OpenAI / OpenAI) | AI-powered remediation and enrichment | Required for AI features; degraded gracefully without | _coming soon_ |
-| **SMTP** | Email verification, invitations, password resets | **Required** | _coming soon_ |
-| **Cloudflare Turnstile** | Bot protection on public signup forms | Optional — leave empty to disable | _coming soon_ |
-| **Object storage** | Artifacts, scan reports, AI inputs/outputs | Required (bundled MinIO works out-of-the-box) | _coming soon_ |
-| **Image registry mirror** | Mirror all custom images from your own registry — required for air-gapped or restricted networks | Optional | `docs/image-registry.md` (bundled with the chart artifact) |
-| **Infrastructure prerequisites (MongoDB, Redis, Temporal, MinIO, PostgreSQL)** | Five infra services that the Plexicus chart depends on. Install each as a separate Helm release in the same namespace before installing the umbrella chart. Customers running their own already-managed instances can skip the corresponding install and point Plexicus at the existing endpoint. | **Required** (chart 1.2.0+ no longer bundles them — bundling exceeded the 1 MB Helm release Secret limit) | `getting-started.md` and `secrets-management.md` (bundled with the chart artifact) |
+| Integration | Purpose | Required? |
+|-------------|---------|-----------|
+| **GitHub App** | Scan GitHub repositories | Conditional — required if you scan GitHub |
+| **GitHub OAuth** | "Login with GitHub" for end users | Optional |
+| **GitLab OAuth** | Scan GitLab repositories + login | Optional |
+| **Bitbucket OAuth** | Scan Bitbucket repositories + login | Optional |
+| **Gitea OAuth** | Scan self-hosted Gitea repositories + login | Optional |
+| **Google OAuth** | "Login with Google" for end users | Optional |
+| **AI provider** (OpenAI / Azure OpenAI / DeepSeek) | AI-powered remediation and enrichment | Required for AI features; degrades gracefully without |
+| **SMTP** | Email verification, invitations, password resets | **Required** |
+| **Cloudflare Turnstile** | Bot protection on public signup forms | Optional — leave empty to disable |
+| **Object storage** | Artifacts, scan reports, AI inputs/outputs | Required (bundled MinIO works out-of-the-box) |
+| **Image registry mirror** | Mirror all custom images from your own registry — required for air-gapped or restricted networks | Optional |
+| **Infrastructure prerequisites** (MongoDB, Redis, Temporal, MinIO, PostgreSQL) | Five infra services that the Plexicus chart depends on. Install each as a separate Helm release in the same namespace before installing the umbrella chart. | **Required** (the chart no longer bundles them — bundling exceeded the 1 MB Helm release Secret limit) |
+
+For the canonical secrets-management procedure (every key per service, the `existingSecret` pattern, ready-to-paste `kubectl create secret` examples), pull the chart artifact and read the bundled `docs/secrets-management.md` — see [Where to look in the meantime](#self-hosted_configuration_index-6) below. Image-mirroring is covered in `docs/image-registry.md` bundled with the chart.
 
 ### 🟡 Chart-internal (no setup needed) \{#self-hosted_configuration_index-4}
 
