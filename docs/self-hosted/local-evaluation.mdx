@@ -25,7 +25,7 @@ Self-signed certificates produce browser warnings and cannot be used by webhook 
 | RAM | **8 GB** | Less than 8 GB will OOMKill `fastapi` or schedule failures on `plexalyzer-*`. |
 | Disk | **50 GB** | The chart artifacts plus Plexicus container images consume ~10 GB; persistent volumes for MongoDB / MinIO / PostgreSQL add another ~5 GB. 50 GB leaves headroom for scan workloads. |
 | Network | **Public IP, ports 22/80/443 reachable** | k3s' built-in `klipper-lb` LoadBalancer assigns the node's public IP as the ingress EXTERNAL-IP, so the install procedure does not need an external load balancer or reverse proxy. |
-| DNS | Two hostnames pointing at the server's public IP | Either a real DNS record (`plexicus.eval.example.com`, `api.plexicus.eval.example.com`) or a per-machine `/etc/hosts` entry on each evaluator's laptop. The default chart values use `plexicus.local` / `api.plexicus.local` — adjust to fit. |
+| DNS | Two hostnames pointing at the server's public IP | Add `<server-ip> plexicus.local api.plexicus.local` to `/etc/hosts` on each evaluator's laptop (requires `sudo`). |
 | Plexicus registry credentials | A Google Cloud service account JSON (`keys.json`) | Provided by Plexicus when you request evaluation access. The chart pulls all custom images from `europe-west3-docker.pkg.dev` using this key. Email **[engineering@plexicus.ai](mailto:engineering@plexicus.ai)** to obtain it. |
 
 If you do not have a server yet, any cloud VM (Hetzner, DigitalOcean, AWS Lightsail, GCP small instance, …) running stock Ubuntu 24.04 will do. The numbers above are the ones the procedure was actually validated against — **4 vCPU / 7.6 GiB RAM / 150 GB disk** completed Tier A + Tier B with comfortable headroom.
@@ -169,7 +169,7 @@ kubectl create secret docker-registry gar-secret \
 The Plexicus chart 1.2.0+ does **not** bundle MongoDB / Redis / MinIO / PostgreSQL / Temporal — bundling them pushed the chart `.tgz` over the 1 MB Kubernetes Secret limit Helm uses for release storage. Install each as its own Helm release in the `plexicus` namespace.
 
 :::note Bitnami licensing change (August 2025)
-Bitnami moved their official chart images to a paid distribution. Free legacy images live under `docker.io/bitnamilegacy/*`. The commands below override every image reference (main + init + sidecar containers) accordingly. The `bitnamilegacy/*` images are amd64-only — perfect for this Ubuntu evaluator path. (For arm64 macOS evaluation see the appendix at the bottom of this page.)
+Bitnami moved their official chart images to a paid distribution. Free legacy images live under `docker.io/bitnamilegacy/*`. The commands below override every image reference (main + init + sidecar containers) accordingly. The `bitnamilegacy/*` images are amd64-only — perfect for this Ubuntu evaluator path.
 :::
 
 ```bash
@@ -287,12 +287,23 @@ kubectl -n plexicus create secret generic plexicus-fastapi \
   --from-literal=GITHUB_CLIENT_SECRET="" \
   --from-literal=GITLAB_CLIENT_SECRET="" \
   --from-literal=BITBUCKET_CLIENT_SECRET="" \
+  --from-literal=BITBUCKET_ACCESS_TOKEN="" \
   --from-literal=MINIO_ROOT_PASSWORD="$MINIO_PASS" \
   --from-literal=SMTP_PASSWORD="" \
   --from-literal=OPENAI_API_KEY="" \
   --from-literal=BREAK_GLASS_SECRET_KEY="$BREAK_GLASS" \
   --from-literal=SSO_RELAY_STATE_SECRET="$SSO_RELAY" \
-  --from-literal=SSO_ENCRYPTION_KEY="$SSO_ENCRYPT"
+  --from-literal=SSO_ENCRYPTION_KEY="$SSO_ENCRYPT" \
+  --from-literal=DEPLOYMENT_MANAGER_OPENAI_API_KEY_FREE="" \
+  --from-literal=SWE_OPENAI_API_KEY="" \
+  --from-literal=STRIPE_API_KEY="" \
+  --from-literal=STRIPE_WEBHOOK_SECRET="" \
+  --from-literal=CANNY_PRIVATE_TOKEN="" \
+  --from-literal=POSTHOG_API_KEY="" \
+  --from-literal=POSTHOG_PERSONAL_API_KEY="" \
+  --from-literal=MAUTIC_AUTH="" \
+  --from-literal=MICROSOFT_MARKETPLACE_CLIENT_SECRET="" \
+  --from-literal=MICROSOFT_INSTRUMENTATION_KEY=""
 
 kubectl -n plexicus create secret generic plexicus-worker \
   --from-literal=DATABASE_PASSWORD="$DB_PASS" \
@@ -303,10 +314,19 @@ kubectl -n plexicus create secret generic plexicus-worker \
   --from-literal=MINIO_ROOT_PASSWORD="$MINIO_PASS" \
   --from-literal=PLEXALYZER_TOKEN="$PLEXALYZER_SECRET" \
   --from-literal=AZURE_RESOURCE_PASSWORD="" \
+  --from-literal=AZURE_RESOURCE_USERNAME="" \
   --from-literal=OPENAI_API_KEY="<your-openai-or-deepseek-or-azure-openai-key>"
 
 kubectl -n plexicus create secret generic plexicus-frontend \
-  --from-literal=NUXT_SECRET_KEY="$NUXT_SECRET"
+  --from-literal=NUXT_SECRET_KEY="$NUXT_SECRET" \
+  --from-literal=NUXT_GITHUB_SECRET_KEY="" \
+  --from-literal=NUXT_GITLAB_SECRET_KEY="" \
+  --from-literal=NUXT_BITBUCKET_CLOUD_SECRET="" \
+  --from-literal=NUXT_GOOGLE_CLIENT_SECRET="" \
+  --from-literal=NUXT_STRIPE_KEY="" \
+  --from-literal=NUXT_PILOTING_KEY="" \
+  --from-literal=NUXT_PILOTING_REMEDIATOR_KEY="" \
+  --from-literal=NUXT_TURNSTILE_SECRET_KEY=""
 
 kubectl -n plexicus create secret generic plexicus-analysis-scheduler \
   --from-literal=DATABASE_PASSWORD="$DB_PASS" \
@@ -321,11 +341,14 @@ kubectl -n plexicus create secret generic plexicus-exporter \
   --from-literal=DATABASE_PASSWORD="$DB_PASS" \
   --from-literal=OPENAI_API_KEY=""
 
-for s in plexalyzer-code plexalyzer-prov; do
-  kubectl -n plexicus create secret generic plexicus-$s \
-    --from-literal=PLEXALYZER_SECRET_KEY="$PLEXALYZER_SECRET" \
-    --from-literal=OPENAI_API_KEY=""
-done
+kubectl -n plexicus create secret generic plexicus-plexalyzer-code \
+  --from-literal=PLEXALYZER_SECRET_KEY="$PLEXALYZER_SECRET" \
+  --from-literal=OPENAI_API_KEY="" \
+  --from-literal=NVD_API_KEY=""
+
+kubectl -n plexicus create secret generic plexicus-plexalyzer-prov \
+  --from-literal=PLEXALYZER_SECRET_KEY="$PLEXALYZER_SECRET" \
+  --from-literal=OPENAI_API_KEY=""
 ```
 
 The empty values are fine for an evaluation install; features that depend on them (GitHub OAuth scanning, AI remediation, transactional email) will be unavailable until you fill them in.
@@ -653,13 +676,3 @@ Symptom: the SPA can't talk to `api.plexicus.local`. `curl -i -X OPTIONS -H "Ori
 
 Symptom: the Sandbox flow reaches "Scanning in progress" and the modal "Scanning taking longer than expected" appears after 15 minutes. Worker logs show `openai.OpenAIError: The api_key client option must be set either by passing api_key to the client or by setting the OPENAI_API_KEY environment variable`. Cause: the worker's `existingSecret` (`plexicus-worker`) is missing `OPENAI_API_KEY`. Fix: add it (`kubectl -n plexicus patch secret plexicus-worker --type=json -p='[{"op":"add","path":"/data/OPENAI_API_KEY","value":"<base64-of-your-deepseek-or-openai-key>"}]'`) and restart the worker. Chart 1.2.0+ wires the matching non-secret env vars (`OPENAI_BASE_URL`, `OPENAI_DEPLOYMENT_NAME`, `OPENAI_VERSION`) automatically.
 
----
-
-## Appendix — macOS evaluation via kind / Docker Desktop \{#self-hosted_local-evaluation-appendix-mac}
-
-Running the evaluator path on macOS is supported but adds two friction points the Linux/k3s path avoids:
-
-1. **arm64 Apple Silicon vs. amd64 images.** Plexicus container images and several Bitnami legacy images (notably `bitnamilegacy/mongodb`) are amd64-only. Docker Desktop's Rosetta-for-x86 emulation works in `KubernetesMode: kubeadm` but **not** in `kind` mode — verify Settings → Kubernetes shows "kubeadm" before installing the chart. For mongodb specifically, fall back to the upstream multi-arch `mongo:8.0` image deployed via a plain `Deployment` instead of the Bitnami chart.
-2. **Public-IP routing.** Docker Desktop's K8s LoadBalancer routes to `localhost`, so `https://plexicus.local` works only from the same Mac unless you forward ports to other devices.
-
-The Linux/k3s path above remains the recommended evaluator setup. For a true zero-cost local install, prefer a tiny Hetzner/DO/AWS Lightsail Ubuntu VM ($5/month) over fighting Docker Desktop.
