@@ -355,7 +355,7 @@ The empty values are fine for an evaluation install; features that depend on the
 
 ## 9. Prepare the Plexicus values overlay \{#self-hosted_local-evaluation-values}
 
-Save the following as `/root/values-evaluator.yaml`. Chart 1.2.0+ defaults the in-cluster service names (`mongodb`, `redis-master`, `minio:9000`, etc.), the AI endpoint (DeepSeek's OpenAI-compatible API), and the Turnstile keys (Cloudflare test tokens) — so the overlay only has to override the things specific to your cluster: the domain, the ingress class, the self-signed ClusterIssuer, the prereq passwords, and the per-service `existingSecret` references.
+Save the following as `/root/values-evaluator.yaml`. The overlay sets the domain, ingress class, self-signed ClusterIssuer, prereq passwords, per-service `existingSecret` references, and the full plain-text `envs` catalog for every service. Chart 1.2.0+ provides sensible defaults for the infrastructure variables (database host, Redis, MinIO, Temporal endpoints, Turnstile test tokens) — the values shown here match those defaults. Leave optional integration keys (OAuth, SMTP, Stripe, analytics) empty for a basic evaluation install and fill them in as you enable each feature.
 
 ```yaml
 global:
@@ -393,6 +393,75 @@ global:
 
 fastapi:
   existingSecret: plexicus-fastapi
+  envs:
+    # ── Infrastructure (chart defaults shown; override only if your prereq names differ) ──
+    BACKEND_HOST_URL: "https://api.plexicus.local"
+    FRONTEND_URL: "https://plexicus.local"
+    CORS_ORIGINS: "https://plexicus.local,https://api.plexicus.local"
+    DATABASE_HOST: "mongodb"
+    DATABASE_NAME: "plexicus"
+    DATABASE_USERNAME: "root"
+    DATABASE_PORT: "27017"
+    DATABASE_OPTIONS: ""
+    REDIS_HOST: "redis-master"
+    REDIS_PORT: "6379"
+    REDIS_WEBSOCKET_DB: "0"
+    MINIO_SERVICE: "minio:9000"
+    MINIO_ROOT_USER: "minioadmin"
+    MINIO_DEFAULT_BUCKETS: "platform"
+    TEMPORAL_GRPC_ENDPOINT: "temporal-frontend:7233"
+    TEMPORAL_NAMESPACE: "default"
+    PLEXALYZER_SERVER: "plexalyzer-code"
+    RULE_ENRICHER_SERVER: ""
+    WORKER_ENDPOINT: ""
+    REPOSITORY_WEBHOOK: ""
+    # ── General ──
+    ENVIRONMENT: "production"
+    CLOUD_PROVIDER: ""
+    GELF_LOGGING: "false"
+    OAUTHLIB_INSECURE_TRANSPORT: "0"
+    GOOGLE_CLOUD_PROJECT_ID: ""
+    SCIM_TOKEN_DEFAULT_EXPIRY_DAYS: "365"
+    WEBAUTHN_RP_ID: "plexicus.local"
+    WEBAUTHN_ORIGIN: "https://plexicus.local"
+    # ── SCM OAuth (fill in after registering apps — see production guide) ──
+    GITHUB_APP_ID: ""
+    GITHUB_CLIENT_ID: ""
+    GITHUB_CALLBACK: ""
+    GITHUB_REDIRECT_URI: ""
+    GITHUB_INSTALLATION_URL: ""
+    GITLAB_CLIENT_ID: ""
+    GITLAB_REDIRECT_URI: ""
+    BITBUCKET_CLIENT_ID: ""
+    BITBUCKET_REDIRECT_URI: ""
+    # ── SMTP / transactional email ──
+    SMTP_SERVER: ""
+    SMTP_PORT: "587"
+    SMTP_USERNAME: ""
+    SMTP_FRONTEND_URL: "https://plexicus.local"
+    SMTP_RESET_PASSWORD_URL: ""
+    SMTP_VERIFY_URL: ""
+    # ── AI — free / piloting tier (companion API keys go in step 8 secret) ──
+    FREE_AI_REMEDIATION_PROVIDER_TYPE: ""
+    FREE_AI_VALIDATION_PROVIDER_TYPE: ""
+    DEPLOYMENT_MANAGER_OPENAI_BASE_URL_FREE: ""
+    DEPLOYMENT_MANAGER_OPENAI_DEPLOYMENT_NAME_FREE: ""
+    DEPLOYMENT_MANAGER_OPENAI_VERSION_FREE: ""
+    SWE_OPENAI_BASE_URL: ""
+    SWE_OPENAI_DEPLOYMENT_NAME: ""
+    SWE_OPENAI_VERSION: ""
+    # ── Stripe ──
+    STRIPE_CANCEL_URL: ""
+    STRIPE_SUCCESS_URL: ""
+    # ── Analytics / CRM (optional for eval installs) ──
+    POSTHOG_HOST_URL: ""
+    POSTHOG_PROJECT_ID: ""
+    MAUTIC_URL: ""
+    MAUTIC_TIMEOUT: "30"
+    MAUTIC_VERIFY_SSL: "true"
+    # ── Microsoft Marketplace ──
+    MICROSOFT_MARKETPLACE_CLIENT_ID: ""
+    MICROSOFT_MARKETPLACE_TENANT_ID: ""
   ingress:
     enabled: true
     hosts:
@@ -405,6 +474,47 @@ fastapi:
 
 frontend:
   existingSecret: plexicus-frontend
+  envs:
+    NODE_OPTIONS: ""
+    # ── Public runtime config ──
+    NUXT_PUBLIC_BACKEND_HOST_URL: "https://api.plexicus.local"
+    NUXT_PUBLIC_WEB_HOST_URL: "https://plexicus.local"
+    NUXT_PUBLIC_WEBSOCKET_URL: "wss://api.plexicus.local"
+    # ── Turnstile (chart 1.2.0+ defaults to Cloudflare test tokens for eval) ──
+    NUXT_PUBLIC_TURNSTILE_SITE_KEY: ""
+    NUXT_TURNSTILE_TEST_SUCCESS_TOKEN: ""
+    # ── SCM OAuth ──
+    NUXT_GITHUB_CLIENT_ID: ""
+    NUXT_GITHUB_CALLBACK_URL: ""
+    NUXT_PUBLIC_GITHUB_INSTALLATION_URL: ""
+    NUXT_GITLAB_CLIENT_ID: ""
+    NUXT_GITLAB_CALLBACK_URL: ""
+    NUXT_BITBUCKET_CLOUD_KEY: ""
+    NUXT_BITBUCKET_CLOUD_CALLBACK_URL: ""
+    NUXT_PUBLIC_GOOGLE_CLIENT_ID: ""
+    # ── Stripe ──
+    NUXT_PUBLIC_STRIPE_KEY: ""
+    # ── AI piloting ──
+    NUXT_PILOTING_ENDPOINT: ""
+    NUXT_PILOTING_DEPLOYMENT: ""
+    NUXT_PILOTING_VERSION: ""
+    NUXT_PILOTING_REMEDIATOR_ENDPOINT: ""
+    NUXT_PILOTING_REMEDIATOR_DEPLOYMENT: ""
+    NUXT_PILOTING_REMEDIATOR_VERSION: ""
+    # ── Canny feedback widget ──
+    NUXT_CANNY_APP_ID: ""
+    NUXT_CANNY_BOARD_TOKEN: ""
+    # ── Firebase (optional — for system-status page) ──
+    NUXT_PUBLIC_FIREBASE_API_KEY: ""
+    NUXT_PUBLIC_FIREBASE_APP_ID: ""
+    NUXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ""
+    NUXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: ""
+    NUXT_PUBLIC_FIREBASE_PROJECT_ID: ""
+    NUXT_PUBLIC_FIREBASE_STORAGE_BUCKET: ""
+    NUXT_PUBLIC_FIREBASE_SYSTEM_STATUS_DOC_ID: ""
+    # ── Analytics ──
+    NUXT_PUBLIC_GOOGLE_TAG_MANAGER_ID: ""
+    NUXT_PUBLIC_INSTRUMENTATION_KEY: ""
   ingress:
     enabled: true
     hosts:
@@ -415,12 +525,87 @@ frontend:
       - secretName: plexicus-frontend-tls
         hosts: [plexicus.local]
 
-worker:             { existingSecret: plexicus-worker }
-analysis-scheduler: { existingSecret: plexicus-analysis-scheduler }
-codex-remedium:     { existingSecret: plexicus-codex-remedium }
-exporter:           { existingSecret: plexicus-exporter }
-plexalyzer-code:    { existingSecret: plexicus-plexalyzer-code }
-plexalyzer-prov:    { existingSecret: plexicus-plexalyzer-prov }
+worker:
+  existingSecret: plexicus-worker
+  envs:
+    BACKEND_HOST_URL: "https://api.plexicus.local"
+    DATABASE_HOST: "mongodb"
+    DATABASE_NAME: "plexicus"
+    DATABASE_USERNAME: "root"
+    DATABASE_PORT: "27017"
+    DATABASE_OPTIONS: ""
+    REDIS_HOST: "redis-master"
+    REDIS_PORT: "6379"
+    REDIS_WORKER_DB: "0"
+    MINIO_SERVICE: "minio:9000"
+    MINIO_ROOT_USER: "minioadmin"
+    MINIO_DEFAULT_BUCKETS: "platform"
+    TEMPORAL_GRPC_ENDPOINT: "temporal-frontend:7233"
+    TEMPORAL_NAMESPACE: "default"
+    PLEXALYZER_SERVER: "plexalyzer-code"
+    PLEXALYZER_PORT: "50051"
+    GITHUB_APP_ID: ""
+    IMPORTER_FASTAPI_URL: ""
+    MESSAGE_URL: ""
+    NOTIFICATION_WEBSOCKET_URL: ""
+    REMEDIATION_URL: ""
+    REPOSITORY_WEBHOOK: ""
+    WORKER_ENDPOINT: ""
+    GELF_LOGGING: "false"
+    GAR_LOCATION: ""
+    GAR_PROJECT_ID: ""
+    GAR_REPOSITORY: ""
+
+analysis-scheduler:
+  existingSecret: plexicus-analysis-scheduler
+  envs:
+    DATABASE_HOST: "mongodb"
+    DATABASE_NAME: "plexicus"
+    DATABASE_USERNAME: "root"
+    DATABASE_PORT: "27017"
+    DATABASE_OPTIONS: ""
+    TEMPORAL_GRPC_ENDPOINT: "temporal-frontend:7233"
+    TEMPORAL_NAMESPACE: "default"
+    GELF_LOGGING: "false"
+
+codex-remedium:
+  existingSecret: plexicus-codex-remedium
+  envs:
+    DATABASE_HOST: "mongodb"
+    DATABASE_NAME: "plexicus"
+    DATABASE_USERNAME: "root"
+    DATABASE_PORT: "27017"
+    DATABASE_OPTIONS: ""
+    REDIS_HOST: "redis-master"
+    REDIS_PORT: "6379"
+    REDIS_WORKER_DB: "0"
+    REMEDIATION_URL: ""
+
+exporter:
+  existingSecret: plexicus-exporter
+  envs:
+    DATABASE_HOST: "mongodb"
+    DATABASE_NAME: "plexicus"
+    DATABASE_USERNAME: "root"
+    DATABASE_PORT: "27017"
+    DATABASE_OPTIONS: ""
+    GELF_LOGGING: "false"
+    AI_PROVIDER_TYPE: ""
+    OPENAI_BASE_URL: ""
+    OPENAI_DEPLOYMENT_NAME: ""
+    OPENAI_VERSION: ""
+
+plexalyzer-code:
+  existingSecret: plexicus-plexalyzer-code
+  envs:
+    MESSAGE_URL: ""
+    GELF_LOGGING: "false"
+
+plexalyzer-prov:
+  existingSecret: plexicus-plexalyzer-prov
+  envs:
+    MESSAGE_URL: ""
+    GELF_LOGGING: "false"
 ```
 
 ## 10. Install the Plexicus chart \{#self-hosted_local-evaluation-install}
