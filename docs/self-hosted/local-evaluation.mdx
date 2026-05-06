@@ -394,8 +394,8 @@ fastapi:
   existingSecret: plexicus-fastapi
   envs:
     # ── Overrides: differ from chart global.required.* defaults ──
-    DATABASE_OPTIONS: ""          # chart default: "authSource=admin"; bitnami eval MongoDB omits it
-    REDIS_WEBSOCKET_DB: "0"       # chart default: 1; evaluator uses a single Redis DB index
+    DATABASE_OPTIONS: ""
+    REDIS_WEBSOCKET_DB: "0"
     # ── New envs (not yet wired into chart values.yaml) ──
     OAUTHLIB_INSECURE_TRANSPORT: "0"
     WEBAUTHN_RP_ID: "plexicus.local"
@@ -434,26 +434,26 @@ worker:
   existingSecret: plexicus-worker
   envs:
     # ── Overrides: differ from chart global.required.* defaults ──
-    DATABASE_OPTIONS: ""           # chart default: "authSource=admin"
-    PLEXALYZER_PORT: "50051"       # chart default: 8007; worker connects via gRPC port
+    DATABASE_OPTIONS: ""
+    PLEXALYZER_PORT: "50051"
 
 analysis-scheduler:
   existingSecret: plexicus-analysis-scheduler
   envs:
     # ── Override ──
-    DATABASE_OPTIONS: ""           # chart default: "authSource=admin"; bitnami eval MongoDB omits it
+    DATABASE_OPTIONS: ""
 
 codex-remedium:
   existingSecret: plexicus-codex-remedium
   envs:
     # ── Override ──
-    DATABASE_OPTIONS: ""           # chart default: "authSource=admin"
+    DATABASE_OPTIONS: ""
 
 exporter:
   existingSecret: plexicus-exporter
   envs:
     # ── Override + new env ──
-    DATABASE_OPTIONS: ""           # chart default: "authSource=admin"
+    DATABASE_OPTIONS: ""
     AI_PROVIDER_TYPE: ""           # new env not yet in chart values.yaml
 
 plexalyzer-code:
