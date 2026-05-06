@@ -396,10 +396,6 @@ fastapi:
     # ── Overrides: differ from chart global.required.* defaults ──
     DATABASE_OPTIONS: ""          # chart default: "authSource=admin"; bitnami eval MongoDB omits it
     REDIS_WEBSOCKET_DB: "0"       # chart default: 1; evaluator uses a single Redis DB index
-    RULE_ENRICHER_SERVER: ""      # chart default: "rule-enricher"; disabled for eval
-    WORKER_ENDPOINT: ""           # chart default: "worker:8006"; disabled for eval
-    REPOSITORY_WEBHOOK: ""        # chart derives from domain; no public webhook in eval
-    CLOUD_PROVIDER: ""            # chart default: "google_cloud"; not applicable for eval
     # ── New envs (not yet wired into chart values.yaml) ──
     OAUTHLIB_INSECURE_TRANSPORT: "0"
     WEBAUTHN_RP_ID: "plexicus.local"
@@ -440,12 +436,6 @@ worker:
     # ── Overrides: differ from chart global.required.* defaults ──
     DATABASE_OPTIONS: ""           # chart default: "authSource=admin"
     PLEXALYZER_PORT: "50051"       # chart default: 8007; worker connects via gRPC port
-    IMPORTER_FASTAPI_URL: ""       # chart default: http://fastapi:8000/importer/handle_repository
-    MESSAGE_URL: ""                # chart default: http://fastapi:8000/receive_plexalyzer_message
-    NOTIFICATION_WEBSOCKET_URL: "" # chart default: http://fastapi:8000/notify
-    REMEDIATION_URL: ""            # chart default: http://fastapi:8000/remediations
-    REPOSITORY_WEBHOOK: ""         # chart derives from domain
-    WORKER_ENDPOINT: ""            # chart default: "worker:8006"
 
 analysis-scheduler:
   existingSecret: plexicus-analysis-scheduler
@@ -456,9 +446,8 @@ analysis-scheduler:
 codex-remedium:
   existingSecret: plexicus-codex-remedium
   envs:
-    # ── Overrides ──
+    # ── Override ──
     DATABASE_OPTIONS: ""           # chart default: "authSource=admin"
-    REMEDIATION_URL: ""            # chart default: http://fastapi:8000/remediations
 
 exporter:
   existingSecret: plexicus-exporter
