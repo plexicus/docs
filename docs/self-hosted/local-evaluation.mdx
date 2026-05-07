@@ -295,14 +295,14 @@ kubectl -n plexicus create secret generic plexicus-fastapi \
   --from-literal=REDIS_PASSWORD="$REDIS_PASS" \
   --from-literal=SECRET_KEY="$SECRET_KEY" \
   --from-literal=PLEXALYZER_SECRET_KEY="$PLEXALYZER_SECRET" \
-  --from-literal=GH_APP_PRIVATE_KEY="" \
-  --from-literal=GITHUB_CLIENT_SECRET="" \
+  --from-literal=GH_APP_PRIVATE_KEY="$GH_APP_PRIVATE_KEY" \
+  --from-literal=GITHUB_CLIENT_SECRET="$GITHUB_SECRET" \
   --from-literal=GITLAB_CLIENT_SECRET="" \
   --from-literal=BITBUCKET_CLIENT_SECRET="" \
   --from-literal=BITBUCKET_ACCESS_TOKEN="" \
   --from-literal=MINIO_ROOT_PASSWORD="$MINIO_PASS" \
   --from-literal=SMTP_PASSWORD="" \
-  --from-literal=OPENAI_API_KEY="" \
+  --from-literal=OPENAI_API_KEY="$OPENAI_API_KEY" \
   --from-literal=BREAK_GLASS_SECRET_KEY="$BREAK_GLASS" \
   --from-literal=SSO_RELAY_STATE_SECRET="$SSO_RELAY" \
   --from-literal=SSO_ENCRYPTION_KEY="$SSO_ENCRYPT" \
@@ -322,16 +322,16 @@ kubectl -n plexicus create secret generic plexicus-worker \
   --from-literal=REDIS_PASSWORD="$REDIS_PASS" \
   --from-literal=SECRET_KEY="$SECRET_KEY" \
   --from-literal=PLEXALYZER_SECRET_KEY="$PLEXALYZER_SECRET" \
-  --from-literal=GH_APP_PRIVATE_KEY="" \
+  --from-literal=GH_APP_PRIVATE_KEY="$GH_APP_PRIVATE_KEY" \
   --from-literal=MINIO_ROOT_PASSWORD="$MINIO_PASS" \
   --from-literal=PLEXALYZER_TOKEN="$PLEXALYZER_SECRET" \
   --from-literal=AZURE_RESOURCE_PASSWORD="" \
   --from-literal=AZURE_RESOURCE_USERNAME="" \
-  --from-literal=OPENAI_API_KEY="<your-openai-or-deepseek-or-azure-openai-key>"
+  --from-literal=OPENAI_API_KEY="$OPENAI_API_KEY"
 
 kubectl -n plexicus create secret generic plexicus-frontend \
   --from-literal=NUXT_SECRET_KEY="$NUXT_SECRET" \
-  --from-literal=NUXT_GITHUB_SECRET_KEY="" \
+  --from-literal=NUXT_GITHUB_SECRET_KEY="$GITHUB_SECRET" \
   --from-literal=NUXT_GITLAB_SECRET_KEY="" \
   --from-literal=NUXT_BITBUCKET_CLOUD_SECRET="" \
   --from-literal=NUXT_GOOGLE_CLIENT_SECRET="" \
@@ -342,26 +342,26 @@ kubectl -n plexicus create secret generic plexicus-frontend \
 
 kubectl -n plexicus create secret generic plexicus-analysis-scheduler \
   --from-literal=DATABASE_PASSWORD="$DB_PASS" \
-  --from-literal=OPENAI_API_KEY=""
+  --from-literal=OPENAI_API_KEY="$OPENAI_API_KEY"
 
 kubectl -n plexicus create secret generic plexicus-codex-remedium \
   --from-literal=DATABASE_PASSWORD="$DB_PASS" \
   --from-literal=REDIS_PASSWORD="$REDIS_PASS" \
   --from-literal=PLEXALYZER_SECRET_KEY="$PLEXALYZER_SECRET" \
-  --from-literal=OPENAI_API_KEY=""
+  --from-literal=OPENAI_API_KEY="$OPENAI_API_KEY"
 
 kubectl -n plexicus create secret generic plexicus-exporter \
   --from-literal=DATABASE_PASSWORD="$DB_PASS" \
-  --from-literal=OPENAI_API_KEY=""
+  --from-literal=OPENAI_API_KEY="$OPENAI_API_KEY"
 
 kubectl -n plexicus create secret generic plexicus-plexalyzer-code \
   --from-literal=PLEXALYZER_SECRET_KEY="$PLEXALYZER_SECRET" \
-  --from-literal=OPENAI_API_KEY="" \
+  --from-literal=OPENAI_API_KEY="$OPENAI_API_KEY" \
   --from-literal=NVD_API_KEY=""
 
 kubectl -n plexicus create secret generic plexicus-plexalyzer-prov \
   --from-literal=PLEXALYZER_SECRET_KEY="$PLEXALYZER_SECRET" \
-  --from-literal=OPENAI_API_KEY=""
+  --from-literal=OPENAI_API_KEY="$OPENAI_API_KEY"
 ```
 
 The empty values are fine for an evaluation install; features that depend on them (GitHub OAuth scanning, AI remediation, transactional email) will be unavailable until you fill them in.
