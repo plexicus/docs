@@ -439,19 +439,6 @@ exporter:
   existingSecret: plexicus-exporter
   replicaCount: 0
 
-exporter:
-  # Disable the exporter on chart 1.2.1 — all published image tags (1.0.386,
-  # 1.0.395, latest) crash at startup with:
-  #   ImportError: cannot import name '_QUERY_OPTIONS' from 'pymongo.cursor'
-  # This is a pymongo/motor version conflict inside the exporter image that
-  # has no workaround short of a rebuilt image. Disabling it does not affect
-  # the core scan pipeline.
-  enabled: false
-  existingSecret: plexicus-exporter
-  envs:
-    DATABASE_OPTIONS: ""
-    AI_PROVIDER_TYPE: ""
-
 plexalyzer-code:
   existingSecret: plexicus-plexalyzer-code
   replicaCount: 0
