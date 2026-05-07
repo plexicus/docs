@@ -406,6 +406,7 @@ fastapi:
     OAUTHLIB_INSECURE_TRANSPORT: "0"
     WEBAUTHN_RP_ID: "plexicus.local"
     WEBAUTHN_ORIGIN: "https://plexicus.local"
+    SKIP_EMAIL_VERIFICATION: "true"
   ingress:
     enabled: true
     hosts:
@@ -498,68 +499,15 @@ curl -k -s -o /dev/null -w "API/health %{http_code}\n" -H "Host: api.plexicus.lo
 # API/health 200        (FastAPI is reading from MongoDB / Redis / MinIO / Temporal)
 ```
 
-## 11. Bootstrap the first admin user \{#self-hosted_local-evaluation-bootstrap}
+## 11. Create the first admin user \{#self-hosted_local-evaluation-bootstrap}
 
-The chart ships an empty MongoDB. Plexicus does **not** seed an initial admin during install — every account is created through the registration API and verified by SMTP. Because evaluation deployments rarely have outbound SMTP wired, the registration's email-verification step has to be bypassed manually for the very first user.
+Open `https://plexicus.local` in your browser. Accept the self-signed certificate warning (Chrome: type `thisisunsafe` on the warning page; Firefox / Safari: **Advanced → Proceed**), then do the same on `https://api.plexicus.local/health` so the SPA can reach the API.
+
+Click **Register**, fill in the form (password needs an uppercase, lowercase, digit, and special character — e.g. `ChangeMeNow1!`), and submit. The first user is automatically promoted to `admin` and can log in immediately.
 
 :::warning Eval-only shortcut
-The shortcut below flips a verification flag directly on the Mongo document. Do **not** use this pattern in production — wire real SMTP credentials into `plexicus-fastapi` (`SMTP_PASSWORD`) instead and let users verify by clicking the email link.
+The values overlay in step 9 sets `SKIP_EMAIL_VERIFICATION="true"` so new accounts skip the email-verification step. Do **not** use this in production — wire real SMTP credentials into `plexicus-fastapi` (`SMTP_PASSWORD`) and drop the env from your overlay so the standard verification flow runs.
 :::
-
-### 11.1 Register the first user via the API \{#self-hosted_local-evaluation-register}
-
-The password must satisfy the schema validator (at least one uppercase, one lowercase, one digit, one special character):
-
-```bash
-curl -k -s -X POST \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email":"admin@your-domain.example",
-    "password":"ChangeMeNow1!",
-    "confirm_password":"ChangeMeNow1!",
-    "first_name":"Admin",
-    "last_name":"User",
-    "company":"Your Company"
-  }' \
-  --resolve api.plexicus.local:443:<your-public-ip> \
-  https://api.plexicus.local/register
-# {"success":true,"message":"User successfully registered. Please check your email for verification link."}
-```
-
-### 11.2 Manually verify the user in MongoDB \{#self-hosted_local-evaluation-verify}
-
-```bash
-kubectl -n plexicus exec deploy/mongodb -- mongosh \
-  "mongodb://root:<the-mongo-root-password-from-step-7>@localhost:27017/plexicus?authSource=admin" \
-  --quiet --eval '
-    db.Users.updateOne(
-      { email: "admin@your-domain.example" },
-      { $set: { is_verified: true, role: "admin" } }
-    )
-  '
-# { acknowledged: true, matchedCount: 1, modifiedCount: 1 }
-```
-
-The collection name is `Users` (capital `U`) and the verification flag is `is_verified`.
-
-### 11.3 Log in (API smoke test) \{#self-hosted_local-evaluation-login}
-
-```bash
-curl -k -s -X POST \
-  -H "Content-Type: application/json" \
-  -d '{"email":"admin@your-domain.example","password":"ChangeMeNow1!"}' \
-  --resolve api.plexicus.local:443:<your-public-ip> \
-  https://api.plexicus.local/login
-# {"access_token":"eyJhbGc…","token_type":"bearer"}
-```
-
-`--resolve` is needed because step 5 edited `/etc/hosts` on the **laptop**, not on the server — and these curls run on the server. The flag tells curl to map `api.plexicus.local` to `<your-public-ip>` for this single request.
-
-:::note Browser login is a separate path
-This curl hits the FastAPI `/login` endpoint directly, which does NOT validate the Cloudflare Turnstile token. The browser-based login in §12 DOES — the SPA submits the token via the Nuxt SSR proxy and the chart's Turnstile defaults (test tokens) handle that automatically. If the browser login fails with `Turnstile validation failed` even though the curl above succeeds, you have a Turnstile config issue (see [troubleshooting](#self-hosted_local-evaluation-tt-turnstile-validate)).
-:::
-
-A `200` with an `access_token` confirms the full chain — frontend → ingress → fastapi → MongoDB authentication — is healthy. From here, open `https://plexicus.local` in a browser (accept the self-signed certificate warning) and sign in with the credentials you just registered.
 
 ## 12. First scan — sandbox path (no OAuth required) \{#self-hosted_local-evaluation-scm}
 
@@ -569,13 +517,7 @@ For the production path with real GitHub / GitLab / Bitbucket OAuth, see [§12.a
 
 ### 12.1 Sign in to the panel \{#self-hosted_local-evaluation-scm-signin}
 
-Open `https://plexicus.local` in your browser. You will see the certificate-warning page (the install uses a self-signed issuer). Accept the warning — on Chrome type `thisisunsafe` directly on the page; on Firefox / Safari click **Advanced → Proceed**.
-
-:::warning Accept the API certificate too
-Before signing in, open **`https://api.plexicus.local`** in a separate browser tab and accept the same certificate warning using the same method. The browser treats the two hostnames as separate origins and must trust each one independently. If `api.plexicus.local` is not accepted, login requests from the SPA will be silently blocked and the sign-in button will appear to do nothing.
-:::
-
-Sign in with the admin email and password you bootstrapped in step 11.
+Sign in at `https://plexicus.local` with the credentials you registered in step 11.
 
 ![Plexicus login page with email/password form rendered](/img/self-hosted/scm/01-login.jpg)
 
