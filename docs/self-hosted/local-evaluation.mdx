@@ -249,6 +249,14 @@ kubectl -n plexicus get pods --watch
 
 You should end up with eight `1/1 Running` pods and one `Completed` schema-setup Job.
 
+Once all Temporal pods are `Running`, register the `default` namespace. Login returns `HTTP 500 "Namespace default is not found"` until this step is complete:
+
+```bash
+kubectl -n plexicus exec deploy/temporal-admintools -- \
+  tctl --address temporal-frontend:7233 namespace register default
+# Namespace default successfully registered.
+```
+
 ## 8. Create the per-service application secrets \{#self-hosted_local-evaluation-app-secrets}
 
 Plexicus services read sensitive values (passwords, OAuth client secrets, AI-piloting keys, etc.) from Kubernetes Secrets through the `existingSecret` pattern. Create one Secret per service **before** installing the chart.
@@ -335,7 +343,8 @@ kubectl -n plexicus create secret generic plexicus-analysis-scheduler \
 kubectl -n plexicus create secret generic plexicus-codex-remedium \
   --from-literal=DATABASE_PASSWORD="$DB_PASS" \
   --from-literal=REDIS_PASSWORD="$REDIS_PASS" \
-  --from-literal=PLEXALYZER_SECRET_KEY="$PLEXALYZER_SECRET"
+  --from-literal=PLEXALYZER_SECRET_KEY="$PLEXALYZER_SECRET" \
+  --from-literal=OPENAI_API_KEY=""
 
 kubectl -n plexicus create secret generic plexicus-exporter \
   --from-literal=DATABASE_PASSWORD="$DB_PASS" \
@@ -393,18 +402,10 @@ global:
 fastapi:
   existingSecret: plexicus-fastapi
   envs:
-    # ── Overrides: differ from chart global.required.* defaults ──
-    DATABASE_OPTIONS: ""
-    REDIS_WEBSOCKET_DB: "0"
-    # ── New envs (not yet wired into chart values.yaml) ──
+    # New envs not yet wired into chart values.yaml
     OAUTHLIB_INSECURE_TRANSPORT: "0"
     WEBAUTHN_RP_ID: "plexicus.local"
     WEBAUTHN_ORIGIN: "https://plexicus.local"
-    FREE_AI_REMEDIATION_PROVIDER_TYPE: ""
-    FREE_AI_VALIDATION_PROVIDER_TYPE: ""
-    MAUTIC_URL: ""
-    MAUTIC_TIMEOUT: "30"
-    MAUTIC_VERIFY_SSL: "true"
   ingress:
     enabled: true
     hosts:
@@ -417,9 +418,6 @@ fastapi:
 
 frontend:
   existingSecret: plexicus-frontend
-  envs:
-    # ── New env (not yet in chart values.yaml) ──
-    NODE_OPTIONS: ""
   ingress:
     enabled: true
     hosts:
@@ -432,35 +430,22 @@ frontend:
 
 worker:
   existingSecret: plexicus-worker
-  envs:
-    # ── Overrides: differ from chart global.required.* defaults ──
-    DATABASE_OPTIONS: ""
-    PLEXALYZER_PORT: "50051"
 
 analysis-scheduler:
   existingSecret: plexicus-analysis-scheduler
-  envs:
-    # ── Override ──
-    DATABASE_OPTIONS: ""
-
-codex-remedium:
-  existingSecret: plexicus-codex-remedium
-  envs:
-    # ── Override ──
-    DATABASE_OPTIONS: ""
+  replicaCount: 0
 
 exporter:
   existingSecret: plexicus-exporter
-  envs:
-    # ── Override + new env ──
-    DATABASE_OPTIONS: ""
-    AI_PROVIDER_TYPE: ""           # new env not yet in chart values.yaml
+  replicaCount: 0
 
 plexalyzer-code:
   existingSecret: plexicus-plexalyzer-code
+  replicaCount: 0
 
 plexalyzer-prov:
   existingSecret: plexicus-plexalyzer-prov
+  replicaCount: 0
 ```
 
 ## 10. Install the Plexicus chart \{#self-hosted_local-evaluation-install}
@@ -488,7 +473,7 @@ Watch pods come up:
 kubectl -n plexicus get pods -w
 ```
 
-Within 3–5 minutes every Plexicus pod (`fastapi`, `frontend`, `worker`, `analysis-scheduler`, `codex-remedium`, `exporter`, `plexalyzer-code`, `plexalyzer-prov`) should be `1/1 Running`. The `temporal-frontend` / `history` / `matching` / `worker` pods restart 3–5 times during the initial schema bootstrap — this is expected.
+Within 3–5 minutes `fastapi`, `frontend`, and `worker` should be `1/1 Running`. The `temporal-frontend` / `history` / `matching` / `worker` pods restart 3–5 times during the initial schema bootstrap — this is expected.
 
 Verify the TLS certificates were issued and the ingresses are bound:
 
@@ -715,6 +700,17 @@ Symptom: filling in the form and clicking Login shows the inline error banner "T
 ### `400 Disallowed CORS origin` from API after login \{#self-hosted_local-evaluation-tt-cors}
 
 Symptom: the SPA can't talk to `api.plexicus.local`. `curl -i -X OPTIONS -H "Origin: https://plexicus.local" .../login` returns `400 Disallowed CORS origin`. Cause: FastAPI reads `CORS_ORIGINS` at startup and `https://plexicus.local` is not in the allow-list (or the env is empty). Fix: chart 1.2.0+ defaults `CORS_ORIGINS` to `<scheme>://<domain>,<scheme>://api.<domain>`. If you're on an older artifact, `kubectl -n plexicus set env deploy/fastapi CORS_ORIGINS=https://plexicus.local,https://api.plexicus.local` and restart the FastAPI rollout.
+
+### Login returns HTTP 500 "Namespace default is not found" \{#self-hosted_local-evaluation-tt-temporal-ns}
+
+Temporal is running but the `default` namespace was never registered. This step was missed (or Temporal wasn't fully ready when step 7's registration command ran). Re-run it:
+
+```bash
+kubectl -n plexicus exec deploy/temporal-admintools -- \
+  tctl --address temporal-frontend:7233 namespace register default
+```
+
+Then retry the login request.
 
 ### Scan stays at "Scanning in progress" forever \{#self-hosted_local-evaluation-tt-scan-stuck}
 
