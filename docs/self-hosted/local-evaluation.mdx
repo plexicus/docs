@@ -249,6 +249,14 @@ kubectl -n plexicus get pods --watch
 
 You should end up with eight `1/1 Running` pods and one `Completed` schema-setup Job.
 
+Once all Temporal pods are `Running`, register the `default` namespace. Login returns `HTTP 500 "Namespace default is not found"` until this step is complete:
+
+```bash
+kubectl -n plexicus exec deploy/temporal-admintools -- \
+  tctl --address temporal-frontend:7233 namespace register default
+# Namespace default successfully registered.
+```
+
 ## 8. Create the per-service application secrets \{#self-hosted_local-evaluation-app-secrets}
 
 Plexicus services read sensitive values (passwords, OAuth client secrets, AI-piloting keys, etc.) from Kubernetes Secrets through the `existingSecret` pattern. Create one Secret per service **before** installing the chart.
@@ -335,7 +343,8 @@ kubectl -n plexicus create secret generic plexicus-analysis-scheduler \
 kubectl -n plexicus create secret generic plexicus-codex-remedium \
   --from-literal=DATABASE_PASSWORD="$DB_PASS" \
   --from-literal=REDIS_PASSWORD="$REDIS_PASS" \
-  --from-literal=PLEXALYZER_SECRET_KEY="$PLEXALYZER_SECRET"
+  --from-literal=PLEXALYZER_SECRET_KEY="$PLEXALYZER_SECRET" \
+  --from-literal=OPENAI_API_KEY=""
 
 kubectl -n plexicus create secret generic plexicus-exporter \
   --from-literal=DATABASE_PASSWORD="$DB_PASS" \
@@ -393,23 +402,10 @@ global:
 fastapi:
   existingSecret: plexicus-fastapi
   envs:
-    # ── Overrides: differ from chart global.required.* defaults ──
-    DATABASE_OPTIONS: ""
-    REDIS_WEBSOCKET_DB: "0"
-    # ── New envs (not yet wired into chart values.yaml) ──
+    # New envs not yet wired into chart values.yaml
     OAUTHLIB_INSECURE_TRANSPORT: "0"
     WEBAUTHN_RP_ID: "plexicus.local"
     WEBAUTHN_ORIGIN: "https://plexicus.local"
-    FREE_AI_REMEDIATION_PROVIDER_TYPE: ""
-    FREE_AI_VALIDATION_PROVIDER_TYPE: ""
-    MAUTIC_URL: ""
-    MAUTIC_TIMEOUT: "30"
-    MAUTIC_VERIFY_SSL: "true"
-    # FastAPI passes plexalyzer connection info into Temporal workflow args.
-    # Without these, the worker receives namespace=None and port=None, which
-    # causes ConnectionError: Couldn't connect to the None on every scan.
-    PLEXALYZER_NAMESPACE: "plexicus"
-    PLEXALYZER_PORT: "8007"
   ingress:
     enabled: true
     hosts:
@@ -422,9 +418,6 @@ fastapi:
 
 frontend:
   existingSecret: plexicus-frontend
-  envs:
-    # ── New env (not yet in chart values.yaml) ──
-    NODE_OPTIONS: ""
   ingress:
     enabled: true
     hosts:
@@ -437,43 +430,14 @@ frontend:
 
 worker:
   existingSecret: plexicus-worker
-  envs:
-    # ── Overrides: differ from chart global.required.* defaults ──
-    DATABASE_OPTIONS: ""
-    # PLEXALYZER_PORT must match the port plexalyzer-code actually listens on
-    # (uvicorn on 0.0.0.0:8007). The chart default ships "50051" which is wrong
-    # and causes ConnectionError: Couldn't connect to the None in every scan.
-    PLEXALYZER_PORT: "8007"
-    # PLEXALYZER_NAMESPACE tells the worker which K8s namespace to search when
-    # resolving the plexalyzer pod IP via the Kubernetes API. Without this the
-    # namespace is None and get_pod_ip() raises ConnectionError on every scan.
-    PLEXALYZER_NAMESPACE: "plexicus"
-    # GAR_* env vars tell create_job() to pull dynamic plexalyzer scan pods
-    # from Google Artifact Registry. Without them the worker falls back to
-    # Azure ACR (no credentials here) and create_job() returns None silently,
-    # causing every scan to fail before any tools run.
-    GAR_LOCATION: "europe-west3"
-    GAR_PROJECT_ID: "plexicus-registry"
-    GAR_REPOSITORY: "platform-standalone"
 
 analysis-scheduler:
   existingSecret: plexicus-analysis-scheduler
-  envs:
-    # ── Override ──
-    DATABASE_OPTIONS: ""
-
-codex-remedium:
-  existingSecret: plexicus-codex-remedium
-  envs:
-    # ── Override ──
-    DATABASE_OPTIONS: ""
+  replicaCount: 0
 
 exporter:
   existingSecret: plexicus-exporter
-  envs:
-    # ── Override + new env ──
-    DATABASE_OPTIONS: ""
-    AI_PROVIDER_TYPE: ""           # new env not yet in chart values.yaml
+  replicaCount: 0
 
 exporter:
   # Disable the exporter on chart 1.2.1 — all published image tags (1.0.386,
@@ -490,26 +454,11 @@ exporter:
 
 plexalyzer-code:
   existingSecret: plexicus-plexalyzer-code
-  # On servers with fewer than 4 vCPU / high CPU contention, the default
-  # request of 500m per plexalyzer pod may leave the pod Pending because the
-  # node is already at its CPU request limit. Lower to 100m for evaluation.
-  resources:
-    requests:
-      cpu: "100m"
-      memory: "500Mi"
-    limits:
-      cpu: "1"
-      memory: "2000Mi"
+  replicaCount: 0
 
 plexalyzer-prov:
   existingSecret: plexicus-plexalyzer-prov
-  resources:
-    requests:
-      cpu: "100m"
-      memory: "500Mi"
-    limits:
-      cpu: "1"
-      memory: "2000Mi"
+  replicaCount: 0
 ```
 
 ## 10. Install the Plexicus chart \{#self-hosted_local-evaluation-install}
@@ -539,7 +488,7 @@ Watch pods come up:
 kubectl -n plexicus get pods -w
 ```
 
-Within 3–5 minutes every Plexicus pod (`fastapi`, `frontend`, `worker`, `analysis-scheduler`, `codex-remedium`, `exporter`, `plexalyzer-code`, `plexalyzer-prov`) should be `1/1 Running`. The `temporal-frontend` / `history` / `matching` / `worker` pods restart 3–5 times during the initial schema bootstrap — this is expected.
+Within 3–5 minutes `fastapi`, `frontend`, and `worker` should be `1/1 Running`. The `temporal-frontend` / `history` / `matching` / `worker` pods restart 3–5 times during the initial schema bootstrap — this is expected.
 
 Verify the TLS certificates were issued and the ingresses are bound:
 
@@ -767,54 +716,20 @@ Symptom: filling in the form and clicking Login shows the inline error banner "T
 
 Symptom: the SPA can't talk to `api.plexicus.local`. `curl -i -X OPTIONS -H "Origin: https://plexicus.local" .../login` returns `400 Disallowed CORS origin`. Cause: FastAPI reads `CORS_ORIGINS` at startup and `https://plexicus.local` is not in the allow-list (or the env is empty). Fix: chart 1.2.0+ defaults `CORS_ORIGINS` to `<scheme>://<domain>,<scheme>://api.<domain>`. If you're on an older artifact, `kubectl -n plexicus set env deploy/fastapi CORS_ORIGINS=https://plexicus.local,https://api.plexicus.local` and restart the FastAPI rollout.
 
-### `exporter` pod crashes with `ImportError: cannot import name '_QUERY_OPTIONS'` \{#self-hosted_local-evaluation-tt-exporter-pymongo}
+### Login returns HTTP 500 "Namespace default is not found" \{#self-hosted_local-evaluation-tt-temporal-ns}
 
-Symptom: `exporter` pod is in `CrashLoopBackOff`; logs show `ImportError: cannot import name '_QUERY_OPTIONS' from 'pymongo.cursor'`. All published exporter image tags (1.0.386, 1.0.395, latest) are affected by a pymongo/motor version conflict. Fix: disable the exporter in your values overlay and helm upgrade command — it is not part of the core scan pipeline:
-
-```yaml
-# values-evaluator.yaml
-exporter:
-  enabled: false
-```
+Temporal is running but the `default` namespace was never registered. This step was missed (or Temporal wasn't fully ready when step 7's registration command ran). Re-run it:
 
 ```bash
-helm upgrade plexicus … --set exporter.enabled=false
+kubectl -n plexicus exec deploy/temporal-admintools -- \
+  tctl --address temporal-frontend:7233 namespace register default
 ```
 
-### Worker logs `ConnectionError: Couldn't connect to the None` on every scan \{#self-hosted_local-evaluation-tt-plexalyzer-namespace}
+Then retry the login request.
 
-Symptom: `kubectl -n plexicus logs deployment/worker -c worker` shows:
+### Scan stays at "Scanning in progress" forever \{#self-hosted_local-evaluation-tt-scan-stuck}
 
-```
-ConnectionError: Couldn't connect to the None. Retrying...
-temporalio.activity - WARNING - Completing activity as failed … activity_type: get_plexalyzer_pod_ip
-```
-
-Cause: `PLEXALYZER_NAMESPACE` is not set in the worker (and fastapi) deployments, so the worker receives `namespace=None` when the Temporal workflow tries to resolve the plexalyzer pod IP via the Kubernetes API. Additionally, `PLEXALYZER_PORT` defaults to `50051` in the chart but plexalyzer-code listens on `8007`.
-
-Fix: add both env vars to `fastapi.envs` and `worker.envs` in the values overlay (already included in the step 9 template above):
-
-```yaml
-PLEXALYZER_NAMESPACE: "plexicus"
-PLEXALYZER_PORT: "8007"
-```
-
-Then `helm upgrade` to apply.
-
-### `plexalyzer-code` / `plexalyzer-prov` pods stuck in `Pending` \{#self-hosted_local-evaluation-tt-plexalyzer-pending}
-
-Symptom: `kubectl -n plexicus describe pod -l app.kubernetes.io/name=plexalyzer-code` shows `Insufficient cpu`. Cause: the default chart requests 500m CPU per plexalyzer pod. On a 4-vCPU node under load, the available CPU budget may already be committed by the other services, leaving no room. Fix: lower the CPU request in the values overlay:
-
-```yaml
-plexalyzer-code:
-  resources:
-    requests:
-      cpu: "100m"
-plexalyzer-prov:
-  resources:
-    requests:
-      cpu: "100m"
-```
+Symptom: the Sandbox flow reaches "Scanning in progress" and the modal "Scanning taking longer than expected" appears after 15 minutes. Worker logs show `openai.OpenAIError: The api_key client option must be set either by passing api_key to the client or by setting the OPENAI_API_KEY environment variable`. Cause: the worker's `existingSecret` (`plexicus-worker`) is missing `OPENAI_API_KEY`. Fix: add it (`kubectl -n plexicus patch secret plexicus-worker --type=json -p='[{"op":"add","path":"/data/OPENAI_API_KEY","value":"<base64-of-your-deepseek-or-openai-key>"}]'`) and restart the worker. Chart 1.2.0+ wires the matching non-secret env vars (`OPENAI_BASE_URL`, `OPENAI_DEPLOYMENT_NAME`, `OPENAI_VERSION`) automatically.
 
 ### Frontend returns `500 [GoogleSignInPlugin]: clientId is required` \{#self-hosted_local-evaluation-tt-google-clientid}
 
@@ -826,39 +741,3 @@ helm upgrade plexicus … \
 ```
 
 For production, replace the placeholder with a real Google OAuth client ID from [console.cloud.google.com](https://console.cloud.google.com).
-
-### `create_job() returned None` — scan starts but no plexalyzer job appears \{#self-hosted_local-evaluation-tt-gar-env}
-
-Symptom: worker logs show the scan workflow starts (activities `get_client`, `get_repository`, `create_scan_request` succeed) but `get_plexalyzer_pod_ip` immediately fails with `ConnectionError: Couldn't connect to the None`. No new plexalyzer Job appears under `kubectl -n plexicus get jobs`.
-
-Cause: `GAR_LOCATION`, `GAR_PROJECT_ID`, `GAR_REPOSITORY` are not set on the worker. The worker's `create_job()` function dynamically spawns a per-scan plexalyzer pod from GAR. When those three env vars are absent, the code silently falls back to Azure Container Registry (`crplexicus.azurecr.io`) which has no credentials in this install, so `create_job()` raises an exception and returns `None`. The subsequent `get_pod_ip(namespace, None)` call produces the misleading "connect to the None" error.
-
-Fix: add the three GAR vars to `worker.envs` in the values overlay (already included in the step 9 template above):
-
-```yaml
-worker:
-  envs:
-    GAR_LOCATION: "europe-west3"
-    GAR_PROJECT_ID: "plexicus-registry"
-    GAR_REPOSITORY: "platform-standalone"
-```
-
-Then `helm upgrade` to apply.
-
-### Worker RBAC 403 when cleaning up plexalyzer job after scan \{#self-hosted_local-evaluation-tt-job-delete-rbac}
-
-Symptom: scan completes successfully but worker logs show a 403 `Forbidden` error: `jobs.batch "plexalyzer-code-…" is forbidden: User "system:serviceaccount:plexicus:worker" cannot delete resource "jobs"`. The scan result is not affected, but the ephemeral plexalyzer Job pod is not cleaned up.
-
-Cause: the chart's `plexicus-worker-pod-manager` Role grants `create` on `batch/jobs` but not `delete`. Fix: patch the role to add `delete`:
-
-```bash
-kubectl -n plexicus patch role plexicus-worker-pod-manager --type=json \
-  -p='[{"op":"add","path":"/rules/2/verbs/-","value":"delete"}]'
-```
-
-Note: `helm upgrade` will revert this patch. A permanent fix requires updating the chart's RBAC template to include `delete` in the `batch/jobs` rule.
-
-### Scan stays at "Scanning in progress" forever \{#self-hosted_local-evaluation-tt-scan-stuck}
-
-Symptom: the Sandbox flow reaches "Scanning in progress" and the modal "Scanning taking longer than expected" appears after 15 minutes. Worker logs show `openai.OpenAIError: The api_key client option must be set either by passing api_key to the client or by setting the OPENAI_API_KEY environment variable`. Cause: the worker's `existingSecret` (`plexicus-worker`) is missing `OPENAI_API_KEY`. Fix: add it (`kubectl -n plexicus patch secret plexicus-worker --type=json -p='[{"op":"add","path":"/data/OPENAI_API_KEY","value":"<base64-of-your-deepseek-or-openai-key>"}]'`) and restart the worker. Chart 1.2.0+ wires the matching non-secret env vars (`OPENAI_BASE_URL`, `OPENAI_DEPLOYMENT_NAME`, `OPENAI_VERSION`) automatically.
-
