@@ -394,6 +394,14 @@ global:
     postgresql:
       password: "<the-temporal-pg-password-from-step-7>"
 
+    # AI piloting keys — required for the worker's AI enrichment pipeline.
+    # Without these, scans hang at "Scanning in progress" with worker logs
+    # showing `openai.OpenAIError: The api_key client option must be set`.
+    # Reuse your OpenAI / DeepSeek / Azure OpenAI key for both values in eval.
+    ai:
+      openAiKeyFree: &oaiKeyFree "<to-fill>"
+      openAiKeySwe: &oaiKeySwe "<to-fill>"
+
     # Turnstile defaults to Cloudflare test tokens (chart 1.2.3+) — eval-friendly
     # out of the box. PRODUCTION DEPLOYMENTS MUST OVERRIDE both siteKey AND
     # secretKey with real keys from dash.cloudflare.com, otherwise the
