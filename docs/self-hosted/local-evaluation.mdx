@@ -9,7 +9,7 @@ import {Steps, Step} from '@site/src/components/steps'
 # Evaluator Installation \{#self-hosted_local-evaluation-1}
 
 :::note
-This guide assumes Plexicus chart **1.2.3 or later** and was validated end-to-end on **Ubuntu 24.04.3 LTS (amd64)** running **k3s v1.35.4** + **Helm v3.20**. It produces a single-node cluster with a publicly reachable IP, suitable for proof-of-value testing on cloud or bare-metal Linux. For production deployments follow the [Self-Hosted Installation](/docs/self-hosted/helm-chart) guide instead.
+This guide assumes Plexicus chart **1.2.4 or later** and was validated end-to-end on **Ubuntu 24.04.3 LTS (amd64)** running **k3s v1.35.4** + **Helm v3.20**. It produces a single-node cluster with a publicly reachable IP, suitable for proof-of-value testing on cloud or bare-metal Linux. For production deployments follow the [Self-Hosted Installation](/docs/self-hosted/helm-chart) guide instead.
 :::
 
 :::warning
@@ -166,7 +166,7 @@ kubectl create secret docker-registry gar-secret \
 
 ## 7. Install the five infrastructure prerequisites \{#self-hosted_local-evaluation-prereqs-install}
 
-The Plexicus chart 1.2.3+ does **not** bundle MongoDB / Redis / MinIO / PostgreSQL / Temporal — bundling them pushed the chart `.tgz` over the 1 MB Kubernetes Secret limit Helm uses for release storage. Install each as its own Helm release in the `plexicus` namespace.
+The Plexicus chart 1.2.4+ does **not** bundle MongoDB / Redis / MinIO / PostgreSQL / Temporal — bundling them pushed the chart `.tgz` over the 1 MB Kubernetes Secret limit Helm uses for release storage. Install each as its own Helm release in the `plexicus` namespace.
 
 :::note Bitnami licensing change (August 2025)
 Bitnami moved their official chart images to a paid distribution. Free legacy images live under `docker.io/bitnamilegacy/*`. The commands below override every image reference (main + init + sidecar containers) accordingly. The `bitnamilegacy/*` images are amd64-only — perfect for this Ubuntu evaluator path.
@@ -282,7 +282,7 @@ MINIO_PASS=<the-minio-password-from-step-7>
 SECRET_KEY=$(openssl rand -hex 32)
 PLEXALYZER_SECRET=$(openssl rand -hex 32)
 NUXT_SECRET=$(openssl rand -hex 32)
-# SSO / SAML / OIDC keys (chart 1.2.3+) — populate even if you don't use SSO
+# SSO / SAML / OIDC keys (chart 1.2.4+) — populate even if you don't use SSO
 # in the eval install; the SAML/OIDC handlers fall back to fail-closed if
 # these are unset, which surfaces as confusing 500s on a half-configured
 # install.
@@ -368,7 +368,7 @@ The empty values are fine for an evaluation install; features that depend on the
 
 ## 9. Prepare the Plexicus values overlay \{#self-hosted_local-evaluation-values}
 
-Save the following as `/root/values-evaluator.yaml`. This is a **minimal overlay** — it only sets values that differ from the chart's built-in `global.required.*` defaults, plus a small set of new environment variables not yet wired into the chart. Infrastructure connection strings (database host, Redis, MinIO, Temporal endpoints, Turnstile test tokens) are already provided by chart 1.2.3+ defaults and do not need to be repeated here.
+Save the following as `/root/values-evaluator.yaml`. This is a **minimal overlay** — it only sets values that differ from the chart's built-in `global.required.*` defaults, plus a small set of new environment variables not yet wired into the chart. Infrastructure connection strings (database host, Redis, MinIO, Temporal endpoints, Turnstile test tokens) are already provided by chart 1.2.4+ defaults and do not need to be repeated here.
 
 ```yaml
 global:
@@ -394,7 +394,15 @@ global:
     postgresql:
       password: "<the-temporal-pg-password-from-step-7>"
 
-    # Turnstile defaults to Cloudflare test tokens (chart 1.2.3+) — eval-friendly
+    # AI piloting keys — required for the worker's AI enrichment pipeline.
+    # Without these, scans hang at "Scanning in progress" with worker logs
+    # showing `openai.OpenAIError: The api_key client option must be set`.
+    # Reuse your OpenAI / DeepSeek / Azure OpenAI key for both values in eval.
+    ai:
+      openAiKeyFree: &oaiKeyFree "<to-fill>"
+      openAiKeySwe: &oaiKeySwe "<to-fill>"
+
+    # Turnstile defaults to Cloudflare test tokens (chart 1.2.4+) — eval-friendly
     # out of the box. PRODUCTION DEPLOYMENTS MUST OVERRIDE both siteKey AND
     # secretKey with real keys from dash.cloudflare.com, otherwise the
     # bot-protection layer is effectively disabled.
@@ -463,7 +471,7 @@ cat /root/keys.json | helm registry login \
   --username _json_key \
   --password-stdin
 
-export CHART_VERSION=1.2.3   # ask engineering@plexicus.ai for the latest published version
+export CHART_VERSION=1.2.4   # ask engineering@plexicus.ai for the latest published version
 
 helm upgrade --install plexicus \
   oci://europe-west3-docker.pkg.dev/plexicus-registry/charts/plexicus \
@@ -619,7 +627,7 @@ The `wait-for-dependencies` initContainer probes `redis-master:6379` and `tempor
 
 ### `pymongo.errors.InvalidURI: MongoDB URI options are key=value pairs.` \{#self-hosted_local-evaluation-tt-mongo-uri}
 
-Symptom: every Plexicus pod CrashLoopBackOff with this Python traceback. Cause: the chart did not propagate `global.required.database.host` into `<service>.envs.DATABASE_HOST`, so the pod sees the literal string `<to-fill>` instead of `mongodb`. This was fixed in chart 1.2.3 — confirm you are not running an older artifact and that `kubectl get deploy fastapi -o yaml | grep -A1 DATABASE_HOST` shows `value: mongodb` (or whatever you set in step 9).
+Symptom: every Plexicus pod CrashLoopBackOff with this Python traceback. Cause: the chart did not propagate `global.required.database.host` into `<service>.envs.DATABASE_HOST`, so the pod sees the literal string `<to-fill>` instead of `mongodb`. This was fixed in chart 1.2.4 — confirm you are not running an older artifact and that `kubectl get deploy fastapi -o yaml | grep -A1 DATABASE_HOST` shows `value: mongodb` (or whatever you set in step 9).
 
 ### `MongoDB Authentication failed` (code 18) \{#self-hosted_local-evaluation-tt-mongo-auth}
 
@@ -627,7 +635,7 @@ The `DATABASE_PASSWORD` in the `plexicus-fastapi` Secret does not match the `aut
 
 ### Frontend ingress returns 503 \{#self-hosted_local-evaluation-tt-frontend-503}
 
-Check `kubectl describe pod -l app.kubernetes.io/name=frontend -n plexicus | grep "Startup:"`. The probe path must be `/`, not `/health` (Nuxt does not expose a `/health` route). Chart 1.2.3+ ships the correct path; older artifacts had `/health` and need to be repackaged. If you packaged the chart yourself, ensure your build did **not** reuse a stale `charts/frontend-*.tgz` from a previous package.
+Check `kubectl describe pod -l app.kubernetes.io/name=frontend -n plexicus | grep "Startup:"`. The probe path must be `/`, not `/health` (Nuxt does not expose a `/health` route). Chart 1.2.4+ ships the correct path; older artifacts had `/health` and need to be repackaged. If you packaged the chart yourself, ensure your build did **not** reuse a stale `charts/frontend-*.tgz` from a previous package.
 
 ### Browser refuses to load `https://plexicus.local` \{#self-hosted_local-evaluation-tt-browser}
 
@@ -637,7 +645,7 @@ The chart uses self-signed certificates by design. On Chrome, type `thisisunsafe
 
 Symptom: opening `/login` shows the title and the OAuth buttons, but the email + password fields render as grey "animate-pulse" pill shapes that never resolve. Cause: Cloudflare Turnstile failed to initialise, usually because `NUXT_PUBLIC_TURNSTILE_SITE_KEY` is the literal `<to-fill>` placeholder. Browser console shows `TurnstileError: Invalid input for parameter "sitekey", got "<to-fill>"`.
 
-Fix: confirm chart 1.2.3+ is installed (it defaults the sitekey to Cloudflare's "always passes" test token), or override `global.required.turnstile.siteKey` and `secretKey` in your values overlay to the test tokens shown in step 9 — or to your real Cloudflare keys for production.
+Fix: confirm chart 1.2.4+ is installed (it defaults the sitekey to Cloudflare's "always passes" test token), or override `global.required.turnstile.siteKey` and `secretKey` in your values overlay to the test tokens shown in step 9 — or to your real Cloudflare keys for production.
 
 ### `Turnstile validation failed, Please try again` after Login \{#self-hosted_local-evaluation-tt-turnstile-validate}
 
@@ -645,7 +653,7 @@ Symptom: filling in the form and clicking Login shows the inline error banner "T
 
 ### `400 Disallowed CORS origin` from API after login \{#self-hosted_local-evaluation-tt-cors}
 
-Symptom: the SPA can't talk to `api.plexicus.local`. `curl -i -X OPTIONS -H "Origin: https://plexicus.local" .../login` returns `400 Disallowed CORS origin`. Cause: FastAPI reads `CORS_ORIGINS` at startup and `https://plexicus.local` is not in the allow-list (or the env is empty). Fix: chart 1.2.3+ defaults `CORS_ORIGINS` to `<scheme>://<domain>,<scheme>://api.<domain>`. If you're on an older artifact, `kubectl -n plexicus set env deploy/fastapi CORS_ORIGINS=https://plexicus.local,https://api.plexicus.local` and restart the FastAPI rollout.
+Symptom: the SPA can't talk to `api.plexicus.local`. `curl -i -X OPTIONS -H "Origin: https://plexicus.local" .../login` returns `400 Disallowed CORS origin`. Cause: FastAPI reads `CORS_ORIGINS` at startup and `https://plexicus.local` is not in the allow-list (or the env is empty). Fix: chart 1.2.4+ defaults `CORS_ORIGINS` to `<scheme>://<domain>,<scheme>://api.<domain>`. If you're on an older artifact, `kubectl -n plexicus set env deploy/fastapi CORS_ORIGINS=https://plexicus.local,https://api.plexicus.local` and restart the FastAPI rollout.
 
 ### Login returns HTTP 500 "Namespace default is not found" \{#self-hosted_local-evaluation-tt-temporal-ns}
 
@@ -660,5 +668,5 @@ Then retry the login request.
 
 ### Scan stays at "Scanning in progress" forever \{#self-hosted_local-evaluation-tt-scan-stuck}
 
-Symptom: the Sandbox flow reaches "Scanning in progress" and the modal "Scanning taking longer than expected" appears after 15 minutes. Worker logs show `openai.OpenAIError: The api_key client option must be set either by passing api_key to the client or by setting the OPENAI_API_KEY environment variable`. Cause: the worker's `existingSecret` (`plexicus-worker`) is missing `OPENAI_API_KEY`. Fix: add it (`kubectl -n plexicus patch secret plexicus-worker --type=json -p='[{"op":"add","path":"/data/OPENAI_API_KEY","value":"<base64-of-your-deepseek-or-openai-key>"}]'`) and restart the worker. Chart 1.2.3+ wires the matching non-secret env vars (`OPENAI_BASE_URL`, `OPENAI_DEPLOYMENT_NAME`, `OPENAI_VERSION`) automatically.
+Symptom: the Sandbox flow reaches "Scanning in progress" and the modal "Scanning taking longer than expected" appears after 15 minutes. Worker logs show `openai.OpenAIError: The api_key client option must be set either by passing api_key to the client or by setting the OPENAI_API_KEY environment variable`. Cause: the worker's `existingSecret` (`plexicus-worker`) is missing `OPENAI_API_KEY`. Fix: add it (`kubectl -n plexicus patch secret plexicus-worker --type=json -p='[{"op":"add","path":"/data/OPENAI_API_KEY","value":"<base64-of-your-deepseek-or-openai-key>"}]'`) and restart the worker. Chart 1.2.4+ wires the matching non-secret env vars (`OPENAI_BASE_URL`, `OPENAI_DEPLOYMENT_NAME`, `OPENAI_VERSION`) automatically.
 
