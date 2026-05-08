@@ -338,7 +338,14 @@ kubectl -n plexicus create secret generic plexicus-frontend \
   --from-literal=NUXT_STRIPE_KEY="" \
   --from-literal=NUXT_PILOTING_KEY="" \
   --from-literal=NUXT_PILOTING_REMEDIATOR_KEY="" \
-  --from-literal=NUXT_TURNSTILE_SECRET_KEY=""
+  --from-literal=NUXT_TURNSTILE_SECRET_KEY="1x0000000000000000000000000000000AA"
+# ^ Cloudflare's "always passes" test secret. Chart 1.2.4+ wires this
+#   default automatically via frontend.envs.NUXT_TURNSTILE_SECRET_KEY,
+#   so this Secret entry is redundant — but kept here as a safety net for
+#   downstream charts that strip the env. For PRODUCTION, set your real
+#   Cloudflare secret in your values overlay
+#   (global.required.turnstile.secretKey) — values in the existingSecret
+#   are ignored because env: takes precedence over envFrom:.
 
 kubectl -n plexicus create secret generic plexicus-analysis-scheduler \
   --from-literal=DATABASE_PASSWORD="$DB_PASS" \
