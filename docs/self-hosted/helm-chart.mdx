@@ -145,15 +145,19 @@ Eight Secrets are required — one per service that has `existingSecret` wired:
 
 The recipe below sets a handful of shell variables once, then creates every Secret. Run it from `~/plexicus-deploy` after step 4. Replace each `<...>` placeholder.
 
+:::caution Passwords must be alphanumeric
+When you choose `DB_PASS`, `REDIS_PASS`, and `MINIO_PASS`, use **only letters and digits** (e.g. `openssl rand -hex 24`). pymongo refuses to URL-encode special characters (`@`, `:`, `/`, `?`, `#`, `%`, `!`, `$`) in connection URIs and will fail with `Username and password must be escaped according to RFC 3986`. Redis and MinIO have similar quoting traps in their clients.
+:::
+
 ```bash
 # === Shared values (set once, used across multiple Secrets) ===
-DB_PASS=<choose-a-strong-mongo-root-password>
-REDIS_PASS=<choose-a-redis-password>
-MINIO_PASS=<choose-a-minio-password>
+DB_PASS='<choose-a-strong-mongo-root-password>'
+REDIS_PASS='<choose-a-redis-password>'
+MINIO_PASS='<choose-a-minio-password>'
 SECRET_KEY=$(openssl rand -hex 32)             # Plexicus signing key
 PLEXALYZER_SECRET=$(openssl rand -hex 32)      # Plexalyzer worker handshake
 NUXT_SECRET=$(openssl rand -hex 32)            # Nuxt session secret
-OPENAI_KEY=<your-openai-or-azure-or-deepseek-api-key>
+OPENAI_KEY='<your-openai-or-azure-or-deepseek-api-key>'
 
 # === Optional integration secrets — leave empty if not used ===
 GH_OAUTH_SECRET=""    # GitHub OAuth client_secret (App or OAuth App)
@@ -175,7 +179,8 @@ kubectl -n plexicus create secret generic plexicus-fastapi \
   --from-literal=SECRET_KEY="$SECRET_KEY" \
   --from-literal=PLEXALYZER_SECRET_KEY="$PLEXALYZER_SECRET" \
   --from-literal=MINIO_ROOT_PASSWORD="$MINIO_PASS" \
-  --from-literal=OPENAI_API_KEY="$OPENAI_KEY" \
+  --from-literal=SWE_OPENAI_API_KEY="$OPENAI_KEY" \
+  --from-literal=DEPLOYMENT_MANAGER_OPENAI_API_KEY_FREE="$OPENAI_KEY" \
   --from-literal=GH_APP_PRIVATE_KEY="" \
   --from-literal=GITHUB_CLIENT_SECRET="$GH_OAUTH_SECRET" \
   --from-literal=GITLAB_CLIENT_SECRET="$GL_OAUTH_SECRET" \
@@ -192,21 +197,18 @@ kubectl -n plexicus create secret generic plexicus-worker \
   --from-literal=PLEXALYZER_SECRET_KEY="$PLEXALYZER_SECRET" \
   --from-literal=GH_APP_PRIVATE_KEY="" \
   --from-literal=MINIO_ROOT_PASSWORD="$MINIO_PASS" \
-  --from-literal=PLEXALYZER_TOKEN="$PLEXALYZER_SECRET" \
-  --from-literal=OPENAI_API_KEY="$OPENAI_KEY"
+  --from-literal=PLEXALYZER_TOKEN="$PLEXALYZER_SECRET"
 
 kubectl -n plexicus create secret generic plexicus-frontend \
   --from-literal=NUXT_SECRET_KEY="$NUXT_SECRET"
 
 kubectl -n plexicus create secret generic plexicus-analysis-scheduler \
-  --from-literal=DATABASE_PASSWORD="$DB_PASS" \
-  --from-literal=OPENAI_API_KEY="$OPENAI_KEY"
+  --from-literal=DATABASE_PASSWORD="$DB_PASS"
 
 kubectl -n plexicus create secret generic plexicus-codex-remedium \
   --from-literal=DATABASE_PASSWORD="$DB_PASS" \
   --from-literal=REDIS_PASSWORD="$REDIS_PASS" \
-  --from-literal=PLEXALYZER_SECRET_KEY="$PLEXALYZER_SECRET" \
-  --from-literal=OPENAI_API_KEY="$OPENAI_KEY"
+  --from-literal=PLEXALYZER_SECRET_KEY="$PLEXALYZER_SECRET"
 
 kubectl -n plexicus create secret generic plexicus-exporter \
   --from-literal=DATABASE_PASSWORD="$DB_PASS" \
@@ -214,8 +216,7 @@ kubectl -n plexicus create secret generic plexicus-exporter \
 
 for s in plexalyzer-code plexalyzer-prov; do
   kubectl -n plexicus create secret generic plexicus-$s \
-    --from-literal=PLEXALYZER_SECRET_KEY="$PLEXALYZER_SECRET" \
-    --from-literal=OPENAI_API_KEY="$OPENAI_KEY"
+    --from-literal=PLEXALYZER_SECRET_KEY="$PLEXALYZER_SECRET"
 done
 
 # Verify

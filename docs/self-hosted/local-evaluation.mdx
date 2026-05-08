@@ -267,16 +267,20 @@ The full key catalog per service is in the chart-bundled `docs/secrets-managemen
 The MongoDB password you set in `plexicus-fastapi`, `plexicus-worker`, `plexicus-analysis-scheduler`, `plexicus-codex-remedium`, and `plexicus-exporter` MUST match the `auth.rootPassword` you used in step 7's `mongodb` install. Mismatches surface as `MongoDB Authentication failed` in `fastapi` logs.
 :::
 
+:::caution Passwords must be alphanumeric
+When you choose `DB_PASS`, `REDIS_PASS`, and `MINIO_PASS`, use **only letters and digits** (e.g. `openssl rand -hex 24`). pymongo refuses to URL-encode special characters (`@`, `:`, `/`, `?`, `#`, `%`, `!`, `$`) in connection URIs and will fail with `Username and password must be escaped according to RFC 3986`. Redis and MinIO have similar quoting traps in their clients.
+:::
+
 ```bash
-OPENAI_API_KEY=<your-openai-or-deepseek-or-azure-openai-key>
-GITHUB_SECRET=<your-github-oauth-client-secret>
-GH_APP_PRIVATE_KEY=<your-github-app-private-key-pem>
+OPENAI_API_KEY='<your-openai-or-deepseek-or-azure-openai-key>'
+GITHUB_SECRET='<your-github-oauth-client-secret>'
+GH_APP_PRIVATE_KEY='<your-github-app-private-key-pem>'
 
 # Use the SAME values you supplied in step 7 — they are not secrets the
 # chart generates, they are the credentials your prereq Helm releases use.
-DB_PASS=<the-mongo-root-password-from-step-7>
-REDIS_PASS=<the-redis-password-from-step-7>
-MINIO_PASS=<the-minio-password-from-step-7>
+DB_PASS='<the-mongo-root-password-from-step-7>'
+REDIS_PASS='<the-redis-password-from-step-7>'
+MINIO_PASS='<the-minio-password-from-step-7>'
 
 # Generate one-off random values for everything else
 SECRET_KEY=$(openssl rand -hex 32)
@@ -302,12 +306,11 @@ kubectl -n plexicus create secret generic plexicus-fastapi \
   --from-literal=BITBUCKET_ACCESS_TOKEN="" \
   --from-literal=MINIO_ROOT_PASSWORD="$MINIO_PASS" \
   --from-literal=SMTP_PASSWORD="" \
-  --from-literal=OPENAI_API_KEY="$OPENAI_API_KEY" \
   --from-literal=BREAK_GLASS_SECRET_KEY="$BREAK_GLASS" \
   --from-literal=SSO_RELAY_STATE_SECRET="$SSO_RELAY" \
   --from-literal=SSO_ENCRYPTION_KEY="$SSO_ENCRYPT" \
-  --from-literal=DEPLOYMENT_MANAGER_OPENAI_API_KEY_FREE="" \
-  --from-literal=SWE_OPENAI_API_KEY="" \
+  --from-literal=DEPLOYMENT_MANAGER_OPENAI_API_KEY_FREE="$OPENAI_API_KEY" \
+  --from-literal=SWE_OPENAI_API_KEY="$OPENAI_API_KEY" \
   --from-literal=STRIPE_API_KEY="" \
   --from-literal=STRIPE_WEBHOOK_SECRET="" \
   --from-literal=CANNY_PRIVATE_TOKEN="" \
@@ -326,8 +329,7 @@ kubectl -n plexicus create secret generic plexicus-worker \
   --from-literal=MINIO_ROOT_PASSWORD="$MINIO_PASS" \
   --from-literal=PLEXALYZER_TOKEN="$PLEXALYZER_SECRET" \
   --from-literal=AZURE_RESOURCE_PASSWORD="" \
-  --from-literal=AZURE_RESOURCE_USERNAME="" \
-  --from-literal=OPENAI_API_KEY="$OPENAI_API_KEY"
+  --from-literal=AZURE_RESOURCE_USERNAME=""
 
 kubectl -n plexicus create secret generic plexicus-frontend \
   --from-literal=NUXT_SECRET_KEY="$NUXT_SECRET" \
@@ -348,14 +350,12 @@ kubectl -n plexicus create secret generic plexicus-frontend \
 #   are ignored because env: takes precedence over envFrom:.
 
 kubectl -n plexicus create secret generic plexicus-analysis-scheduler \
-  --from-literal=DATABASE_PASSWORD="$DB_PASS" \
-  --from-literal=OPENAI_API_KEY="$OPENAI_API_KEY"
+  --from-literal=DATABASE_PASSWORD="$DB_PASS"
 
 kubectl -n plexicus create secret generic plexicus-codex-remedium \
   --from-literal=DATABASE_PASSWORD="$DB_PASS" \
   --from-literal=REDIS_PASSWORD="$REDIS_PASS" \
-  --from-literal=PLEXALYZER_SECRET_KEY="$PLEXALYZER_SECRET" \
-  --from-literal=OPENAI_API_KEY="$OPENAI_API_KEY"
+  --from-literal=PLEXALYZER_SECRET_KEY="$PLEXALYZER_SECRET"
 
 kubectl -n plexicus create secret generic plexicus-exporter \
   --from-literal=DATABASE_PASSWORD="$DB_PASS" \
@@ -363,12 +363,10 @@ kubectl -n plexicus create secret generic plexicus-exporter \
 
 kubectl -n plexicus create secret generic plexicus-plexalyzer-code \
   --from-literal=PLEXALYZER_SECRET_KEY="$PLEXALYZER_SECRET" \
-  --from-literal=OPENAI_API_KEY="$OPENAI_API_KEY" \
   --from-literal=NVD_API_KEY=""
 
 kubectl -n plexicus create secret generic plexicus-plexalyzer-prov \
-  --from-literal=PLEXALYZER_SECRET_KEY="$PLEXALYZER_SECRET" \
-  --from-literal=OPENAI_API_KEY="$OPENAI_API_KEY"
+  --from-literal=PLEXALYZER_SECRET_KEY="$PLEXALYZER_SECRET"
 ```
 
 The empty values are fine for an evaluation install; features that depend on them (GitHub OAuth scanning, AI remediation, transactional email) will be unavailable until you fill them in.
