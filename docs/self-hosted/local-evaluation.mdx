@@ -476,7 +476,7 @@ cat /root/keys.json | helm registry login \
   --username _json_key \
   --password-stdin
 
-export CHART_VERSION=1.2.5   # ask engineering@plexicus.ai for the latest published version
+export CHART_VERSION=1.2.6   # ask engineering@plexicus.ai for the latest published version
 
 helm upgrade --install plexicus \
   oci://europe-west3-docker.pkg.dev/plexicus-registry/charts/plexicus \
