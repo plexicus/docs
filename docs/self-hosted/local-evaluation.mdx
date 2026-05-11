@@ -166,7 +166,7 @@ kubectl create secret docker-registry gar-secret \
 
 ## 7. Install the five infrastructure prerequisites \{#self-hosted_local-evaluation-prereqs-install}
 
-The Plexicus chart 1.2.5+ does **not** bundle MongoDB / Redis / MinIO / PostgreSQL / Temporal — bundling them pushed the chart `.tgz` over the 1 MB Kubernetes Secret limit Helm uses for release storage. Install each as its own Helm release in the `plexicus` namespace.
+By default, the Plexicus chart does **not** deploy MongoDB / Redis / MinIO / PostgreSQL / Temporal — install each as its own Helm release in the `plexicus` namespace, then point the chart at them via `values-evaluator.yaml` in step 9.
 
 :::note Bitnami licensing change (August 2025)
 Bitnami moved their official chart images to a paid distribution. Free legacy images live under `docker.io/bitnamilegacy/*`. The commands below override every image reference (main + init + sidecar containers) accordingly. The `bitnamilegacy/*` images are amd64-only — perfect for this Ubuntu evaluator path.
