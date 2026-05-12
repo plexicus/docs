@@ -436,6 +436,16 @@ fastapi:
 
 frontend:
   existingSecret: plexicus-frontend
+  # Nuxt SSR renders pages server-side and fetches https://api.plexicus.local/...
+  # from inside the pod. The cluster's DNS can't resolve `api.plexicus.local`
+  # (that name only exists in your laptop's /etc/hosts), so SSR fetches fail
+  # and pages render empty/broken. hostAliases adds /etc/hosts entries
+  # *inside the pod* so the SSR request resolves to your ingress LB.
+  # Replace <server-ip> with the EXTERNAL-IP shown by:
+  #   kubectl -n ingress-nginx get svc ingress-nginx-controller
+  hostAliases:
+    - ip: "<server-ip>"
+      hostnames: [api.plexicus.local]
   ingress:
     enabled: true
     hosts:
