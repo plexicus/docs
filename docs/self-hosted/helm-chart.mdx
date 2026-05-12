@@ -9,7 +9,7 @@ import {Steps, Step} from '@site/src/components/steps'
 # Self-Hosted Installation \{#self-hosted_helm-chart-1}
 
 :::note Chart version
-Examples on this page assume chart **1.2.5** or later. For older deployments, contact **[engineering@plexicus.ai](mailto:engineering@plexicus.ai)** for migration guidance.
+Examples on this page assume chart **1.2.7** or later. For older deployments, contact **[engineering@plexicus.ai](mailto:engineering@plexicus.ai)** for migration guidance.
 :::
 
 Plexicus can be deployed on any Kubernetes cluster using the official Helm chart, published to a private Google Artifact Registry (GAR). This guide walks you through every step — from requesting access credentials to a running installation.
@@ -313,7 +313,7 @@ helm upgrade --install temporal temporal/temporal --version 0.73.2 -n plexicus \
 kubectl -n plexicus get pods   # confirm all 5 prereqs are Running before continuing
 ```
 
-The default in-cluster service names produced by these installs are `mongodb`, `redis-master`, `minio`, `temporal-postgresql`, and `temporal-frontend`. Chart 1.2.5+ defaults `global.required.database.host`, `global.required.redis.host`, `global.required.minio.service`, and the wait-loop endpoints to those names — so as long as you used the release names above, the customer overlay does not need to repeat them. Override only when connecting to externally-managed services or when ArgoCD prefixes the release names (see the [ArgoCD section below](#self-hosted_helm-chart-18)).
+The default in-cluster service names produced by these installs are `mongodb`, `redis-master`, `minio`, `temporal-postgresql`, and `temporal-frontend`. Chart 1.2.7+ defaults `global.required.database.host`, `global.required.redis.host`, `global.required.minio.service`, and the wait-loop endpoints to those names — so as long as you used the release names above, the customer overlay does not need to repeat them. Override only when connecting to externally-managed services or when ArgoCD prefixes the release names (see the [ArgoCD section below](#self-hosted_helm-chart-18)).
 
 ---
 
@@ -323,7 +323,7 @@ The default in-cluster service names produced by these installs are `mongodb`, `
 The remaining commands in this guide reference a `$CHART_VERSION` shell variable. Set it once to the version you want to install — your Plexicus contact will provide the current version when you receive registry credentials. To upgrade later, contact **[engineering@plexicus.ai](mailto:engineering@plexicus.ai)** for the latest version.
 
 ```bash
-export CHART_VERSION=1.2.6
+export CHART_VERSION=1.2.7
 ```
 
 This variable persists for the rest of your shell session.
@@ -411,7 +411,7 @@ plexalyzer-prov:
 :::
 
 :::tip Why this overlay is short
-Chart 1.2.5+ defaults the in-cluster service names (`mongodb`, `redis-master`, `minio:9000`), the cross-service URLs (FastAPI's importer / notification / receive endpoints), the AI endpoint (DeepSeek's OpenAI-compatible API), and the Cloudflare Turnstile keys (test tokens for eval). All sensitive values (passwords, OAuth client secrets, API keys, real Turnstile keys for production) come from the eight `existingSecret` references — they are never written into `my-values.yaml`.
+Chart 1.2.7+ defaults the in-cluster service names (`mongodb`, `redis-master`, `minio:9000`), the cross-service URLs (FastAPI's importer / notification / receive endpoints), the AI endpoint (DeepSeek's OpenAI-compatible API), and the Cloudflare Turnstile keys (test tokens for eval). All sensitive values (passwords, OAuth client secrets, API keys, real Turnstile keys for production) come from the eight `existingSecret` references — they are never written into `my-values.yaml`.
 
 Override entries in `global.required.*` only when:
 - you connect the chart to **externally-managed** MongoDB / Redis / MinIO / Temporal (different host/port than the prereq install in step 6 produced),
@@ -798,12 +798,12 @@ Review the release notes provided by the Plexicus team before upgrading. Any bre
 If you manage your cluster with ArgoCD, you can point it directly at the OCI chart instead of using the Helm CLI.
 
 :::tip Validated end-to-end
-The procedure below was validated end-to-end on `demo.plexicus.com` (k3s + ArgoCD v3, Helm chart 1.2.5+). The reference manifest set lives in the chart repo at `argocd/prereqs/applications-prereqs.yaml` and `argocd/application.yaml` — extract via `helm pull --untar` and adapt to your environment. Key gotchas surfaced during validation:
+The procedure below was validated end-to-end on `demo.plexicus.com` (k3s + ArgoCD v3, Helm chart 1.2.7+). The reference manifest set lives in the chart repo at `argocd/prereqs/applications-prereqs.yaml` and `argocd/application.yaml` — extract via `helm pull --untar` and adapt to your environment. Key gotchas surfaced during validation:
 
 - **Prereq service names take the `<release-name>-` prefix.** When ArgoCD creates the Bitnami Helm releases as Applications named `plexicus-mongodb`, `plexicus-redis`, etc., the in-cluster Services are `plexicus-mongodb`, `plexicus-redis-master`, `plexicus-temporal-postgresql`, `plexicus-temporal-frontend`, etc. — not the bare `mongodb` / `redis-master` defaults. Update `global.required.database.host`, `global.required.minio.service`, `global.required.redis.host`, `global.dependencies.temporal.host`, and `global.dependencies.redis.host` in the umbrella Application's `helm.values` block to match. (Setting `fullnameOverride` on each prereq Application is an alternative if you prefer the bare names.)
 - **The AppProject's `sourceRepos` list must include every chart source you reference**, including the OCI registry that hosts the Plexicus chart. Either enumerate them explicitly or use `sourceRepos: ['*']` in development.
 - **Self-signed certificates on the chart's OCI registry break ArgoCD's repo-server pull** even when `insecure: "true"` is set on the repository Secret. Either expose the registry behind an Ingress with a publicly trusted (Let's Encrypt) certificate, OR mount your private CA into the `argocd-repo-server` pod's truststore. The first option is simpler — register a DNS record like `registry.<your-domain>` pointing at the cluster, add a cert-manager-issued LE certificate to the registry's Ingress, and use `https://registry.<your-domain>/charts` as the OCI URL.
-- **Image-tag drift between bundled Plexicus services and the published GAR images.** The chart pins `<service>.image.tag` to the chart version (e.g. `1.2.6`), but the actual GAR images use independent build numbers (`1.0.NNN`) with a `latest` floating tag. Either override `<service>.image.tag: latest` in the umbrella's `helm.values` (acceptable for evaluation), or pin specific build tags per service for reproducible production deployments.
+- **Image-tag drift between bundled Plexicus services and the published GAR images.** The chart pins `<service>.image.tag` to the chart version (e.g. `1.2.7`), but the actual GAR images use independent build numbers (`1.0.NNN`) with a `latest` floating tag. Either override `<service>.image.tag: latest` in the umbrella's `helm.values` (acceptable for evaluation), or pin specific build tags per service for reproducible production deployments.
 :::
 
 <Steps>
@@ -1034,7 +1034,7 @@ The procedure below was validated end-to-end on `demo.plexicus.com` (k3s + ArgoC
       source:
         repoURL: europe-west3-docker.pkg.dev/plexicus-registry/charts
         chart: plexicus
-        targetRevision: "1.2.6"
+        targetRevision: "1.2.7"
         helm:
           values: |
             global:
